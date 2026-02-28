@@ -1022,21 +1022,21 @@ footer a:hover { color: var(--sage-hi); }
 
     <div class="systems-grid reveal">
 
-      <div class="system-card">
-        <button type="button" aria-label="Flip card: Energy">
-          <div class="system-card-inner">
-            <div class="system-front">
-              <div class="system-indicator-amber"></div>
-              <span class="system-name">Energy</span>
-              <span class="system-status-soon">Coming Soon</span>
-            </div>
-            <div class="system-back">
-              <div class="system-indicator-red"></div>
-              <span class="system-question">How many days could you stay in your house without any source of power?</span>
-            </div>
-          </div>
-        </button>
+     <div class="system-card">
+  <a href="energy.html" aria-label="View System 1: Energy">
+    <div class="system-card-inner">
+      <div class="system-front">
+        <div class="system-indicator"></div>
+        <span class="system-name">Energy</span>
+        <span class="system-status">View System</span>
       </div>
+      <div class="system-back">
+        <div class="system-indicator-red"></div>
+        <span class="system-question">How many days could you stay in your house without any source of power?</span>
+      </div>
+    </div>
+  </a>
+</div>
 
       <div class="system-card">
         <a href="water.html" aria-label="View System 2: Water">
@@ -1188,11 +1188,12 @@ footer a:hover { color: var(--sage-hi); }
         </summary>
         <div class="toc-section-body">
 
-          <div class="toc-subsection" style="padding-top:1rem; border-bottom: 1px solid var(--border-light);">
-            <span class="toc-sub-ref" style="color:var(--text-dim);">Sys 1</span>
-            <span class="toc-sub-name" style="color:var(--text-dim);">Energy</span>
-            <span class="toc-section-status toc-status-soon" style="font-size:0.55rem;">Coming Soon</span>
-          </div>
+          <a href="energy.html" class="toc-subsection" style="padding-top:1rem; border-bottom: 1px solid var(--border-light);">
+  <span class="toc-sub-ref">Sys 1</span>
+  <span class="toc-sub-name" style="color:var(--text); font-weight:600;">Energy</span>
+  <span class="toc-section-status toc-status-live" style="font-size:0.55rem;">Live</span>
+  <span class="toc-sub-arrow">&rarr;</span>
+</a>
 
           <a href="water.html" class="toc-subsection">
             <span class="toc-sub-ref">Sys 2</span>
