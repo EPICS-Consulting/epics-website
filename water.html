@@ -1,0 +1,2025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>System 2: Water - EPICS Dash-1</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+
+<style>
+:root {
+  /* Aviation manual palette */
+  --bg:          #f0eee9;
+  --bg-panel:    #e8e5df;
+  --bg-data:     #ffffff;
+  --bg-dark:     #1c1a18;
+  --bg-header:   #2a2826;
+  --border:      #c4c0b8;
+  --border-light:#d8d5cf;
+  --border-dark: #8a8680;
+
+  /* Accent colors */
+  --sage:        #7d8570;
+  --sage-hi:     #99a18a;
+  --sage-dim:    rgba(125,133,112,0.12);
+  --rust:        #c67b5c;
+  --rust-dim:    rgba(198,123,92,0.1);
+  --navy:        #2e4364;
+  --red:         #d82424;
+  --green:       #3ddc84;
+  --green-dim:   rgba(61,220,132,0.1);
+  --amber:       #d4a843;
+  --amber-dim:   rgba(212,168,67,0.1);
+
+  /* Text */
+  --text:        #1c1a18;
+  --text-mid:    #5a5750;
+  --text-dim:    #8a8680;
+  --text-light:  #fafafa;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1.05rem;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 2.5rem;
+  background: var(--bg-dark);
+  border-bottom: 2px solid var(--sage);
+}
+
+.nav-brand {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.nav-links a {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(255,255,255,0.6);
+  transition: color 0.2s;
+}
+
+.nav-links a:hover { color: var(--sage-hi); }
+
+.nav-cta {
+  border: 1px solid var(--rust) !important;
+  color: var(--rust) !important;
+  padding: 0.4rem 1rem;
+  border-radius: 2px;
+}
+
+.nav-cta:hover {
+  background: var(--rust) !important;
+  color: var(--bg-dark) !important;
+}
+
+/* ── SYSTEM HEADER STRIP ── */
+.system-header {
+  margin-top: 52px;
+  background: var(--bg-header);
+  border-bottom: 3px solid var(--sage);
+  padding: 2.5rem 2.5rem 2rem;
+  position: relative;
+}
+
+.system-header::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 200px;
+  height: 3px;
+  background: var(--rust);
+}
+
+.system-designation {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+  margin-bottom: 0.5rem;
+}
+
+.system-title {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+}
+
+.system-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+}
+
+.status-indicator {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(61,220,132,0.6);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.status-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(61,220,132,0.7);
+}
+
+/* ── SECTION NAV (Table of Contents) ── */
+.section-nav {
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  padding: 1.2rem 2.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.5rem;
+  align-items: center;
+}
+
+.section-nav-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-right: 0.5rem;
+}
+
+.section-nav a {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  color: var(--text-mid);
+  padding: 0.3rem 0;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.section-nav a:hover {
+  color: var(--sage);
+  border-bottom-color: var(--sage);
+}
+
+/* ── DOCUMENT BODY ── */
+.doc-body {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 2.5rem 4rem;
+}
+
+/* ── SECTION NUMBERING ── */
+.doc-section {
+  margin-bottom: 3rem;
+  border-top: 2px solid var(--border);
+  padding-top: 2rem;
+}
+
+.section-ref {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 0.3rem;
+}
+
+.section-title {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.subsection-title {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: clamp(0.85rem, 2vw, 1.05rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  margin: 2rem 0 0.8rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px dashed var(--border-light);
+}
+
+.subsection-ref {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 0.2rem;
+  margin-top: 2.5rem;
+}
+
+/* ── DATA PANEL ── */
+.data-panel {
+  background: var(--bg-data);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--sage);
+  border-radius: 2px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.data-panel-header {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+/* ── CALLOUT BOXES ── */
+.callout {
+  border-radius: 2px;
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
+}
+
+.callout-warning {
+  background: var(--amber-dim);
+  border: 1px solid rgba(212,168,67,0.3);
+  border-left: 3px solid var(--amber);
+}
+
+.callout-caution {
+  background: var(--rust-dim);
+  border: 1px solid rgba(198,123,92,0.3);
+  border-left: 3px solid var(--rust);
+}
+
+.callout-note {
+  background: var(--sage-dim);
+  border: 1px solid rgba(125,133,112,0.3);
+  border-left: 3px solid var(--sage);
+}
+
+.callout-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.callout-warning .callout-label { color: var(--amber); }
+.callout-caution .callout-label { color: var(--rust); }
+.callout-note .callout-label { color: var(--sage); }
+
+/* ── FUNDAMENTAL QUESTION ── */
+.fundamental-q {
+  background: var(--bg-header);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-left: 4px solid var(--rust);
+  border-radius: 2px;
+  padding: 2rem 2.5rem;
+  margin: 2rem 0;
+  color: var(--text-light);
+}
+
+.fundamental-q p {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 500;
+  line-height: 1.6;
+  color: rgba(250,250,250,0.85);
+}
+
+/* ══════════════════════════════════════════════
+   INTERACTIVE PRE-FLIGHT CALCULATOR
+   ══════════════════════════════════════════════ */
+.calculator {
+  background: var(--bg-data);
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 2rem 0;
+}
+
+.calc-header {
+  background: var(--bg-header);
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.calc-header-indicator {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px rgba(61,220,132,0.5);
+}
+
+.calc-header-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+}
+
+.calc-body {
+  padding: 2rem;
+}
+
+.calc-row {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.calc-row:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.calc-label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.calc-label small {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.calc-input {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1.1rem;
+  text-align: center;
+  padding: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg);
+  color: var(--text);
+  width: 100%;
+  transition: border-color 0.2s;
+}
+
+.calc-input:focus {
+  outline: none;
+  border-color: var(--sage);
+  box-shadow: 0 0 0 2px var(--sage-dim);
+}
+
+.calc-result {
+  background: var(--bg-header);
+  padding: 1.5rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 2px solid var(--sage);
+}
+
+.calc-result-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+}
+
+.calc-result-value {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 2rem;
+  color: var(--text-light);
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+
+.calc-result-unit {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+}
+
+.score-interp {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.score-level {
+  padding: 0.8rem 0.6rem;
+  text-align: center;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  background: var(--bg-header);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  transition: all 0.3s;
+}
+
+.score-level:last-child { border-right: none; }
+
+.score-level.active { color: var(--bg-dark); font-weight: 700; }
+.score-level.active.level-critical { background: var(--red); color: white; }
+.score-level.active.level-low { background: var(--rust); color: white; }
+.score-level.active.level-moderate { background: var(--amber); }
+.score-level.active.level-good { background: var(--sage-hi); }
+.score-level.active.level-independent { background: var(--green); color: var(--bg-dark); }
+
+.score-level-days {
+  display: block;
+  font-size: 0.7rem;
+  margin-top: 2px;
+  opacity: 0.7;
+}
+
+/* ── PRODUCT CARD ── */
+.product-card {
+  background: var(--bg-data);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 1.5rem 0;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.product-card:hover {
+  border-color: var(--sage);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.product-card-header {
+  background: var(--bg-panel);
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.product-info { flex: 1; }
+
+.product-score-tag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 0.2rem;
+}
+
+.product-name {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+.product-price {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--rust);
+  margin-top: 0.2rem;
+}
+
+.shield {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  min-height: 60px;
+  background: var(--sage-dim);
+  border: 2px solid var(--sage);
+  border-radius: 4px 4px 8px 8px;
+  padding: 0.3rem 0.2rem;
+  flex-shrink: 0;
+}
+
+.shield-inf { border-color: var(--green); background: var(--green-dim); }
+.shield-inf .shield-value, .shield-inf .shield-label { color: #2a9d5c; }
+
+.shield-value {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--sage);
+  line-height: 1;
+}
+
+.shield-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.45rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-top: 0.15rem;
+}
+
+.product-card-body {
+  padding: 1.5rem;
+}
+
+.product-card-body p {
+  color: var(--text-mid);
+  margin-bottom: 1rem;
+}
+
+.product-card-body p:last-child { margin-bottom: 0; }
+
+.product-available {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 0.8rem 1.5rem;
+  border-top: 1px solid var(--border-light);
+  background: var(--bg);
+}
+
+.product-available a {
+  color: var(--sage);
+  text-decoration: none;
+  margin-right: 1.2rem;
+  transition: color 0.2s;
+}
+
+.product-available a:hover { color: var(--rust); }
+
+/* ── COLLAPSIBLE / PROTOCOL ── */
+details.protocol {
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  margin: 1.5rem 0;
+  overflow: hidden;
+}
+
+details.protocol summary {
+  background: var(--bg-panel);
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  list-style: none;
+  transition: background 0.2s;
+}
+
+details.protocol summary::-webkit-details-marker { display: none; }
+details.protocol summary:hover { background: var(--bg-data); }
+
+details.protocol summary::after {
+  content: '+';
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1.2rem;
+  color: var(--sage);
+  transition: transform 0.2s;
+}
+
+details.protocol[open] summary::after { content: '-'; }
+
+details.protocol .protocol-content {
+  padding: 1.5rem;
+  border-top: 1px solid var(--border-light);
+  border-left: 3px solid var(--sage);
+  background: var(--bg-data);
+}
+
+details.protocol .protocol-content ol,
+details.protocol .protocol-content ul {
+  padding-left: 1.5rem;
+}
+
+details.protocol .protocol-content li {
+  margin-bottom: 0.6rem;
+  color: var(--text-mid);
+}
+
+/* ── SOURCE HIERARCHY ── */
+.source-item {
+  background: var(--bg-data);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--navy);
+  border-radius: 2px;
+  padding: 1.2rem 1.5rem;
+  margin: 1rem 0;
+}
+
+.source-rank {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--navy);
+  margin-bottom: 0.3rem;
+}
+
+.source-item p {
+  color: var(--text-mid);
+  margin-bottom: 0.5rem;
+}
+
+.source-item p:last-child { margin-bottom: 0; }
+
+/* ── LOADOUT TABLE ── */
+.loadout-table-wrap {
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.loadout-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.loadout-table thead {
+  background: var(--bg-header);
+}
+
+.loadout-table th {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+  text-align: left;
+  padding: 0.8rem 1rem;
+  border-bottom: 2px solid var(--sage);
+}
+
+.loadout-table td {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-mid);
+}
+
+.loadout-table tbody tr:hover {
+  background: var(--sage-dim);
+}
+
+.loadout-table td:first-child {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.loadout-table td:last-child {
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--sage);
+  font-weight: 700;
+}
+
+/* ── LOADOUT TIER HEADER ── */
+.loadout-tier {
+  background: var(--bg-header);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px;
+  padding: 1.5rem 2rem;
+  margin: 2.5rem 0 1rem;
+}
+
+.loadout-tier-name {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  color: var(--text-light);
+  margin-bottom: 0.3rem;
+}
+
+.loadout-tier-score {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+}
+
+/* ── RATIONING LIST ── */
+.ration-list {
+  counter-reset: ration;
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.ration-list li {
+  counter-increment: ration;
+  padding: 1rem 1.2rem 1rem 3.5rem;
+  border-bottom: 1px solid var(--border-light);
+  position: relative;
+  color: var(--text-mid);
+}
+
+.ration-list li::before {
+  content: counter(ration);
+  position: absolute;
+  left: 0;
+  top: 1rem;
+  width: 2.2rem;
+  height: 2.2rem;
+  background: var(--sage-dim);
+  border: 1px solid var(--sage);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--sage);
+}
+
+.ration-list li strong {
+  color: var(--text);
+}
+
+/* ── BUG-OUT KIT ── */
+.kit-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.kit-item {
+  background: var(--bg-data);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--rust);
+  padding: 0.8rem 1.2rem;
+  border-radius: 2px;
+  font-size: 0.95rem;
+  color: var(--text-mid);
+}
+
+/* ── CONFIGURATION LIST ── */
+.config-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.config-item {
+  background: var(--bg-data);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--sage);
+  padding: 0.8rem 1.2rem;
+  border-radius: 2px;
+}
+
+.config-item strong {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sage);
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.config-item span {
+  font-size: 0.92rem;
+  color: var(--text-mid);
+}
+
+/* ── INTERPRETATION TABLE ── */
+.interp-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.95rem;
+}
+
+.interp-table th {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-align: left;
+  padding: 0.6rem 1rem;
+  border-bottom: 2px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.interp-table td {
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.interp-table td:first-child {
+  font-family: 'Share Tech Mono', monospace;
+  font-weight: 700;
+  color: var(--sage);
+  white-space: nowrap;
+}
+
+/* ── BACK TO TOP ── */
+.back-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 40px;
+  height: 40px;
+  background: var(--bg-dark);
+  border: 1px solid var(--sage);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sage-hi);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1.2rem;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 800;
+}
+
+.back-top.visible { opacity: 1; }
+.back-top:hover { background: var(--sage); color: var(--bg-dark); }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--bg-dark);
+  border-top: 2px solid var(--sage);
+  padding: 2.5rem;
+  text-align: center;
+}
+
+.footer-brand {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  margin-bottom: 0.4rem;
+}
+
+footer a {
+  color: rgba(255,255,255,0.3);
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+footer a:hover { color: var(--sage-hi); }
+
+.footer-tagline {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.2);
+  margin-top: 0.6rem;
+}
+
+.footer-tagline .sub { color: var(--rust); opacity: 0.6; }
+.footer-tagline .jun { color: var(--sage); opacity: 0.6; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  nav { padding: 0.8rem 1.25rem; }
+  .system-header { padding: 2rem 1.25rem 1.5rem; }
+  .section-nav { padding: 1rem 1.25rem; }
+  .doc-body { padding: 1.5rem 1.25rem 3rem; }
+  .calc-row { grid-template-columns: 1fr 100px; }
+  .score-interp { grid-template-columns: repeat(5, 1fr); font-size: 0.5rem; }
+  .loadout-table { font-size: 0.82rem; }
+}
+
+@media (max-width: 480px) {
+  .calc-result { flex-direction: column; text-align: center; gap: 0.5rem; }
+  .score-interp { grid-template-columns: 1fr; }
+  .product-card-header { flex-direction: column; gap: 0.8rem; }
+  .shield { flex-direction: row; width: auto; min-height: auto; padding: 0.4rem 0.8rem; gap: 0.4rem; border-radius: 4px; }
+  .section-nav { gap: 0.2rem 1rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-brand">EPICS Dash-1</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="index.html#systems">Systems</a>
+    <a href="mailto:alex@epics.consulting?subject=Pre%20Flight%20Check%20Inquiry" class="nav-cta">Book</a>
+  </div>
+</nav>
+
+<!-- SYSTEM HEADER STRIP -->
+<header class="system-header">
+  <div class="system-designation">EPICS Dash-1 - Section 2</div>
+  <h1 class="system-title">System 2: Water</h1>
+  <div class="system-status-bar">
+    <div class="status-indicator"></div>
+    <span class="status-text">System Active - Content Current</span>
+  </div>
+</header>
+
+<!-- SECTION NAV -->
+<div class="section-nav">
+  <span class="section-nav-label">Sections:</span>
+  <a href="#overview">2.0 Overview</a>
+  <a href="#preflight">2.1 Pre-Flight</a>
+  <a href="#storage">2.2.1 Storage</a>
+  <a href="#sources">2.2.2 Sources</a>
+  <a href="#transfer">2.2.3 Transfer</a>
+  <a href="#purification">2.2.4 Purification</a>
+  <a href="#filtration">2.2.5 Filtration</a>
+  <a href="#use">2.2.6 Use</a>
+  <a href="#bottled">2.3 Bottled Water</a>
+  <a href="#loadouts">2.4 Loadouts</a>
+  <a href="#config">2.5 Configuration</a>
+  <a href="#maintenance">2.6 Maintenance</a>
+  <a href="#upgrade">2.7 Upgrade</a>
+</div>
+
+<!-- DOCUMENT BODY -->
+<main class="doc-body">
+
+  <!-- ════════════════════════════════════════════
+       2.0 OVERVIEW
+       ════════════════════════════════════════════ -->
+  <section class="doc-section" id="overview">
+    <div class="section-ref">2.0 - Overview</div>
+    <h2 class="section-title">Overview</h2>
+
+    <p>Water is the first system to become critical. Most households in the suburban jungle store weeks of food but often less than a single day of water. Water systems are centralized and invisible, which makes their failure sudden and disruptive.</p>
+
+    <p>The math is unforgiving.</p>
+
+    <div class="data-panel">
+      <div class="data-panel-header">Planning Factors</div>
+      <p><strong>Bare minimum:</strong> 0.5 gallons per person per day (drinking only)<br>
+      <strong>Realistic baseline:</strong> 2.5 gallons per person per day (drinking + cooking + hygiene)<br>
+      <strong>Family of four:</strong> 10 gallons per day. In three days, that's 30 gallons.</p>
+    </div>
+
+    <p>Municipal water feels infinite until it isn't. Pumping stations need electricity. Main breaks happen. Contamination triggers boil notices. And if you're on a well, "water" is actually an energy problem - no power means no pump means no water, regardless of how much is in the ground.</p>
+
+    <p>Unlike energy, water has hard biological limits. You can dim the lights, but you can't dim your kidneys.</p>
+
+    <div class="fundamental-q">
+      <p>If your faucets stopped flowing right now, how many days could your household sustain itself on water alone?</p>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       2.1 PRE-FLIGHT CHECK
+       ════════════════════════════════════════════ -->
+  <section class="doc-section" id="preflight">
+    <div class="section-ref">2.1 - Pre-Flight Check</div>
+    <h2 class="section-title">Pre-Flight Check</h2>
+
+    <p>This is a two-minute self-assessment. Every household water system answers three simple questions:</p>
+
+    <div class="data-panel">
+      <div class="data-panel-header">The Three Questions</div>
+      <p><strong>1.</strong> How much water do you have right now?<br>
+      <strong>2.</strong> How will you get more when that runs out?<br>
+      <strong>3.</strong> How will you make new water safe to drink?</p>
+      <p style="color:var(--text-dim); margin-top:0.8rem; font-size:0.9rem;">Storage answers the first. Sources and Transfer answer the second. Purification and Filtration answer the third.</p>
+    </div>
+
+    <p>To calculate your independence score for water:</p>
+
+    <div class="data-panel">
+      <div class="data-panel-header">Scoring Method</div>
+      <p><strong>1) Daily requirement</strong><br>
+      People: (household size) x 2.5 gallons = daily requirement<br>
+      Pets: add 1 gallon per pet per day (as a planning number)</p>
+      <p style="margin-top:0.5rem;"><strong>2) Stored water on hand (today)</strong><br>
+      How many gallons do you have filled and ready right now?</p>
+      <p style="margin-top:0.5rem;"><strong>3) Water Independence Score (days)</strong><br>
+      Stored gallons / daily requirement = days</p>
+    </div>
+
+    <!-- INTERACTIVE CALCULATOR -->
+    <div class="calculator">
+      <div class="calc-header">
+        <div class="calc-header-indicator"></div>
+        <div class="calc-header-title">Water Independence Calculator</div>
+      </div>
+      <div class="calc-body">
+        <div class="calc-row">
+          <div class="calc-label">
+            People in household
+            <small>x 2.5 gal/day each</small>
+          </div>
+          <input type="number" class="calc-input" id="calc-people" value="4" min="1" max="20">
+        </div>
+        <div class="calc-row">
+          <div class="calc-label">
+            Pets
+            <small>x 1 gal/day each (planning number)</small>
+          </div>
+          <input type="number" class="calc-input" id="calc-pets" value="0" min="0" max="10">
+        </div>
+        <div class="calc-row">
+          <div class="calc-label">
+            Gallons stored right now
+            <small>Filled and ready today</small>
+          </div>
+          <input type="number" class="calc-input" id="calc-gallons" value="0" min="0" max="10000">
+        </div>
+      </div>
+      <div class="calc-result">
+        <div>
+          <div class="calc-result-label">Water Independence Score</div>
+          <div style="font-size:0.75rem; color: rgba(255,255,255,0.35); font-family: 'Share Tech Mono', monospace; margin-top:0.2rem;">
+            <span id="calc-daily">10.0</span> gal/day burn rate
+          </div>
+        </div>
+        <div class="calc-result-value">
+          <span id="calc-score">0.0</span>
+          <span class="calc-result-unit">days</span>
+        </div>
+      </div>
+      <div class="score-interp">
+        <div class="score-level level-critical" id="level-0">
+          0-1 days
+          <span class="score-level-days">Fully dependent</span>
+        </div>
+        <div class="score-level level-low" id="level-3">
+          3 days
+          <span class="score-level-days">Short interruptions</span>
+        </div>
+        <div class="score-level level-moderate" id="level-7">
+          7 days
+          <span class="score-level-days">Most failures</span>
+        </div>
+        <div class="score-level level-good" id="level-14">
+          14+ days
+          <span class="score-level-days">No countdown</span>
+        </div>
+        <div class="score-level level-independent" id="level-inf">
+          &infin;
+          <span class="score-level-days">Access, not storage</span>
+        </div>
+      </div>
+    </div>
+
+    <p>For most households, that number is less than one.</p>
+
+    <div class="data-panel">
+      <div class="data-panel-header">The Binary Question</div>
+      <p><strong>Do you have any way to treat water from questionable sources?</strong></p>
+      <p style="margin-top:0.8rem;"><strong>If YES</strong> (source + transfer + purification + filtration methods in place), then stored water is a bridge to a renewable supply. Your score stops being capped by container size.</p>
+      <p style="margin-top:0.5rem;"><strong>If NO</strong>, your independence has a hard ceiling. When the last container is empty, you're done.</p>
+    </div>
+
+    <div class="callout callout-note">
+      <div class="callout-label">Dependency Check</div>
+      If you're on well water, your water supply depends on your Energy system. No power potentially means no pump means no water. If your Energy Independence Score is zero, your Water Independence Score may be zero too. These systems are often linked.
+    </div>
+
+    <div class="callout callout-note">
+      <div class="callout-label">Need Help?</div>
+      If you want help running your household's Pre-Flight Check, <a href="mailto:alex@epics.consulting?subject=Pre%20Flight%20Check%20Inquiry" style="color:var(--sage); font-weight:600;">schedule one today</a>.
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       2.2 WATER LOADOUT
+       ════════════════════════════════════════════ -->
+  <section class="doc-section" id="loadout-intro">
+    <div class="section-ref">2.2 - Water Loadout</div>
+    <h2 class="section-title">Water Loadout</h2>
+
+    <p>Your water system's independence score is built on six capabilities in order:</p>
+
+    <div class="data-panel">
+      <div class="data-panel-header">Capability Chain</div>
+      <p><strong>1. Water Storage</strong> - sets the floor of your independence score<br>
+      <strong>2. Alternate Water Sources</strong> - removes the ceiling, if:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<strong>2a. Transfer</strong> - you can transport water from alternate sources<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<strong>2b. Purification</strong> - you can remove biological contamination<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<strong>2c. Filtration</strong> - you can remove sediment and chemical contaminants<br>
+      <strong>3. Water Use Discipline</strong> - multiplies your independence score</p>
+    </div>
+
+    <p>These capabilities form a chain. Each one removes a failure mode. If any link is missing, the system fails there.</p>
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       2.2.1 WATER STORAGE
+       ════════════════════════════════════════════ -->
+  <section class="doc-section" id="storage">
+    <div class="section-ref">2.2.1 - Water Storage</div>
+    <h2 class="section-title">Water Storage</h2>
+
+    <p>Storage sets the floor of your water system's independence score. Storage buys time.</p>
+
+    <p>Time to wait for service restoration. Time to identify alternate water sources. Time to deploy your backup capabilities. Without stored water, you're forced to solve the hardest problems immediately.</p>
+
+    <div class="data-panel">
+      <div class="data-panel-header">Baseline Planning Number</div>
+      <p>A family of four at 2.5 gallons per person per day needs 30 gallons for 72 hours. That fits in a corner of your basement. For reference, most hot water heaters hold 40-50 gallons.</p>
+    </div>
+
+    <p>Use food-grade containers for all water storage.</p>
+
+    <div class="callout callout-caution">
+      <div class="callout-label">Caution</div>
+      Non-food-grade containers can leach chemicals, degrade quickly, and promote bacterial growth.
+    </div>
+
+    <details class="protocol">
+      <summary>Water Storage Protocol</summary>
+      <div class="protocol-content">
+        <ol>
+          <li>Fill containers from your tap</li>
+          <li>Add a small amount of unscented household bleach (5-8% sodium hypochlorite) for long-term storage</li>
+          <li>Seal tightly</li>
+          <li>Label with the fill date</li>
+          <li>Store cool, dark, and temperature-stable (basement or ground floor)</li>
+          <li>Avoid garages and direct sunlight</li>
+        </ol>
+        <p style="margin-top: 1rem; color: var(--text-dim); font-size: 0.9rem;">Stored tap water that's treated and sealed properly lasts months. Commercial preservers extend that to years. The important thing is having water on hand before you need it.</p>
+      </div>
+    </details>
+
+    <!-- BOTTLED WATER -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Water Score</div>
+          <div class="product-name">Bottled Water Cases</div>
+          <div class="product-price">~$6 per case of 24</div>
+        </div>
+        <div class="shield">
+          <div class="shield-value">0.5</div>
+          <div class="shield-label">Days</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>Keep a few cases on hand and rotate them as part of normal groceries. Not your primary supply - your grab-and-go and evacuation water.</p>
+      </div>
+    </div>
+
+    <!-- WATERBRICK -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Water Score</div>
+          <div class="product-name">WaterBrick 3.5-gal Stackable (x8)</div>
+          <div class="product-price">~$25 each</div>
+        </div>
+        <div class="shield">
+          <div class="shield-value">2.8</div>
+          <div class="shield-label">Days</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>WaterBrick solved the fundamental problem with water storage: it's heavy and awkward. These are food-grade HDPE containers that cross-stack like oversized LEGO bricks. Eight gives you 28 gallons - nearly three days for a family of four.</p>
+        <p>Modular storage scales cleanly. You add capability one brick at a time rather than committing to a single massive container.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://waterbrick.org" target="_blank">waterbrick.org</a> <a href="https://amazon.com" target="_blank">Amazon</a>
+      </div>
+    </div>
+
+    <!-- AQUA-TAINER -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Water Score</div>
+          <div class="product-name">Reliance Aqua-Tainer 7-gal (x5)</div>
+          <div class="product-price">~$20 each</div>
+        </div>
+        <div class="shield">
+          <div class="shield-value">3.5</div>
+          <div class="shield-label">Days</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>Aqua-Tainers are one of the simplest and most cost-effective ways to establish baseline water storage. Five provides 35 gallons - enough for three and a half days for a family of four.</p>
+        <p>The integrated handle and built-in spigot make dispensing easy without additional pumps or siphons. The rectangular footprint fits efficiently on shelves or along walls.</p>
+        <p>Aqua-Tainers are not as durable or modular as WaterBricks, but they provide an affordable entry point with minimal complexity.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://amazon.com" target="_blank">Amazon</a>
+      </div>
+    </div>
+
+    <!-- WATERPREPARED 55-GAL -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Water Score</div>
+          <div class="product-name">WaterPrepared 55-gal Stackable Tank</div>
+          <div class="product-price">~$120</div>
+        </div>
+        <div class="shield">
+          <div class="shield-value">5.5</div>
+          <div class="shield-label">Days</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>Simple and simplicity is what you want in a backup system. Easy to install, fill, and use. No power or plumbing required. Dual spigots make accessing water straightforward, which matters because water that's difficult to access becomes water you don't rotate, don't maintain, and don't use.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://waterprepared.com" target="_blank">waterprepared.com</a> <a href="https://amazon.com" target="_blank">Amazon</a>
+      </div>
+    </div>
+
+    <div class="callout callout-caution">
+      <div class="callout-label">Caution</div>
+      A 55-gallon tank weighs over 450 pounds when full. Ensure structural loads and limitations are considered prior to placement. Ideally near a sink and a drain.
+    </div>
+
+    <!-- AQUAPOD -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Water Score</div>
+          <div class="product-name">AquaPod Kit 2.0</div>
+          <div class="product-price">~$35</div>
+        </div>
+        <div class="shield">
+          <div class="shield-value">6.5</div>
+          <div class="shield-label">Days</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>Many emergencies give you warning: hours or days before the storm hits, before the boil notice, before the system fails.</p>
+        <p>A bathtub bladder turns your tub into 65 gallons of sealed storage in minutes. Two bathrooms can give a household a major buffer for very little money. This is one of the best dollars-to-days tools in the entire system.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://aquapodkit.com" target="_blank">aquapodkit.com</a> <a href="https://amazon.com" target="_blank">Amazon</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       2.2.2 ALTERNATE WATER SOURCES
+       ════════════════════════════════════════════ -->
+  <section class="doc-section" id="sources">
+    <div class="section-ref">2.2.2 - Alternate Water Sources</div>
+    <h2 class="section-title">Alternate Water Sources</h2>
+
+    <p>Water storage sets the floor of your independence score. Alternate water sources remove the ceiling.</p>
+
+    <p>When your stored water is depleted, your independence does not have to end. It transitions. Your system stops depending on what you stored and starts depending on what you can access, transfer, purify, and filter.</p>
+
+    <p>In the suburban jungle, alternate water sources are everywhere. Most people simply never notice them because they've never needed to.</p>
+
+    <p>Your job is not to create water. Your job is to recognize where it already exists and ensure you can safely use it.</p>
+
+    <div class="subsection-ref">Source Hierarchy: Safest to Most Conditional</div>
+    <h3 class="subsection-title">Source Hierarchy</h3>
+
+    <p>Not all water sources are equal. Some are immediately usable with minimal treatment. Others require more effort and greater caution.</p>
+
+    <div class="source-item">
+      <div class="source-rank">1. Nearby Buildings with Pressurized Water</div>
+      <p>The most reliable and overlooked alternate source.</p>
+      <p>During localized outages, water often remains available in nearby structures due to differences in elevation, pressure zones, or infrastructure routing. Schools, hospitals, office buildings, and neighboring homes may retain pressure even when your home does not.</p>
+      <p>Water utilities rarely fail uniformly. Failures occur in sections. Your home may be dry while a building two blocks away has fully functioning faucets.</p>
+      <p>This is why transfer capability matters.</p>
+    </div>
+
+    <div class="source-item">
+      <div class="source-rank">2. Hot Water Heaters</div>
+      <p>Every suburban home already contains a built-in emergency water reserve. Most hot water heaters hold 40 to 50 gallons of clean, potable water. For a family of four, that's roughly four to five days already inside your home.</p>
+      <p>This water remains usable even if municipal pressure is lost. The heater includes a drain valve near the bottom for accessing stored water.</p>
+    </div>
+
+    <div class="callout callout-note">
+      <div class="callout-label">Note</div>
+      Turn off the heat source to the tank before draining. Open faucets to relieve pressure.
+    </div>
+
+    <div class="source-item">
+      <div class="source-rank">3. Swimming Pools and Spas</div>
+      <p>An average residential pool contains 10,000 to 20,000 gallons. This water is not immediately drinkable - it contains chlorine and environmental contaminants - but it is fully usable after proper purification and filtration.</p>
+      <p>A single neighborhood pool contains enough water to support hundreds of households for extended periods. Access and treatment determine usability.</p>
+    </div>
+
+    <div class="source-item">
+      <div class="source-rank">4. Rainwater</div>
+      <p>Your roof is a large collection surface. Even light rainfall produces meaningful volumes.</p>
+      <p>Rainwater must always be filtered and purified before drinking, but it provides a renewable source that does not depend on infrastructure. During an outage, a bucket under your gutter's downspout is a viable collection method if you have filtration and purification capability.</p>
+      <p>I do not recommend permanent rain collection systems for most suburban households. They require maintenance, space, and behavioral changes that most families will not sustain.</p>
+    </div>
+
+    <div class="source-item">
+      <div class="source-rank">5. Surface Water (Last Resort)</div>
+      <p>Rivers, streams, ponds, and lakes provide abundant water but represent the highest biological risk. Surface water must always be purified and filtered before use. This requires the most complete capability chain. Not your primary plan - your contingency plan.</p>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       2.2.3 WATER TRANSFER
+       ════════════════════════════════════════════ -->
+  <section class="doc-section" id="transfer">
+    <div class="section-ref">2.2.3 - Water Transfer</div>
+    <h2 class="section-title">Water Transfer</h2>
+
+    <p>Once an alternate water source is identified, the next challenge is getting it where you need it.</p>
+
+    <p>Transfer capability is water logistics: containers, pumps, and simple tools that turn alternate sources into accessible supply.</p>
+
+    <details class="protocol">
+      <summary>Water Transfer Protocol</summary>
+      <div class="protocol-content">
+        <p style="margin-bottom:1rem; color:var(--text);">This protocol governs how water moves from alternate sources into your clean drinking supply. The objective: prevent contamination from crossing into your clean system.</p>
+        <p style="margin-bottom:1rem;">I recommend four total jerry cans: two permanently designated for untreated water, two permanently designated for purified water. Color-code them - one color for dirty, one for clean. This creates a visible decontamination boundary that prevents mistakes under stress.</p>
+        <ol>
+          <li>Collect source water using designated dirty-water cans only</li>
+          <li>Strain sediment using cloth or pre-filter if water is visibly cloudy</li>
+          <li>Chemically purify water in dirty-water containers using Aquatabs or bleach</li>
+          <li>Transfer purified water into designated clean-water cans</li>
+          <li>Feed purified water from clean cans into your gravity filtration system</li>
+          <li>Dispense filtered water into drinking containers</li>
+        </ol>
+        <p style="margin-top:1rem; color:var(--text-dim); font-size:0.9rem;">Contamination moves in one direction only: toward purification, never backward into clean storage. With proper handling discipline, your system remains safe, scalable, and renewable indefinitely.</p>
+      </div>
+    </details>
+
+    <div class="subsection-ref">Jerry Cans</div>
+    <h3 class="subsection-title">Jerry Cans</h3>
+
+    <!-- SCEPTER -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Water Score</div>
+          <div class="product-name">Scepter Military Water Cans (x4, two colors)</div>
+          <div class="product-price">~$35 each</div>
+        </div>
+        <div class="shield shield-inf">
+          <div class="shield-value">&infin;</div>
+          <div class="shield-label">Score</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>Four total. Two for dirty water collection from alternate sources. Two for purified water only. This separation prevents cross-contamination, which is one of the most common failure points in improvised water systems.</p>
+        <p>Four cans provide 20 gallons of transport capacity - two sourcing while two remain in the clean zone. Continuous rotation: source, purify, stage, filter, repeat.</p>
+        <p>Scepter cans are the global standard because they're nearly indestructible, easy to carry, and built for decades of service. Their standardized form factor integrates with pumps, siphons, and filtration equipment.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://amazon.com" target="_blank">Amazon</a> &middot; military surplus retailers
+      </div>
+    </div>
+
+    <!-- WAVIAN -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Water Score</div>
+          <div class="product-name">Wavian Steel Jerry Cans (x4, two colors)</div>
+          <div class="product-price">~$80 each</div>
+        </div>
+        <div class="shield shield-inf">
+          <div class="shield-value">&infin;</div>
+          <div class="shield-label">Score</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>Wavian is an Australian company that builds premium jerry cans from stamped steel with an interior epoxy lining. The design descends from the original German Wehrmacht Einheitskanister of the 1930s - one of the most copied industrial designs in history - manufactured to modern standards with decades of refinement.</p>
+        <p>Steel containers do not swell, soften, or degrade the way plastic can over decades. These are permanent equipment, not consumables.</p>
+        <p>Same decontamination protocol: two dirty, two clean, color-separated. The tradeoff is cost and weight - more than double the Scepter in both. For most households, Scepter provides excellent capability at lower cost. Wavian is for those who want lifetime equipment.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://wavian.com" target="_blank">wavian.com</a> <a href="https://amazon.com" target="_blank">Amazon</a>
+      </div>
+    </div>
+
+    <!-- LIFESAVER -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Water Score + Sanitation</div>
+          <div class="product-name">LifeSaver Jerrycan 20000UF (5-gal)</div>
+          <div class="product-price">~$330</div>
+        </div>
+        <div class="shield shield-inf">
+          <div class="shield-value">&infin;</div>
+          <div class="shield-label">Score</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>LifeSaver is a British company founded by Michael Pritchard, an engineer who watched the aftermath of Hurricane Katrina and the Indian Ocean tsunami and decided that people surrounded by water shouldn't be dying of thirst. His TED talk on the technology is worth watching.</p>
+        <p>This is one of the few products I consider a force multiplier. You fill it from any freshwater source and the built-in 0.015-micron filtration removes bacteria, viruses, and parasites immediately. No tablets. No gravity filter. No waiting. The container itself becomes the purification system.</p>
+        <p>The included shower attachment turns it into a gravity-fed sanitation system. Hygiene becomes possible even when infrastructure is gone. That matters more than most people realize - sanitation prevents small problems from becoming medical problems.</p>
+        <p>The filter cartridge treats up to 20,000 liters (over 5,000 gallons), enough to supply a family of four for over a year. No electricity, no batteries, no moving parts.</p>
+        <p>The limitation is capacity - at 5 gallons, it's meant for daily sourcing and filtering rather than bulk storage. And at $330, you're paying for the integrated filtration.</p>
+        <p>I recommend the LifeSaver Jerrycan as part of every bug-out loadout. If you need to leave your home, this single piece of equipment ensures you can source, purify, transport, and use water anywhere you find it.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://iconlifesaver.com" target="_blank">iconlifesaver.com</a> <a href="https://amazon.com" target="_blank">Amazon</a>
+      </div>
+    </div>
+
+    <div class="subsection-ref">Pumps and Dispensing</div>
+    <h3 class="subsection-title">Pumps and Dispensing</h3>
+
+    <p>A full 5-gallon container weighs over 40 pounds. Tipping, pouring, and funneling repeatedly is awkward and inefficient. Over time, this friction discourages proper rotation and use.</p>
+
+    <p>Every household should have a siphon pump. A shaker siphon is the lowest-cost, highest-reliability option - a clear hose with a check valve. Submerge the valve, shake it a few times, and gravity takes over. No batteries, no moving parts, almost nothing to break.</p>
+
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">Transfer Capability</div>
+          <div class="product-name">Lone Rock Motorized Water Pump</div>
+          <div class="product-price">~$55</div>
+        </div>
+        <div class="shield">
+          <div class="shield-value">&mdash;</div>
+          <div class="shield-label">Tool</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>The premium upgrade. USB-C rechargeable with a stainless spout that offers push-button dispensing. The can stays on the ground while water goes where you want it - into your gravity filter, a pot, or a glass. One charge handles multiple full cans.</p>
+        <p>When water access is easy, water gets rotated and used the way it's supposed to.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://lonerockconepts.com" target="_blank">lonerockconepts.com</a> <a href="https://amazon.com" target="_blank">Amazon</a>
+      </div>
+    </div>
+
+    <p style="color:var(--text-dim); font-size:0.92rem;">Each container system I recommend has purpose-built dispensing accessories. Detailed pairing recommendations are available in Section 4.</p>
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       2.2.4 WATER PURIFICATION
+       ════════════════════════════════════════════ -->
+  <section class="doc-section" id="purification">
+    <div class="section-ref">2.2.4 - Water Purification</div>
+    <h2 class="section-title">Water Purification</h2>
+
+    <p>Storage sets the floor of your Water Independence Score. Alternate sources remove the ceiling. Purification is what makes alternate sources usable.</p>
+
+    <p>Without purification capability, alternate water sources are just potential. With it, they become supply.</p>
+
+    <p>Most alternate water sources contain biological contamination - bacteria, viruses, and parasites that can cause severe gastrointestinal illness. In an emergency, this is not an inconvenience. It is a system failure. Illness accelerates dehydration, impairs decision-making, and creates medical problems when medical care may be unavailable.</p>
+
+    <p>Purification eliminates biological threats. This is the step that converts unsafe water into usable water. Purification always happens before filtration and before water enters your clean storage containers.</p>
+
+    <div class="callout callout-warning">
+      <div class="callout-label">Warning</div>
+      Untreated source water can turn a manageable situation into a medical emergency. Giardia, cryptosporidium, bacteria, and viruses cause severe gastrointestinal illness - which accelerates dehydration, which is the thing that can actually kill you. If you're not certain water is safe, treat it.
+    </div>
+
+    <div class="subsection-ref">Method 1: Chemical Purification (Primary)</div>
+    <h3 class="subsection-title">Chemical Purification</h3>
+
+    <p>Chemical purification is the most reliable and scalable method for households in the suburban jungle. No electricity, minimal equipment, works at any scale.</p>
+
+    <div class="data-panel">
+      <div class="data-panel-header">Unscented Household Bleach</div>
+      <p>Unscented household bleach (5-8% sodium hypochlorite) is extremely effective at killing bacteria, viruses, and parasites. Inexpensive, widely available, stores for years.</p>
+      <p style="margin-top:0.8rem;">If in doubt, fill a toothpaste cap with bleach and add it to a gallon of water. Stir thoroughly. Wait 30 minutes. Should smell faintly of chlorine. If not, repeat and wait another 30 minutes.</p>
+      <p style="margin-top:0.8rem;">Every household should have bleach available as a purification fallback.</p>
+    </div>
+
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Water Score (Backup)</div>
+          <div class="product-name">Aquatabs Purification Tablets</div>
+          <div class="product-price">~$12 for 200</div>
+        </div>
+        <div class="shield shield-inf">
+          <div class="shield-value">&infin;</div>
+          <div class="shield-label">Backup</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>Pre-measured chemical purification. Each tablet treats one liter. No measuring required. Compact, lightweight, stores for years. 200 tablets fits in a container smaller than a deck of cards.</p>
+        <p>The taste is noticeable - treated water has a faint chemical quality. Safe but not pleasant. Acceptable for emergency use. Not something you'd choose over a filter.</p>
+        <p>I keep Aquatabs as my primary field purification method and bleach as my infrastructure backup.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://amazon.com" target="_blank">Amazon</a> &middot; most outdoor retailers
+      </div>
+    </div>
+
+    <div class="subsection-ref">Method 2: Boiling (Secondary)</div>
+    <h3 class="subsection-title">Boiling</h3>
+
+    <p>Boiling is the most reliable purification method ever discovered. Heat destroys bacteria, viruses, and parasites completely.</p>
+
+    <p>Bring water to a rolling boil. Maintain for one minute. Allow to cool naturally.</p>
+
+    <p>Boiling does not remove sediment, heavy metals, or chemical contaminants - strain cloudy water first and use your gravity filter afterward when possible. Think of boiling as a biological reset. It makes water safe to drink. Filtration makes it safe to live on long-term.</p>
+
+    <p>The limitation is dependency on energy. Every gallon you boil is fuel you're not using for cooking or heating. This makes boiling an excellent backup method but not the most scalable primary method for sustained operations.</p>
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       2.2.5 WATER FILTRATION
+       ════════════════════════════════════════════ -->
+  <section class="doc-section" id="filtration">
+    <div class="section-ref">2.2.5 - Water Filtration</div>
+    <h2 class="section-title">Water Filtration</h2>
+
+    <p>Purification makes water biologically safe. Filtration makes it operationally safe.</p>
+
+    <p>These are not the same thing.</p>
+
+    <p>Chemical purification and boiling neutralize bacteria, viruses, and parasites. But they do not remove sediment, particulates, chlorine taste, or environmental contaminants. Filtration does.</p>
+
+    <p>Think of purification as sterilization. Think of filtration as refinement.</p>
+
+    <p>Purification allows you to drink water without getting sick. Filtration allows you to live on that water indefinitely.</p>
+
+    <p>Filtration is the final step before water enters your drinking supply. It always happens in the clean zone.</p>
+
+    <div class="subsection-ref">Gravity Filtration System</div>
+    <h3 class="subsection-title">Gravity Filtration</h3>
+
+    <p>Gravity filters are the backbone of a renewable household water system. No electricity, no plumbing, no pressure. Pour water into the upper chamber and gravity pulls it through filter elements into the lower chamber.</p>
+
+    <p>I recommend installing your gravity filter in the kitchen and leaving it there permanently. This keeps your clean zone physically separated from your dirty zone.</p>
+
+    <div class="callout callout-note">
+      <div class="callout-label">Note</div>
+      If you've heard of Berkey: their filters received an EPA stop-sale order and can no longer be legally sold in the United States. The company never obtained NSF certifications.
+    </div>
+
+    <!-- ALEXAPURE -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Water Score</div>
+          <div class="product-name">Alexapure Pro Gravity Water Filter</div>
+          <div class="product-price">~$280</div>
+        </div>
+        <div class="shield shield-inf">
+          <div class="shield-value">&infin;</div>
+          <div class="shield-label">Score</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>The Alexapure Pro is the best overall gravity filtration system for suburban households. Stainless steel construction, no electricity, entirely passive operation. Removes sediment, improves taste, and filters a wide range of environmental contaminants. Certified to reduce bacteria (99.9999%), viruses (99.99%), fluoride (97%+), pesticides, pharmaceuticals, and heavy metals including lead.</p>
+        <p>8.5-liter combined chamber capacity. Accommodates up to four filter elements for faster flow rate - worth noting because single-element flow rate is slow. Fill the upper chamber and let it work rather than waiting by the spigot. Pre-primed filters, minimal setup.</p>
+        <p>200-gallon life per element.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://alexapure.com" target="_blank">alexapure.com</a> <a href="https://amazon.com" target="_blank">Amazon</a>
+      </div>
+    </div>
+
+    <!-- PROONE -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Water Score</div>
+          <div class="product-name">ProOne G2.0 Gravity Water Filter</div>
+          <div class="product-price">~$180 for elements</div>
+        </div>
+        <div class="shield shield-inf">
+          <div class="shield-value">&infin;</div>
+          <div class="shield-label">Score</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>ProOne is a Michigan-based company that's been manufacturing ceramic water filter elements since 2011. The G2.0 is NSF/ANSI-42 component certified, lab tested against 200+ contaminants, and removes fluoride without a separate add-on filter - something the Alexapure requires an additional element for.</p>
+        <p>Ceramic elements are cleanable and reusable, which extends service life well beyond rated capacity. Flow rate is comparable to the Alexapure. If the Alexapure is the premium all-in-one, ProOne is the value play with arguably better filtration science.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://prooneusa.com" target="_blank">prooneusa.com</a> <a href="https://amazon.com" target="_blank">Amazon</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       2.2.6 WATER USE
+       ════════════════════════════════════════════ -->
+  <section class="doc-section" id="use">
+    <div class="section-ref">2.2.6 - Water Use</div>
+    <h2 class="section-title">Water Use</h2>
+
+    <p>Equipment without knowledge is inventory. Knowledge turns inventory into capability.</p>
+
+    <p>Conservation is capability multiplication. Reduce consumption by 25% and you extend endurance by 25%. Cut consumption in half and you double endurance. Water discipline is math.</p>
+
+    <div class="data-panel">
+      <div class="data-panel-header">Free Tip</div>
+      <p>Add Pedialyte packets or Liquid IV to your pantry now. In a water-limited situation, maximizing what your body absorbs from each glass matters more than total volume. Electrolytes make hydration more efficient, and they make kids more willing to drink.</p>
+    </div>
+
+    <div class="subsection-ref">Rationing Protocol (Priority Order)</div>
+    <h3 class="subsection-title">Rationing Protocol</h3>
+
+    <ol class="ration-list">
+      <li><strong>Drinking</strong> - non-negotiable. Everyone gets minimum intake before a gallon goes anywhere else.</li>
+      <li><strong>Cooking</strong> - when water is limited, your food system is affected. Canned goods at room temperature require zero water. Peanut butter sandwiches require zero water. Pasta, rice, and freeze-dried meals all cost water. Plan menus around conservation.</li>
+      <li><strong>Hygiene</strong> - wipes, washcloths, and basins handle most needs.</li>
+      <li><strong>Sanitation</strong> - a standard toilet flush uses 1.6 gallons. Six flushes a day across a family of four is 38 gallons - nearly four days of drinking water. See the Sanitation system for a full discussion on recycling gray water.</li>
+    </ol>
+
+    <div class="subsection-ref">Bug-Out Water Kit</div>
+    <h3 class="subsection-title">Bug-Out Water Kit</h3>
+
+    <p>If you've built your home system from modular, portable components, your evacuation kit is already assembled:</p>
+
+    <div class="kit-list">
+      <div class="kit-item">Bottled water cases (grab-and-go)</div>
+      <div class="kit-item">Aquatabs (backup purification in your pocket)</div>
+      <div class="kit-item">LifeSaver Jerrycan (transport + purification + shower in one unit)</div>
+      <div class="kit-item">Pedialyte / Liquid IV packets</div>
+      <div class="kit-item">Laminated bleach ratio card</div>
+    </div>
+
+    <p style="margin-top:1rem;">The design principle: the best emergency equipment serves you whether you're sheltering in place or on the move.</p>
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       2.3 A NOTE ON BOTTLED WATER
+       ════════════════════════════════════════════ -->
+  <section class="doc-section" id="bottled">
+    <div class="section-ref">2.3 - A Note on Bottled Water</div>
+    <h2 class="section-title">A Note on Bottled Water</h2>
+
+    <p>The most common water strategy in the suburban jungle is buying bottled water when the news says a storm is coming.</p>
+
+    <p>A case of 24 bottles is roughly 3 gallons. A family of four needs 10 gallons per day. That's more than three cases daily just to meet minimum requirements. For 72 hours, you need ten cases. That assumes the store has stock, you get there first, and you have the trunk space. At $6 per case, that's $60 for water you could have stored for a fraction of the cost.</p>
+
+    <p>Bottled water is fine for grab-and-go and evacuation. It is not a water system. All a typical family needs to actually be ready is about $150 in baseline equipment, staged in advance.</p>
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       2.4 YOUR WATER LOADOUTS
+       ════════════════════════════════════════════ -->
+  <section class="doc-section" id="loadouts">
+    <div class="section-ref">2.4 - Your Water Loadouts</div>
+    <h2 class="section-title">Your Water Loadouts</h2>
+
+    <p>Three complete packages, named for the independence they provide. Pick the one that fits, build it, and your Water shield has a number on it.</p>
+
+    <!-- 72-HOUR LOADOUT -->
+    <div class="loadout-tier">
+      <div class="loadout-tier-name">72-Hour Loadout (~$150)</div>
+      <div class="loadout-tier-score">EPICS Water Score: ~4 days stored + 13 days surge + &infin; treatment</div>
+    </div>
+
+    <div class="loadout-table-wrap">
+      <table class="loadout-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Qty</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>WaterBrick 3.5-gal Stackable</td><td>Storage</td><td>8</td><td>2.8 days</td></tr>
+          <tr><td>Scepter Military Water Can (dirty)</td><td>Storage / Transfer</td><td>2</td><td>1.0 day</td></tr>
+          <tr><td>AquaPod Kit 2.0</td><td>Storage (surge)</td><td>2</td><td>13.0 days</td></tr>
+          <tr><td>Bottled water cases</td><td>Storage (grab-and-go)</td><td>2</td><td>0.6 days</td></tr>
+          <tr><td>Aquatabs Purification Tablets</td><td>Purification</td><td>1</td><td>&infin; (backup)</td></tr>
+          <tr><td>Unscented bleach (dedicated bottle)</td><td>Purification</td><td>1</td><td>&infin; (backup)</td></tr>
+          <tr><td>Pedialyte / Liquid IV packets</td><td>Use</td><td>1</td><td>-</td></tr>
+          <tr><td>Laminated bleach ratio card</td><td>Use</td><td>2</td><td>-</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>This is all most families need. $150 in equipment, staged in your basement and bathrooms, gets your household from zero to a Water Independence Score that exceeds 72 hours with basic treatment capability.</p>
+
+    <!-- 7-DAY LOADOUT -->
+    <div class="loadout-tier">
+      <div class="loadout-tier-name">7-Day Loadout (~$700)</div>
+      <div class="loadout-tier-score">EPICS Water Score: ~8+ days stored + surge + gravity filtration &infin;</div>
+    </div>
+
+    <p>Everything in the 72-Hour Loadout, plus:</p>
+
+    <div class="loadout-table-wrap">
+      <table class="loadout-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Qty</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Reliance Aqua-Tainer 7-gal</td><td>Storage</td><td>5</td><td>3.5 days</td></tr>
+          <tr><td>WaterPrepared 55-gal Tank</td><td>Storage</td><td>1</td><td>5.5 days</td></tr>
+          <tr><td>Alexapure Pro OR ProOne G2.0</td><td>Filtration</td><td>1</td><td>&infin; (primary)</td></tr>
+          <tr><td>Scepter Military Water Can (clean)</td><td>Transfer</td><td>2</td><td>&infin; (transfer chain)</td></tr>
+          <tr><td>Shaker siphon pump</td><td>Transfer</td><td>1</td><td>Capability</td></tr>
+          <tr><td>Lone Rock Motorized Water Pump</td><td>Transfer</td><td>1</td><td>Capability</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>You can source, transport, purify, and filter water from any alternate source. Your Water Independence Score effectively has no ceiling.</p>
+
+    <!-- 14-DAY LOADOUT -->
+    <div class="loadout-tier">
+      <div class="loadout-tier-name">14-Day Loadout (~$1,500+)</div>
+      <div class="loadout-tier-score">EPICS Water Score: ~14+ days stored + multi-layer &infin; + cross-system</div>
+    </div>
+
+    <p>Everything in the 7-Day Loadout, plus:</p>
+
+    <div class="loadout-table-wrap">
+      <table class="loadout-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Qty</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Additional WaterBrick 8-pack</td><td>Storage</td><td>1</td><td>2.8 days</td></tr>
+          <tr><td>Additional AquaPod</td><td>Storage (surge)</td><td>1</td><td>6.5 days</td></tr>
+          <tr><td>LifeSaver Jerrycan 20000UF</td><td>Transfer / Purification / Sanitation</td><td>1</td><td>&infin; Water + 1 day Sanitation</td></tr>
+          <tr><td>Wavian Steel Jerry Cans (dirty + clean)</td><td>Transfer</td><td>4</td><td>&infin; (lifetime transfer)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Three independent purification methods (chemical, boiling, LifeSaver), a dedicated gravity filtration system, a filtered shower solution, and a lifetime-grade transfer chain. This is the water system of a household that does not depend on anyone else.</p>
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       2.5 CONFIGURATION
+       ════════════════════════════════════════════ -->
+  <section class="doc-section" id="config">
+    <div class="section-ref">2.5 - Configuration</div>
+    <h2 class="section-title">Configuration</h2>
+
+    <p>Water is heavy. A gallon weighs over eight pounds. Thirty gallons weighs 250 pounds. Where you store it matters.</p>
+
+    <div class="config-list">
+      <div class="config-item">
+        <strong>Primary Storage</strong>
+        <span>Cool, dark, stable temperature, accessible to the household</span>
+      </div>
+      <div class="config-item">
+        <strong>AquaPods</strong>
+        <span>In the bathroom where they'll be deployed</span>
+      </div>
+      <div class="config-item">
+        <strong>Treatment Supplies</strong>
+        <span>Stored with water storage (one station, one location)</span>
+      </div>
+      <div class="config-item">
+        <strong>Transfer Gear</strong>
+        <span>Near your exit point (garage or mudroom)</span>
+      </div>
+      <div class="config-item">
+        <strong>Portable Filtration</strong>
+        <span>In your go-bag or emergency cabinet</span>
+      </div>
+    </div>
+
+    <p>Accessibility beats optimization. Water you can't reach is water you won't use.</p>
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       2.6 MAINTENANCE
+       ════════════════════════════════════════════ -->
+  <section class="doc-section" id="maintenance">
+    <div class="section-ref">2.6 - Maintenance</div>
+    <h2 class="section-title">Maintenance</h2>
+
+    <p>Water is the easiest system to let slide and the most dangerous one to neglect. Stored water doesn't look like it's degrading. Containers don't announce leaks until they leak.</p>
+
+    <div class="subsection-ref">Build It Into Existing Habits</div>
+    <h3 class="subsection-title">Existing Habits</h3>
+
+    <div class="config-list">
+      <div class="config-item">
+        <strong>Groceries</strong>
+        <span>Rotate bottled water as part of groceries</span>
+      </div>
+      <div class="config-item">
+        <strong>Smoke Detectors</strong>
+        <span>Quick visual check of containers when you check smoke detectors</span>
+      </div>
+      <div class="config-item">
+        <strong>Bathrooms</strong>
+        <span>Confirm AquaPods are still staged when you clean bathrooms</span>
+      </div>
+    </div>
+
+    <div class="subsection-ref">Once a Year: Use the Hour You Get Back</div>
+    <h3 class="subsection-title">Annual Check (November DST)</h3>
+
+    <p>When Daylight Saving Time ends in November, spend part of that hour on your water system:</p>
+
+    <details class="protocol">
+      <summary>Annual Maintenance Checklist</summary>
+      <div class="protocol-content">
+        <ul>
+          <li>Rotate stored water</li>
+          <li>Inspect and replace filter elements as needed</li>
+          <li>Check tablet expiration dates</li>
+          <li>Replace AquaPod liners</li>
+          <li>Inspect containers for cracks, discoloration, and degradation</li>
+        </ul>
+        <p style="margin-top: 1rem; color: var(--text-dim); font-size: 0.9rem;">Maintenance preserves capability, not equipment.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       2.7 WHEN TO UPGRADE
+       ════════════════════════════════════════════ -->
+  <section class="doc-section" id="upgrade">
+    <div class="section-ref">2.7 - When to Upgrade</div>
+    <h2 class="section-title">When to Upgrade</h2>
+
+    <p>The equipment in this section covers well beyond 72 hours for most suburban households without professional installation, permits, or a five-figure check.</p>
+
+    <p>You'll know it's time to upgrade when the calculus changes: you're on well water without backup power, you want storage beyond 500 gallons, you live in a high-risk area, or you're doing new construction.</p>
+
+    <p>For those looking at professional-grade water infrastructure:</p>
+
+    <!-- CONSTANT WATER -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">Professional Grade</div>
+          <div class="product-name">Constant Water Emergency Backup System</div>
+          <div class="product-price">~$3,490 for 120 gallons</div>
+        </div>
+        <div class="shield">
+          <div class="shield-value">12</div>
+          <div class="shield-label">Days</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>A closed, battery-powered backup that connects to your main water line and delivers water to your fixtures when pressure drops. No generator required. Patented push technology prevents contamination. It sits in your utility room and you forget it exists until the day you need it.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://constantwater.com" target="_blank">constantwater.com</a>
+      </div>
+    </div>
+
+    <!-- BULL WATER -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">Professional Grade</div>
+          <div class="product-name">BULL Water Systems</div>
+          <div class="product-price">$4,000-$5,700 for 250-750 gallons</div>
+        </div>
+        <div class="shield">
+          <div class="shield-value">25+</div>
+          <div class="shield-label">Days</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>Integrates directly into your main water line with isolated storage and their patented Surflo Control System. Best suited for new construction or major renovations.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://bullwaterstorage.com" target="_blank">bullwaterstorage.com</a>
+      </div>
+    </div>
+
+    <p>Professional systems can be excellent - but they all have dependencies. Municipal systems depend on infrastructure you don't control. Well systems depend on electricity. Many whole-house solutions depend on pressure to refill.</p>
+
+    <p>Your WaterBricks don't need a pump. Your gravity filter doesn't need electricity. Your bleach card doesn't need WiFi.</p>
+
+    <p>Cover the fundamentals first. Then upgrade. Section 5 walks you through how to have that conversation.</p>
+  </section>
+
+</main>
+
+<!-- BACK TO TOP -->
+<a href="#" class="back-top" id="backTop">&uarr;</a>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">EPICS Consulting, LLC</div>
+  <a href="mailto:alex@epics.consulting">alex@epics.consulting</a>
+  <div class="footer-tagline">
+    ERPs for the <span class="sub">Suburban</span> <span class="jun">Jungle</span>
+    &nbsp;&middot;&nbsp; &copy; 2026 EPICS Consulting, LLC
+  </div>
+</footer>
+
+<script>
+// ── CALCULATOR ──
+function updateCalc() {
+  const people = parseFloat(document.getElementById('calc-people').value) || 0;
+  const pets = parseFloat(document.getElementById('calc-pets').value) || 0;
+  const gallons = parseFloat(document.getElementById('calc-gallons').value) || 0;
+
+  const daily = (people * 2.5) + (pets * 1);
+  const score = daily > 0 ? gallons / daily : 0;
+
+  document.getElementById('calc-daily').textContent = daily.toFixed(1);
+  document.getElementById('calc-score').textContent = score.toFixed(1);
+
+  // Update interpretation bar
+  document.querySelectorAll('.score-level').forEach(el => el.classList.remove('active'));
+
+  if (score >= 14) {
+    document.getElementById('level-14').classList.add('active');
+  } else if (score >= 7) {
+    document.getElementById('level-7').classList.add('active');
+  } else if (score >= 3) {
+    document.getElementById('level-3').classList.add('active');
+  } else {
+    document.getElementById('level-0').classList.add('active');
+  }
+}
+
+document.getElementById('calc-people').addEventListener('input', updateCalc);
+document.getElementById('calc-pets').addEventListener('input', updateCalc);
+document.getElementById('calc-gallons').addEventListener('input', updateCalc);
+
+// Initialize
+updateCalc();
+
+// ── BACK TO TOP ──
+const backTop = document.getElementById('backTop');
+window.addEventListener('scroll', () => {
+  backTop.classList.toggle('visible', window.scrollY > 400);
+});
+</script>
+
+</body>
+</html>
