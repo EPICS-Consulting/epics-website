@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>System 1: Energy - EPICS Dash-1</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+
+<style>
+:root {
+  --bg:          #f0eee9;
+  --bg-panel:    #e8e5df;
+  --bg-data:     #ffffff;
+  --bg-dark:     #1c1a18;
+  --bg-header:   #2a2826;
+  --border:      #c4c0b8;
+  --border-light:#d8d5cf;
+  --border-dark: #8a8680;
+
+  --sage:        #7d8570;
+  --sage-hi:     #99a18a;
+  --sage-dim:    rgba(125,133,112,0.12);
+  --rust:        #c67b5c;
+  --rust-dim:    rgba(198,123,92,0.1);
+  --navy:        #2e4364;
+  --navy-dim:    rgba(46,67,100,0.1);
+  --red:         #d82424;
+  --green:       #3ddc84;
+  --green-dim:   rgba(61,220,132,0.1);
+  --amber:       #d4a843;
+  --amber-dim:   rgba(212,168,67,0.1);
+
+  --text:        #1c1a18;
+  --text-mid:    #5a5750;
+  --text-dim:    #8a8680;
+  --text-light:  #fafafa;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1.05rem;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 2.5rem;
+  background: var(--bg-dark);
+  border-bottom: 2px solid var(--sage);
+}
+
+.nav-brand {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  text-decoration: none;
+}
+
+.nav-links { display: flex; align-items: center; gap: 2rem; }
+
+.nav-links a {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(255,255,255,0.6);
+  transition: color 0.2s;
+}
+
+.nav-links a:hover { color: var(--sage-hi); }
+
+.nav-cta {
+  border: 1px solid var(--rust) !important;
+  color: var(--rust) !important;
+  padding: 0.4rem 1rem;
+  border-radius: 2px;
+}
+
+.nav-cta:hover { background: var(--rust) !important; color: var(--bg-dark) !important; }
+
+.system-header {
+  margin-top: 52px;
+  background: var(--bg-header);
+  border-bottom: 3px solid var(--sage);
+  padding: 2.5rem 2.5rem 2rem;
+  position: relative;
+}
+
+.system-header::after {
+  content: '';
+  position: absolute;
+  bottom: -3px; left: 0;
+  width: 200px; height: 3px;
+  background: var(--rust);
+}
+
+.system-designation {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+  margin-bottom: 0.5rem;
+}
+
+.system-title {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+}
+
+.system-status-bar { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.8rem; }
+
+.status-indicator {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(61,220,132,0.6);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+.status-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(61,220,132,0.7);
+}
+
+.section-nav {
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  padding: 1.2rem 2.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.5rem;
+  align-items: center;
+}
+
+.section-nav-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-right: 0.5rem;
+}
+
+.section-nav a {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  color: var(--text-mid);
+  padding: 0.3rem 0;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.section-nav a:hover { color: var(--sage); border-bottom-color: var(--sage); }
+
+.doc-body {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 2.5rem 4rem;
+}
+
+.doc-section {
+  margin-bottom: 3rem;
+  border-top: 2px solid var(--border);
+  padding-top: 2rem;
+}
+
+.section-ref {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 0.3rem;
+}
+
+.section-title {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.subsection-ref {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 0.2rem;
+  margin-top: 2.5rem;
+}
+
+.subsection-title {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: clamp(0.85rem, 2vw, 1.05rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  margin: 0.2rem 0 0.8rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px dashed var(--border-light);
+}
+
+.data-panel {
+  background: var(--bg-data);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--sage);
+  border-radius: 2px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.data-panel-header {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.callout {
+  border-radius: 2px;
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
+}
+
+.callout-warning {
+  background: var(--amber-dim);
+  border: 1px solid rgba(212,168,67,0.3);
+  border-left: 3px solid var(--amber);
+}
+
+.callout-caution {
+  background: var(--rust-dim);
+  border: 1px solid rgba(198,123,92,0.3);
+  border-left: 3px solid var(--rust);
+}
+
+.callout-note {
+  background: var(--sage-dim);
+  border: 1px solid rgba(125,133,112,0.3);
+  border-left: 3px solid var(--sage);
+}
+
+.callout-cross {
+  background: var(--navy-dim);
+  border: 1px solid rgba(46,67,100,0.25);
+  border-left: 3px solid var(--navy);
+}
+
+.callout-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.callout-warning .callout-label { color: var(--amber); }
+.callout-caution .callout-label { color: var(--rust); }
+.callout-note .callout-label    { color: var(--sage); }
+.callout-cross .callout-label   { color: var(--navy); }
+
+.fundamental-q {
+  background: var(--bg-header);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-left: 4px solid var(--rust);
+  border-radius: 2px;
+  padding: 2rem 2.5rem;
+  margin: 2rem 0;
+}
+
+.fundamental-q p {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 500;
+  line-height: 1.6;
+  color: rgba(250,250,250,0.85);
+}
+
+/* ── CALCULATOR ── */
+.calculator {
+  background: var(--bg-data);
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 2rem 0;
+}
+
+.calc-header {
+  background: var(--bg-header);
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.calc-header-indicator {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px rgba(61,220,132,0.5);
+}
+
+.calc-header-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+}
+
+.calc-body { padding: 2rem; }
+
+.calc-section-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.8rem;
+  margin-top: 1.5rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.calc-section-label:first-child { margin-top: 0; }
+
+.calc-check-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.calc-check-row:last-of-type { border-bottom: none; }
+
+.calc-check-row input[type="checkbox"] {
+  margin-top: 0.3rem;
+  width: 16px; height: 16px;
+  accent-color: var(--sage);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.calc-check-label {
+  font-size: 1rem;
+  color: var(--text);
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.calc-check-label small {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.calc-critical-gate {
+  background: var(--amber-dim);
+  border: 1px solid rgba(212,168,67,0.3);
+  border-left: 3px solid var(--amber);
+  border-radius: 2px;
+  padding: 1rem 1.2rem;
+  margin: 1rem 0;
+  display: none;
+}
+
+.calc-critical-gate.visible { display: block; }
+
+.calc-critical-gate-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--amber);
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.calc-result {
+  background: var(--bg-header);
+  padding: 1.5rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 2px solid var(--sage);
+}
+
+.calc-result-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+}
+
+.calc-result-sub {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.35);
+  font-family: 'Share Tech Mono', monospace;
+  margin-top: 0.2rem;
+}
+
+.calc-result-value {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 2rem;
+  color: var(--text-light);
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+
+.calc-result-unit {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+}
+
+.score-interp {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.score-level {
+  padding: 0.8rem 0.6rem;
+  text-align: center;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  background: var(--bg-header);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  transition: all 0.3s;
+}
+
+.score-level:last-child { border-right: none; }
+.score-level.active { font-weight: 700; }
+.score-level.active.level-0 { background: var(--red);    color: white; }
+.score-level.active.level-1 { background: var(--rust);   color: white; }
+.score-level.active.level-2 { background: var(--amber);  color: var(--bg-dark); }
+.score-level.active.level-3 { background: var(--green);  color: var(--bg-dark); }
+
+.score-level-days {
+  display: block;
+  font-size: 0.7rem;
+  margin-top: 2px;
+  opacity: 0.7;
+}
+
+/* ── PRODUCT CARD ── */
+.product-card {
+  background: var(--bg-data);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 1.5rem 0;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.product-card:hover {
+  border-color: var(--sage);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.product-card-header {
+  background: var(--bg-panel);
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.product-info { flex: 1; }
+
+.product-score-tag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 0.2rem;
+}
+
+.product-name {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+.product-price {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--rust);
+  margin-top: 0.2rem;
+}
+
+.shield {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  min-height: 60px;
+  background: var(--sage-dim);
+  border: 2px solid var(--sage);
+  border-radius: 4px 4px 8px 8px;
+  padding: 0.3rem 0.25rem;
+  flex-shrink: 0;
+}
+
+.shield-inf { border-color: var(--green); background: var(--green-dim); }
+.shield-inf .shield-value,
+.shield-inf .shield-label { color: #2a9d5c; }
+
+.shield-value {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--sage);
+  line-height: 1;
+  text-align: center;
+}
+
+.shield-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.4rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-top: 0.2rem;
+  text-align: center;
+}
+
+.product-card-body { padding: 1.5rem; }
+.product-card-body p { color: var(--text-mid); margin-bottom: 1rem; }
+.product-card-body p:last-child { margin-bottom: 0; }
+
+.product-available {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 0.8rem 1.5rem;
+  border-top: 1px solid var(--border-light);
+  background: var(--bg);
+}
+
+.product-available a {
+  color: var(--sage);
+  text-decoration: none;
+  margin-right: 1.2rem;
+  transition: color 0.2s;
+}
+
+.product-available a:hover { color: var(--rust); }
+
+/* ── PROTOCOL ── */
+details.protocol {
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  margin: 1.5rem 0;
+  overflow: hidden;
+}
+
+details.protocol summary {
+  background: var(--bg-panel);
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  list-style: none;
+  transition: background 0.2s;
+}
+
+details.protocol summary::-webkit-details-marker { display: none; }
+details.protocol summary:hover { background: var(--bg-data); }
+details.protocol summary::after { content: '+'; font-family: 'Share Tech Mono', monospace; font-size: 1.2rem; color: var(--sage); }
+details.protocol[open] summary::after { content: '−'; }
+
+details.protocol .protocol-content {
+  padding: 1.5rem;
+  border-top: 1px solid var(--border-light);
+  border-left: 3px solid var(--sage);
+  background: var(--bg-data);
+}
+
+details.protocol .protocol-content ul { padding-left: 1.5rem; }
+details.protocol .protocol-content li { margin-bottom: 0.6rem; color: var(--text-mid); }
+
+/* ── LOADOUT TABLE ── */
+.loadout-table-wrap {
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.loadout-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+
+.loadout-table thead { background: var(--bg-header); }
+
+.loadout-table th {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+  text-align: left;
+  padding: 0.8rem 1rem;
+  border-bottom: 2px solid var(--sage);
+}
+
+.loadout-table td {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-mid);
+}
+
+.loadout-table tbody tr:hover { background: var(--sage-dim); }
+.loadout-table td:first-child { font-weight: 600; color: var(--text); }
+.loadout-table td:last-child { font-family: 'Share Tech Mono', monospace; color: var(--sage); font-weight: 700; }
+
+.loadout-tier {
+  background: var(--bg-header);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px;
+  padding: 1.5rem 2rem;
+  margin: 2.5rem 0 1rem;
+}
+
+.loadout-tier-name {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  color: var(--text-light);
+  margin-bottom: 0.3rem;
+}
+
+.loadout-tier-score {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+}
+
+/* ── CONFIG LIST ── */
+.config-list { display: grid; gap: 0.5rem; margin: 1rem 0; }
+
+.config-item {
+  background: var(--bg-data);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--sage);
+  padding: 0.8rem 1.2rem;
+  border-radius: 2px;
+}
+
+.config-item strong {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sage);
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.config-item span { font-size: 0.92rem; color: var(--text-mid); }
+
+/* ── BACK TO TOP ── */
+.back-top {
+  position: fixed;
+  bottom: 2rem; right: 2rem;
+  width: 40px; height: 40px;
+  background: var(--bg-dark);
+  border: 1px solid var(--sage);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sage-hi);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1.2rem;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 800;
+}
+
+.back-top.visible { opacity: 1; }
+.back-top:hover { background: var(--sage); color: var(--bg-dark); }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--bg-dark);
+  border-top: 2px solid var(--sage);
+  padding: 2.5rem;
+  text-align: center;
+}
+
+.footer-brand {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  margin-bottom: 0.4rem;
+}
+
+footer a { color: rgba(255,255,255,0.3); text-decoration: none; font-size: 0.85rem; }
+footer a:hover { color: var(--sage-hi); }
+
+.footer-tagline {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.2);
+  margin-top: 0.6rem;
+}
+
+.footer-tagline .sub { color: var(--rust); opacity: 0.6; }
+.footer-tagline .jun { color: var(--sage); opacity: 0.6; }
+
+@media (max-width: 768px) {
+  nav { padding: 0.8rem 1.25rem; }
+  .system-header { padding: 2rem 1.25rem 1.5rem; }
+  .section-nav { padding: 1rem 1.25rem; }
+  .doc-body { padding: 1.5rem 1.25rem 3rem; }
+  .score-interp { grid-template-columns: repeat(4, 1fr); font-size: 0.5rem; }
+  .loadout-table { font-size: 0.82rem; }
+}
+
+@media (max-width: 480px) {
+  .calc-result { flex-direction: column; text-align: center; gap: 0.5rem; }
+  .score-interp { grid-template-columns: repeat(2, 1fr); }
+  .product-card-header { flex-direction: column; gap: 0.8rem; }
+  .shield { flex-direction: row; width: auto; min-height: auto; padding: 0.4rem 0.8rem; gap: 0.4rem; border-radius: 4px; }
+  .section-nav { gap: 0.2rem 1rem; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-brand">EPICS Dash-1</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="index.html#systems">Systems</a>
+    <a href="mailto:epic@epicsconsulting.com" class="nav-cta">Book</a>
+  </div>
+</nav>
+
+<header class="system-header">
+  <div class="system-designation">EPICS Dash-1 &mdash; Section 1</div>
+  <h1 class="system-title">System 1: Energy</h1>
+  <div class="system-status-bar">
+    <div class="status-indicator"></div>
+    <span class="status-text">System Active &mdash; Content Current</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <span class="section-nav-label">Sections:</span>
+  <a href="#overview">1.0 Overview</a>
+  <a href="#preflight">1.1 Pre-Flight</a>
+  <a href="#lighting">1.2.1 Lighting</a>
+  <a href="#stored-power">1.2.2 Stored Power</a>
+  <a href="#cooking">1.2.3 Cooking</a>
+  <a href="#heat">1.2.4 Heat &amp; Cooling</a>
+  <a href="#fuel">1.2.5 Fuel</a>
+  <a href="#generated">1.2.6 Generated Power</a>
+  <a href="#generator">1.3 Generator</a>
+  <a href="#loadouts">1.4 Loadouts</a>
+  <a href="#config">1.5 Configuration</a>
+  <a href="#maintenance">1.6 Maintenance</a>
+  <a href="#upgrade">1.7 Upgrade</a>
+</div>
+
+<main class="doc-body">
+
+  <!-- 1.0 OVERVIEW -->
+  <section class="doc-section" id="overview">
+    <div class="section-ref">1.0 &mdash; Overview</div>
+    <h2 class="section-title">Overview</h2>
+
+    <p>Energy is the master system. Every other system in this guide depends on it.</p>
+
+    <p>Your water depends on energy. Municipal pumping stations require electricity to maintain pressure. If you are on a well, the pump requires electricity. Food preservation depends on refrigeration. Medical equipment requires power. Communication devices require charging. Climate control &mdash; which can be critical for vulnerable household members &mdash; requires energy.</p>
+
+    <div class="data-panel">
+      <div class="data-panel-header">The Cascade</div>
+      <p>When grid power fails, capability across every other system degrades simultaneously. A household with zero energy independence will find its water, food, medical, and communication systems degrading within hours &mdash; not because those systems failed, but because their shared dependency failed first.</p>
+    </div>
+
+    <p>The goal is not to replicate grid power. That is neither practical nor necessary. The goal is to maintain critical household functions for 72 hours while you wait for restoration or make other arrangements.</p>
+
+    <div class="fundamental-q">
+      <p>If the grid went down right now, how many hours before your household begins to lose critical function?</p>
+    </div>
+  </section>
+
+  <!-- 1.1 PRE-FLIGHT CHECK -->
+  <section class="doc-section" id="preflight">
+    <div class="section-ref">1.1 &mdash; Pre-Flight Check</div>
+    <h2 class="section-title">Pre-Flight Check</h2>
+
+    <p>Your Energy Independence Score is determined by how many of five capability areas your household has covered. Before calculating your score, there is one binary question that changes the approach entirely.</p>
+
+    <div class="data-panel">
+      <div class="data-panel-header">The Binary Question</div>
+      <p><strong>Does your household have critical loads?</strong></p>
+      <p style="margin-top: 0.8rem;">A critical load is any system that cannot tolerate a power interruption without creating a genuine safety emergency: a well pump (no electricity means no water at all), power-dependent medical equipment (CPAP, oxygen concentrator, nebulizer), or vulnerable household members who require active climate control to remain safe (infants, elderly residents, certain medical conditions).</p>
+      <p style="margin-top: 0.8rem;"><strong>If YES</strong> &mdash; a portable battery system alone is insufficient for your household. You need generator capability. See Section 1.3 before proceeding.</p>
+      <p style="margin-top: 0.5rem;"><strong>If NO</strong> &mdash; a battery and propane configuration can achieve 72-hour independence. Use the calculator below to assess where you stand today.</p>
+    </div>
+
+    <div class="calculator">
+      <div class="calc-header">
+        <div class="calc-header-indicator"></div>
+        <div class="calc-header-title">Energy Independence Calculator</div>
+      </div>
+      <div class="calc-body">
+
+        <div class="calc-section-label">Step 1 &mdash; Critical Load Assessment</div>
+
+        <div class="calc-check-row">
+          <input type="checkbox" id="cl-well" onchange="updateCalc()">
+          <label for="cl-well" class="calc-check-label">Well pump
+            <small>On well water, not municipal</small>
+          </label>
+        </div>
+        <div class="calc-check-row">
+          <input type="checkbox" id="cl-medical" onchange="updateCalc()">
+          <label for="cl-medical" class="calc-check-label">Power-dependent medical equipment
+            <small>CPAP, oxygen concentrator, nebulizer, or equivalent</small>
+          </label>
+        </div>
+        <div class="calc-check-row">
+          <input type="checkbox" id="cl-climate" onchange="updateCalc()">
+          <label for="cl-climate" class="calc-check-label">Vulnerable household members requiring climate control
+            <small>Infants, elderly residents, or medical conditions affected by heat or cold</small>
+          </label>
+        </div>
+
+        <div class="calc-critical-gate" id="critical-gate">
+          <div class="calc-critical-gate-label">Generator Required</div>
+          Your household has critical loads. A battery and propane configuration alone is insufficient. See Section 1.3 for generator guidance before completing this assessment. Your capability score below reflects non-critical systems only.
+        </div>
+
+        <div class="calc-section-label" style="margin-top: 2rem;">Step 2 &mdash; Capability Assessment</div>
+        <p style="color: var(--text-dim); font-size: 0.88rem; margin-bottom: 1rem;">Check each capability area your household currently has covered. All five are required for 72-hour energy independence.</p>
+
+        <div class="calc-check-row">
+          <input type="checkbox" id="cap-lighting" onchange="updateCalc()">
+          <label for="cap-lighting" class="calc-check-label">Lighting
+            <small>At least one area lantern per main living space and one headlamp per adult</small>
+          </label>
+        </div>
+        <div class="calc-check-row">
+          <input type="checkbox" id="cap-power" onchange="updateCalc()">
+          <label for="cap-power" class="calc-check-label">Phone charging
+            <small>Power bank capacity sufficient for all household devices over 72 hours</small>
+          </label>
+        </div>
+        <div class="calc-check-row">
+          <input type="checkbox" id="cap-cooking" onchange="updateCalc()">
+          <label for="cap-cooking" class="calc-check-label">Cooking
+            <small>Non-electric cooking method with at least two full 20-lb propane tanks on hand</small>
+          </label>
+        </div>
+        <div class="calc-check-row">
+          <input type="checkbox" id="cap-climate" onchange="updateCalc()">
+          <label for="cap-climate" class="calc-check-label">Climate management
+            <small>Indoor-safe propane heater (cold months) or battery-powered fans (warm months)</small>
+          </label>
+        </div>
+        <div class="calc-check-row">
+          <input type="checkbox" id="cap-backup" onchange="updateCalc()">
+          <label for="cap-backup" class="calc-check-label">Backup power
+            <small>At least one portable power station with solar panel capability</small>
+          </label>
+        </div>
+
+      </div>
+
+      <div class="calc-result">
+        <div>
+          <div class="calc-result-label">Energy Independence Score</div>
+          <div class="calc-result-sub"><span id="calc-covered">0</span> of 5 capabilities covered</div>
+        </div>
+        <div class="calc-result-value">
+          <span id="calc-score">0</span>
+          <span class="calc-result-unit">days</span>
+        </div>
+      </div>
+
+      <div class="score-interp">
+        <div class="score-level level-0" id="level-0">Not Mission Capable<span class="score-level-days">0 days</span></div>
+        <div class="score-level level-1" id="level-1">Limited<span class="score-level-days">1 day</span></div>
+        <div class="score-level level-2" id="level-2">Partial<span class="score-level-days">2 days</span></div>
+        <div class="score-level level-3" id="level-3">Mission Capable<span class="score-level-days">3+ days</span></div>
+      </div>
+    </div>
+
+    <p>For most households, that number is zero. The sections below tell you exactly what to acquire, in what order, to reach Mission Capable.</p>
+
+    <div class="callout callout-note">
+      <div class="callout-label">Need Help?</div>
+      If you want help running your household's Pre-Flight Check, <a href="mailto:epic@epicsconsulting.com" style="color: var(--sage); font-weight: 600;">schedule one today</a>.
+    </div>
+  </section>
+
+  <!-- 1.2 ENERGY LOADOUT INTRO -->
+  <section class="doc-section" id="loadout-intro">
+    <div class="section-ref">1.2 &mdash; Energy Loadout</div>
+    <h2 class="section-title">Energy Loadout</h2>
+
+    <p>Your Energy Independence Score is built on five capability areas. Each one removes a failure mode. If any is missing, your system fails there.</p>
+
+    <div class="data-panel">
+      <div class="data-panel-header">Capability Chain</div>
+      <p><strong>1. Lighting</strong> &mdash; immediate function when grid power fails<br>
+      <strong>2. Stored Power</strong> &mdash; keeps devices charged and extends battery-dependent capabilities<br>
+      <strong>3. Cooking</strong> &mdash; maintains food preparation independent of electric appliances<br>
+      <strong>4. Heat &amp; Cooling</strong> &mdash; manages climate without grid electricity<br>
+      <strong>5. Generated Power</strong> &mdash; produces AC power to run appliances and regenerate stored capacity</p>
+    </div>
+
+    <p>Propane is the fuel that connects capabilities 3, 4, and 5. It is addressed in Section 1.2.5 as its own capability area because fuel management is a system discipline, not just a product decision. Work through these sections in order. Each builds on the last.</p>
+  </section>
+
+  <!-- 1.2.1 LIGHTING -->
+  <section class="doc-section" id="lighting">
+    <div class="section-ref">1.2.1 &mdash; Lighting</div>
+    <h2 class="section-title">Lighting</h2>
+
+    <p>Lighting is the first thing you lose and the first thing you need back. The standard here is not flashlights. Flashlights produce a single beam that requires a hand to hold. You need two categories: area lighting that illuminates a room so life can continue, and task lighting that follows you wherever you look.</p>
+
+    <div class="subsection-ref">Area Lighting</div>
+    <h3 class="subsection-title">Area Lighting</h3>
+
+    <p>Area lighting sits on a counter and illuminates a room. In the immediate hours of an outage, one lantern in the kitchen and one in each sleeping area is the difference between a manageable situation and an anxious one. In a pinch: a flashlight pointed into a translucent water bottle diffuses the beam into usable area light. A headlamp aimed into a white plastic bag does the same. Neither is elegant, but both get a household through a first night.</p>
+
+    <div class="subsection-ref">Task Lighting</div>
+    <h3 class="subsection-title">Task Lighting</h3>
+
+    <p>Every adult in the household needs hands-free task lighting. Running extension cords, connecting equipment, cooking, attending to children in the dark &mdash; all require both hands and directed light. 200&ndash;300 lumens handles most domestic tasks. For close-up work, 30&ndash;80 lumens is preferable; anything brighter at arm's length is blinding and burns batteries faster. Choose headlamps with a red light mode. White light at full power destroys night vision and is disruptive in shared spaces.</p>
+
+    <!-- EVERBRITE 5-PACK -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Energy Score &mdash; Task Lighting</div>
+          <div class="product-name">EverBrite Headlamp 5-Pack</div>
+          <div class="product-price">~$25</div>
+        </div>
+        <div class="shield">
+          <div class="shield-value">&times;5</div>
+          <div class="shield-label">HH Coverage</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>The EverBrite earns its place for one reason: mass coverage. One pack gives every adult and older child in the household their own headlamp. The varying headband colors solve the practical problem of multiple identical lights in a shared cabinet. At $25 for five, this is not a budget compromise &mdash; it is the right tool for household-scale deployment.</p>
+        <p>Specifications: 300 lumens, AAA batteries, red light mode included. Runtime of approximately 8 hours on high, longer on reduced settings. The limitation is that AAA batteries are consumables; rotate your battery supply annually and keep lithium spares on hand.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://amazon.com" target="_blank">Amazon</a>
+      </div>
+    </div>
+
+    <!-- FENIX HL45R -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Energy Score &mdash; Task Lighting</div>
+          <div class="product-name">Fenix HL45R Rechargeable Headlamp</div>
+          <div class="product-price">~$80</div>
+        </div>
+        <div class="shield shield-inf">
+          <div class="shield-value">&infin;</div>
+          <div class="shield-label">HRS</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>The HL45R earns its infinite runtime rating through a specific design choice: it ships with a USB-C rechargeable battery and also accepts three standard AAA batteries. When the rechargeable is depleted, you swap in disposables and continue. That dual-power-source architecture is the kind of redundancy that belongs in primary emergency equipment.</p>
+        <p>Output reaches 1,000 lumens at maximum, but 130 lumens on medium handles most household tasks without burning capacity. Analog dials control brightness, eliminating fumbling through button sequences in the dark. The beam adjusts from focused spot to wide flood. Red light mode included. Aircraft-grade aluminum, IP66 waterproofing, 5-year warranty.</p>
+        <p>With a solar charging path for the USB-C battery via the PaleBlue system in Section 1.2.2, this light operates fully independent of the grid indefinitely.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://amazon.com" target="_blank">Amazon</a> &middot; <a href="https://fenixlighting.com" target="_blank">fenixlighting.com</a>
+      </div>
+    </div>
+
+    <!-- FENIX CL28R -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Energy Score &mdash; Area Lighting + Stored Power</div>
+          <div class="product-name">Fenix CL28R Area Lantern</div>
+          <div class="product-price">~$100</div>
+        </div>
+        <div class="shield shield-inf">
+          <div class="shield-value">&infin;</div>
+          <div class="shield-label">HRS</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>At 2,000 lumens maximum, the CL28R illuminates a room without supplemental lighting. Analog dials control both brightness and color temperature from full white down to warm amber &mdash; which matters when managing battery life and household sleep cycles during a multi-day outage. Runtime reaches 360 hours on the lowest setting, charged via USB-C.</p>
+        <p>Aircraft-grade aluminum, IP66 waterproof, magnetic base for mounting to any metal surface. Stage one permanently in the kitchen or main living area, plugged in between uses.</p>
+      </div>
+    </div>
+
+    <div class="callout callout-cross">
+      <div class="callout-label">Cross-System: Stored Power</div>
+      The Fenix CL28R doubles as a 10,000mAh power bank. Your area lantern can simultaneously charge phones and devices via USB-C. One product covers two capability areas &mdash; area lighting and stored power &mdash; which adds redundancy to your charging system. If your primary power bank is depleted, the CL28R is a backup source as long as it retains charge.
+    </div>
+  </section>
+
+  <!-- 1.2.2 STORED POWER -->
+  <section class="doc-section" id="stored-power">
+    <div class="section-ref">1.2.2 &mdash; Stored Power</div>
+    <h2 class="section-title">Stored Power</h2>
+
+    <p>Many devices your household depends on do not use replaceable batteries. Phones, tablets, and medical devices require dedicated charging solutions. Stored power addresses two categories: replaceable batteries for lights and radios, and power banks for USB-charged devices.</p>
+
+    <div class="subsection-ref">Batteries</div>
+    <h3 class="subsection-title">Batteries</h3>
+
+    <p>Not all disposable batteries are equal for emergency storage. Standard alkaline batteries last approximately five years on the shelf and perform adequately in most devices, but can leak in equipment that sits unused. Energizer Ultimate Lithium disposables are the better choice for a dedicated emergency supply: 20-year shelf life, extreme temperature performance, and they do not leak. The higher per-unit cost is justified when batteries will sit untouched for months. Whichever you choose: buy in bulk, label the purchase date, store organized by size, rotate annually, and keep a battery tester in the kit.</p>
+
+    <!-- PALEBLUE -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Energy Score &mdash; Batteries</div>
+          <div class="product-name">PaleBlue AA &amp; AAA Solar Power Kit</div>
+          <div class="product-price">~$125&ndash;200</div>
+        </div>
+        <div class="shield shield-inf">
+          <div class="shield-value">&infin;</div>
+          <div class="shield-label">Cycles</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>PaleBlue manufactures USB-C rechargeable batteries in standard AA and AAA form factors. Each charges in approximately one hour, holds a constant 1.5 volts across its discharge cycle, and is rated for over 1,000 charge cycles. These replace disposables across your entire lighting and radio supply without changing any equipment.</p>
+        <p>The solar panel is what elevates PaleBlue from a quality rechargeable to a system-level capability. The included panel folds flat, attaches to a pack or window via included cords, and produces enough output to charge batteries and a phone simultaneously in adequate sunlight &mdash; entirely independent of the grid. Batteries that charge from the sun have no dependency on stored fuel, wall power, or generator runtime. That is genuine energy independence at the battery level.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://paleblueearth.com" target="_blank">paleblueearth.com</a> &middot; military and first responder discounts available
+      </div>
+    </div>
+
+    <div class="callout callout-cross">
+      <div class="callout-label">Cross-System: Generated Power</div>
+      PaleBlue's solar panel provides a direct, independent path to grid-free battery charging. Combined with the Jackery system in Section 1.2.6, your household has two separate solar charging paths: one for your AA/AAA battery supply and one for AC power needs. Each operates independently. A failure in one does not affect the other.
+    </div>
+
+    <div class="subsection-ref">Power Banks</div>
+    <h3 class="subsection-title">Power Banks</h3>
+
+    <p>For USB-charged devices, the simplest backup is your vehicle. A multi-port USB-C car charger costs under $15 and turns your vehicle's fuel tank into an emergency charging station. Keep one in every vehicle. Never run a vehicle in an enclosed space to charge devices &mdash; see the CO warning in Section 1.3.</p>
+
+    <p>For extended outages or situations without vehicle access, a dedicated power bank is the baseline solution. The BLAVOR Solar Power Bank (~$30, 20,000mAh with built-in solar panel) provides trickle charging from a window or bag clip &mdash; useful redundancy at minimal cost for most households.</p>
+
+    <!-- ELECOM NESTOUT -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Energy Score &mdash; Power Banks</div>
+          <div class="product-name">ELECOM NESTOUT 15,000mAh + Solar Panels</div>
+          <div class="product-price">~$200</div>
+        </div>
+        <div class="shield">
+          <div class="shield-value">5</div>
+          <div class="shield-label">Charges</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>The NESTOUT is a modular outdoor power bank system developed in Japan. 32W USB-C fast charging delivers a depleted phone to full quickly, and 15,000mAh provides approximately five full phone charges &mdash; enough to keep a four-person household's primary devices running for 72 hours with disciplined usage.</p>
+        <p>The modular design is the differentiator: solar panels and a weatherproof carry case attach directly to the battery core. IP67 dust and waterproofing means the unit performs in conditions where standard consumer power banks fail. The construction is appropriate for equipment that may sit unused for a year between outages. The shield score of 5 reflects full phone charges from a single charge cycle; with solar panels attached, that number extends under adequate sun.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://amazon.com" target="_blank">Amazon</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1.2.3 COOKING -->
+  <section class="doc-section" id="cooking">
+    <div class="section-ref">1.2.3 &mdash; Cooking</div>
+    <h2 class="section-title">Cooking</h2>
+
+    <p>A pantry full of food is irrelevant if you cannot heat it. Beyond the practical need to prepare meals, there is a psychological component that is easy to underestimate: a hot meal during a multi-day outage does more for household morale than almost any other single factor, particularly with children.</p>
+
+    <p>If you have a gas range and your gas service is intact, you do not need anything else for cooking &mdash; light the burners with a lighter. The same applies to an outdoor propane grill. Both are valid primary solutions. The backup capability below covers the scenario where indoor gas service is interrupted.</p>
+
+    <p>You are not running a restaurant. You are heating soup, boiling water, and getting food on the table. Sequential cooking &mdash; one item at a time &mdash; handles all of that. Your backup stove does not need to be large. It needs to be reliable and capable of connecting to your 20-lb propane supply.</p>
+
+    <!-- NATUREHIKE PHANTOM -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Energy Score &mdash; Cooking</div>
+          <div class="product-name">Naturehike Phantom 2-Burner Folding Stove</div>
+          <div class="product-price">~$80&ndash;110</div>
+        </div>
+        <div class="shield">
+          <div class="shield-value">16K</div>
+          <div class="shield-label">BTU</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>The Phantom folds to approximately the size of a shoebox and stores in the included carry bag without consuming meaningful cabinet space. Unfold it, connect fuel, activate the piezo igniter, and you are cooking in under two minutes. That simplicity is the point: emergency equipment cannot have a learning curve.</p>
+        <p>Stainless steel construction, ETL safety certification, two independent burners producing 16,000 BTU total &mdash; sufficient to run a large pot and a frying pan simultaneously when needed. A standard $10 propane adapter hose connects it directly to your 20-lb tank, the same fuel source that supplies your heater and grill.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://amazon.com" target="_blank">Amazon</a> &middot; <a href="https://naturehike.com" target="_blank">naturehike.com</a>
+      </div>
+    </div>
+
+    <!-- PRIMUS KINJIA -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Energy Score &mdash; Cooking</div>
+          <div class="product-name">Primus Kinjia 2-Burner Stove + Adapter Hose</div>
+          <div class="product-price">~$160&ndash;175</div>
+        </div>
+        <div class="shield">
+          <div class="shield-value">20K</div>
+          <div class="shield-label">BTU</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>Primus has manufactured camping stoves since 1892. The Kinjia reflects that history in its construction: die-cast aluminum body, powder-coated finish, stainless steel drip tray, and a wood-and-brass carry handle. It is an object that looks appropriate on a kitchen counter, which matters for households that stage equipment in visible locations.</p>
+        <p>At 19 &times; 12 &times; 3 inches folded, it lays flat in a cabinet like a cutting board. Two burners at 10,200 BTU each provide excellent simmer control alongside high-output performance. The Primus propane converter hose connects directly to a 20-lb tank. Note: no built-in igniter &mdash; a lighter is required and should already be in your kit. Carry bag sold separately; budget accordingly for the complete package.</p>
+        <p>The Kinjia earns its card not because it outperforms the Phantom in raw output, but because it is a fundamentally different object &mdash; one that integrates into a household kitchen without signaling emergency equipment.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://primusequipment.com" target="_blank">primusequipment.com</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1.2.4 HEAT & COOLING -->
+  <section class="doc-section" id="heat">
+    <div class="section-ref">1.2.4 &mdash; Heat &amp; Cooling</div>
+    <h2 class="section-title">Heat &amp; Cooling</h2>
+
+    <p>Climate failures are medical events, not inconveniences. A house that drops to freezing in January is a genuine emergency for infants and elderly household members. A house that reaches 95&deg;F indoors in July is a genuine medical threat. Climate management is not optional for these household members.</p>
+
+    <div class="subsection-ref">Cold Season</div>
+    <h3 class="subsection-title">Cold Season: Heating Strategy</h3>
+
+    <p>When your primary heating fails, the strategy shifts from heating your household to heating one controlled space. Select a small interior room with the fewest exterior walls and windows as your warm room. Hang heavy blankets over windows, stuff towels under doors to block drafts. Body heat in a well-insulated small space &mdash; in a tent, a sleeping bag cluster, or a blanket fort &mdash; is more effective than you might expect. Keep the household together, stay hydrated, and dress in layers.</p>
+
+    <p>For supplemental warmth, Sterno's 100-hour emergency candles placed beneath an upside-down ceramic pot create a low-output radiant heater. It is a modest addition to body heat in a well-insulated small space. Never leave a lit candle unattended.</p>
+
+    <div class="callout callout-warning">
+      <div class="callout-label">Warning &mdash; Carbon Monoxide</div>
+      Never use a gas oven, gas stove, or any combustion appliance as a heating source in an enclosed space. Carbon monoxide is colorless, odorless, and lethal. Never run a vehicle in an attached garage, even with the door open. Any space where combustion appliances are in use requires a battery-powered CO detector. This detector belongs in your emergency kit regardless of whether you own a generator.
+    </div>
+
+    <!-- MR. HEATER LITTLE BUDDY -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Energy Score &mdash; Heat</div>
+          <div class="product-name">Mr. Heater Little Buddy</div>
+          <div class="product-price">~$60</div>
+        </div>
+        <div class="shield">
+          <div class="shield-value">3.8K</div>
+          <div class="shield-label">BTU</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>The most trusted name in portable indoor heating. The Little Buddy produces 3,800 BTU from a 1-lb propane canister, sufficient to maintain a small enclosed space &mdash; a bedroom, a tent interior, or the warm room described above &mdash; at a livable temperature. Compact footprint, integrated handle, piezo ignition. Push and hold to ignite.</p>
+        <p>Certified for indoor use. Equipped with an Oxygen Depletion Sensor that automatically shuts the unit off if oxygen levels drop, and a tip-over auto-shutoff. These safety systems are what make propane heating inside a home possible and are non-negotiable features for any indoor-use heater.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://mrheater.com" target="_blank">mrheater.com</a> &middot; <a href="https://amazon.com" target="_blank">Amazon</a>
+      </div>
+    </div>
+
+    <!-- MR. HEATER BIG BUDDY -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Energy Score &mdash; Heat</div>
+          <div class="product-name">Mr. Heater Big Buddy</div>
+          <div class="product-price">~$150</div>
+        </div>
+        <div class="shield">
+          <div class="shield-value">18K</div>
+          <div class="shield-label">BTU</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>The Big Buddy is the largest indoor-safe portable propane heater available. Above 18,000 BTU, you enter construction heater territory that requires active ventilation by design. The Big Buddy offers three settings &mdash; 4,000, 9,000, and 18,000 BTU &mdash; covering up to 450 square feet. On medium, it holds a bedroom or living room at a livable temperature through a winter night.</p>
+        <p>Accepts two 1-lb canisters simultaneously for up to 11 hours of runtime on high, and connects to a 20-lb tank via a standard adapter hose for extended operation without canister swaps. Same Oxygen Depletion Sensor and tip-over shutoff as the Little Buddy.</p>
+        <p>The Big Buddy earns its own card because it covers actual rooms, not just small enclosed spaces. These are different capabilities serving different household situations.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://mrheater.com" target="_blank">mrheater.com</a> &middot; <a href="https://amazon.com" target="_blank">Amazon</a>
+      </div>
+    </div>
+
+    <div class="subsection-ref">Warm Season</div>
+    <h3 class="subsection-title">Warm Season: Cooling Strategy</h3>
+
+    <p>In a summer grid outage, aggressive cooling depletes your power station rapidly. The more effective approach is to reduce heat gain first: close blinds and curtains on sun-facing windows, minimize heat-generating appliances, and consolidate the household in the coolest interior room. Wet towels applied to the neck and wrists reduce perceived temperature significantly. Battery-powered fans running off your power station provide meaningful airflow at low energy cost. A small window AC unit is possible with a Jackery Explorer 2000 v2 but should be reserved for situations involving medically vulnerable household members given the energy cost.</p>
+  </section>
+
+  <!-- 1.2.5 FUEL -->
+  <section class="doc-section" id="fuel">
+    <div class="section-ref">1.2.5 &mdash; Fuel</div>
+    <h2 class="section-title">Fuel</h2>
+
+    <p>Propane is the right fuel for the suburban household emergency system. It does not degrade like gasoline, stores indefinitely in proper containers, and serves your cooking, heating, and backup power needs from a single supply. One fuel, multiple systems.</p>
+
+    <p>The standard 1-lb green canister is the entry point. Four canisters provide roughly 84,000 BTU &mdash; enough to run a camp stove and portable heater through a 48-hour outage. Keep four on hand as your minimum. The limitation is cost per BTU and a disposal problem: empty green canisters are non-refillable.</p>
+
+    <p>If you have an outdoor grill or patio heater, you likely already have one or two 20-lb tanks. A propane adapter hose (~$25) connects your camp stove or Mr. Heater directly to those tanks, giving you access to approximately 860,000 BTU per tank without touching your small canister supply. Store all tanks upright, outside, in a ventilated location &mdash; never inside a living area or sealed vehicle.</p>
+
+    <!-- IGNIK GAS GROWLER -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Energy Score &mdash; Fuel</div>
+          <div class="product-name">Ignik Gas Growler 5 lb Deluxe</div>
+          <div class="product-price">~$80</div>
+        </div>
+        <div class="shield">
+          <div class="shield-value">48</div>
+          <div class="shield-label">HRS</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>The Gas Growler solves a specific problem: empty 1-lb green canisters are non-refillable, generate waste, and require you to accurately estimate consumption before an outage begins. The Growler is a refillable 5-lb propane tank &mdash; equivalent to five single-use canisters &mdash; that fills at any propane station for roughly the cost of one green bottle. The Deluxe version comes in a rugged MOLLE case with a 4-foot adapter hose that connects directly to your camp stove and Mr. Heater Buddy series out of the box.</p>
+        <p>One full Growler covers 48 hours of combined cooking and supplemental heating with capacity remaining. Because it is refillable, your fuel supply becomes a maintained resource rather than a consumable stockpile. The 5-lb size is the right choice for this system: the 3.8-lb offers meaningfully less capacity, and the 10-lb is better suited as a stationary reserve than a portable unit.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://ignikoutdoors.com" target="_blank">ignikoutdoors.com</a>
+      </div>
+    </div>
+
+    <div class="callout callout-cross">
+      <div class="callout-label">Cross-System: Cooking + Heat</div>
+      The Ignik Gas Growler's 4-foot adapter hose connects to both your camp stove (Section 1.2.3) and your Mr. Heater Buddy series (Section 1.2.4) out of the box. One fuel source serves two independent capability areas. Paired with the propane adapter hose connected to your existing 20-lb grill tanks, you have a three-tier fuel system: 1-lb canisters for immediate deployment, the Growler for 48-hour portable operations, and your 20-lb tanks as a stationary household reserve.
+    </div>
+  </section>
+
+  <!-- 1.2.6 GENERATED POWER -->
+  <section class="doc-section" id="generated">
+    <div class="section-ref">1.2.6 &mdash; Generated Power</div>
+    <h2 class="section-title">Generated Power</h2>
+
+    <p>At the 72-hour mark, stored power is running low. Batteries are depleted. Power banks are drained. The grid is still down. This is the point that separates a prepared household from one that has simply been buying time &mdash; because now you need to stop consuming power and start regenerating it.</p>
+
+    <p>Before purchasing any backup power equipment, check your garage. If you own a battery-powered lawn mower, trimmer, or blower from EGO, Ryobi, Greenworks, DeWalt, or Milwaukee, there is a good chance your brand already makes an inverter that accepts those exact batteries and produces AC output. No new platform required. The limitation across all of these is the same: when the batteries are depleted, you need grid power to recharge them. There is generally no solar input path, and total capacity is capped by how many tool batteries you own. It will not get you through a 72-hour outage, but it is power you already have.</p>
+
+    <p>A power station is not a power bank. Power banks charge devices via USB. Power stations deliver AC output &mdash; the same current that comes from your wall outlets &mdash; which means they can run appliances. At 72 hours, that is the capability you need.</p>
+
+    <!-- JACKERY SINGLE -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Energy Score &mdash; Generated Power</div>
+          <div class="product-name">Jackery Explorer 2000 v2 + 2&times; SolarSaga 200W</div>
+          <div class="product-price">~$1,000</div>
+        </div>
+        <div class="shield shield-inf">
+          <div class="shield-value">&infin;</div>
+          <div class="shield-label">W/ Solar</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>Jackery created the portable power station as a consumer product and has spent a decade iterating on it. The Explorer 2000 v2 uses LiFePO4 chemistry &mdash; the same battery technology found in electric vehicles &mdash; for superior cycle life and thermal stability. It outputs 2,200W continuously with up to 4,400W surge capacity, covering a full-size refrigerator, a CPAP, and household device charging simultaneously.</p>
+        <p>The two included SolarSaga 200W panels close the loop. Positioned south-facing in adequate sun, they return the unit to full charge in approximately six hours. A power station paired with solar operates indefinitely as long as the sun rises. When grid power is available, the unit fast-charges from AC in under two hours. Three AC outlets and a 100W USB-C port handle up to 10 simultaneous connections. Purchase directly from Jackery to avoid counterfeit units.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://jackery.com" target="_blank">jackery.com</a> (recommended) &middot; <a href="https://amazon.com" target="_blank">Amazon</a>
+      </div>
+    </div>
+
+    <!-- JACKERY DUAL -->
+    <div class="product-card">
+      <div class="product-card-header">
+        <div class="product-info">
+          <div class="product-score-tag">EPICS Energy Score &mdash; Generated Power</div>
+          <div class="product-name">2&times; Jackery Explorer 2000 v2 + Solar (Bundle)</div>
+          <div class="product-price">~$1,700 bundle</div>
+        </div>
+        <div class="shield shield-inf">
+          <div class="shield-value">&infin;</div>
+          <div class="shield-label">W/ Solar</div>
+        </div>
+      </div>
+      <div class="product-card-body">
+        <p>The better answer is not a larger unit but a second unit. Two Explorer 2000 v2 stations operating simultaneously changes the architecture of your power system in a way that raw capacity cannot.</p>
+        <p>One unit stays near the refrigerator and main living area. The second moves to wherever it is needed: a bedroom, a medical device, a work area. Each unit powers its zone independently. A failure or depletion in one does not affect the other. Each charges from its own solar panel on its own schedule. Each is light enough for a single person to relocate.</p>
+        <p>At 4,084Wh of combined capacity with two independent solar inputs, this is not extended convenience &mdash; it is multi-day resilience with redundancy built into the architecture. Jackery offers the two-unit bundle at $1,500 &mdash; a price point that purchased a single mid-tier unit two years ago.</p>
+      </div>
+      <div class="product-available">
+        Available at <a href="https://jackery.com" target="_blank">jackery.com</a> (bundle pricing available)
+      </div>
+    </div>
+
+    <div class="subsection-ref">Extension Cords</div>
+    <h3 class="subsection-title">Extension Cords</h3>
+
+    <p>A power station in your living room is useful. A power station that reaches your refrigerator, your bedroom, and your medical equipment is a system. The right extension cord connects those two realities. The wrong one is a fire hazard.</p>
+
+    <p>The number that matters is gauge, measured in AWG. Lower numbers mean thicker wire, less resistance, less heat, and less voltage drop over distance. For a 2,000W station running real loads, treat 12 AWG as the minimum for any run beyond a few feet. For runs over 50 feet, move to 10 AWG. The common 14 AWG cord sold at most hardware stores is fine for lamps and chargers, but undersized for sustained appliance loads.</p>
+
+    <p>Always fully unroll your extension cord before use. A coiled cord under load generates heat it cannot dissipate. Never run cords under rugs, through pinched doorways, or daisy-chained together. Buy cords rated for outdoor use (marked SJTW or SJTOW) even for indoor applications &mdash; they handle emergency use better than indoor-only cords.</p>
+
+    <div class="data-panel">
+      <div class="data-panel-header">Staging Note</div>
+      <p>Keep two cords staged with each power station: a short 12 AWG for nearby appliances and a 50-foot 10 AWG for reaching across the house. Label them. Store them with the unit. You will not be improvising with whatever is coiled in the back of the garage when the lights go out.</p>
+    </div>
+  </section>
+
+  <!-- 1.3 GENERATOR -->
+  <section class="doc-section" id="generator">
+    <div class="section-ref">1.3 &mdash; Generator</div>
+    <h2 class="section-title">Generator</h2>
+
+    <p>A portable generator is an internal combustion engine attached to an alternator. You put fuel in, pull a cord, and it produces electricity. For raw, sustained power output at low cost, nothing in this section competes. A $500 conventional generator produces more watts per dollar than any Jackery. That is a true statement.</p>
+
+    <p>The tradeoff is everything else.</p>
+
+    <p>Conventional generators produce what is called dirty power &mdash; voltage that fluctuates as engine load changes. This is acceptable for power tools and lights. It is potentially damaging to laptops, televisions, CPAP machines, and any device with a sensitive processor. They also run at a fixed engine speed regardless of actual power draw, which makes them loud, fuel-hungry, and inefficient at partial loads.</p>
+
+    <p>Inverter generators address most of these problems. They generate DC power, convert it to clean AC output, and throttle the engine based on actual demand. The result is pure sine wave power safe for sensitive electronics, significantly less noise, better fuel efficiency, and a more manageable package. For household emergency use, inverter generators are the only type worth considering.</p>
+
+    <div class="subsection-ref">The Maintenance Problem</div>
+    <h3 class="subsection-title">The Maintenance Problem</h3>
+
+    <p>A generator that sits untouched for eleven months and gets pulled out during a February nor'easter is a liability. Stale fuel gums the carburetor. Oil goes unchanged. The electric start battery dies. These are not hypothetical failures &mdash; they are the most common reasons generators do not start when needed most. A power station requires no maintenance. A generator requires a commitment.</p>
+
+    <p>If the math works and a generator is right for your household, the Honda EU2200i (~$1,100) is the recommendation. 1,800W continuous output, runs on regular gasoline. Honda generators have a documented reputation for starting on the first pull after extended storage &mdash; if they have been properly maintained. The protocol is simple: fuel stabilizer in every fill, 10 minutes of load operation monthly, oil changed annually. Do those three things and it will work when you need it. If you are not willing to commit to that schedule honestly &mdash; buy a Jackery instead.</p>
+
+    <div class="callout callout-warning">
+      <div class="callout-label">Warning &mdash; Carbon Monoxide</div>
+      Generators produce odorless, colorless carbon monoxide that is lethal in enclosed spaces. Every year, people die from running generators indoors or in attached garages. Exposure can become lethal in minutes. Operate all generators outside only, at minimum 20 feet from any window, door, or vent. A battery-powered CO detector is required in any space adjacent to generator operation and belongs in every emergency kit regardless of whether you own a generator.
+    </div>
+  </section>
+
+  <!-- 1.4 LOADOUTS -->
+  <section class="doc-section" id="loadouts">
+    <div class="section-ref">1.4 &mdash; Loadouts</div>
+    <h2 class="section-title">Loadouts</h2>
+
+    <p>The capability areas build on each other. The loadouts below show cumulative equipment at each time horizon and the Energy Independence Score each configuration achieves.</p>
+
+    <div class="loadout-tier">
+      <div class="loadout-tier-name">24-Hour Loadout (~$150&ndash;250)</div>
+      <div class="loadout-tier-score">EPICS Energy Score: 1 capability covered &mdash; Lighting</div>
+    </div>
+
+    <div class="loadout-table-wrap">
+      <table class="loadout-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Capability</th>
+            <th>Qty</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>EverBrite Headlamp 5-Pack</td><td>Lighting &mdash; Task</td><td>1</td><td>&times;5 HH</td></tr>
+          <tr><td>Fenix HL45R</td><td>Lighting &mdash; Task (Primary)</td><td>1</td><td>&infin; hrs</td></tr>
+          <tr><td>Fenix CL28R</td><td>Lighting &mdash; Area + Power Bank</td><td>1&ndash;2</td><td>&infin; hrs + 10K mAh</td></tr>
+          <tr><td>Energizer Ultimate Lithium (AA + AAA)</td><td>Stored Power &mdash; Batteries</td><td>Bulk</td><td>20-yr shelf</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="loadout-tier">
+      <div class="loadout-tier-name">48-Hour Loadout (~$500&ndash;700)</div>
+      <div class="loadout-tier-score">EPICS Energy Score: 4 capabilities covered &mdash; Lighting, Stored Power, Cooking, Heat &amp; Fuel</div>
+    </div>
+
+    <p>Everything in the 24-Hour Loadout, plus:</p>
+
+    <div class="loadout-table-wrap">
+      <table class="loadout-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Capability</th>
+            <th>Qty</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>PaleBlue AA &amp; AAA Solar Kit</td><td>Stored Power &mdash; Batteries</td><td>1</td><td>&infin; cycles</td></tr>
+          <tr><td>ELECOM NESTOUT + Solar</td><td>Stored Power &mdash; Power Bank</td><td>1</td><td>5 charges</td></tr>
+          <tr><td>Naturehike Phantom Stove</td><td>Cooking</td><td>1</td><td>16K BTU</td></tr>
+          <tr><td>Mr. Heater Little Buddy</td><td>Heat &amp; Cooling</td><td>1</td><td>3.8K BTU</td></tr>
+          <tr><td>Ignik Gas Growler 5 lb Deluxe</td><td>Fuel</td><td>1</td><td>48 hrs</td></tr>
+          <tr><td>Propane Adapter Hose</td><td>Fuel &mdash; 20-lb access</td><td>1</td><td>860K BTU/tank</td></tr>
+          <tr><td>4&times; 1-lb Propane Canisters</td><td>Fuel &mdash; Reserve</td><td>4</td><td>84K BTU</td></tr>
+          <tr><td>Battery-Powered CO Detector</td><td>Safety</td><td>1</td><td>Required</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="loadout-tier">
+      <div class="loadout-tier-name">72-Hour Loadout (~$2,000&ndash;2,700)</div>
+      <div class="loadout-tier-score">EPICS Energy Score: All 5 capabilities &mdash; Mission Capable (3+ days)</div>
+    </div>
+
+    <p>Everything in the 48-Hour Loadout, plus:</p>
+
+    <div class="loadout-table-wrap">
+      <table class="loadout-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Capability</th>
+            <th>Qty</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Jackery Explorer 2000 v2 + 2&times; SolarSaga 200W</td><td>Generated Power</td><td>1</td><td>&infin; w/ solar</td></tr>
+          <tr><td>12 AWG Extension Cord (25 ft)</td><td>Generated Power &mdash; Distribution</td><td>1</td><td>Near-field loads</td></tr>
+          <tr><td>10 AWG Extension Cord (50 ft)</td><td>Generated Power &mdash; Distribution</td><td>1</td><td>Whole-house reach</td></tr>
+          <tr><td>Mr. Heater Big Buddy (upgrade)</td><td>Heat &amp; Cooling</td><td>1</td><td>18K BTU / 450 sq ft</td></tr>
+          <tr><td>Primus Kinjia (upgrade)</td><td>Cooking</td><td>1</td><td>20K BTU</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The 72-Hour Loadout achieves Mission Capable status across all five capability areas. Solar-powered regeneration extends independence indefinitely under adequate sun. Cross-system redundancy exists across lighting, stored power, and fuel. No single product failure takes the system down.</p>
+  </section>
+
+  <!-- 1.5 CONFIGURATION -->
+  <section class="doc-section" id="config">
+    <div class="section-ref">1.5 &mdash; Configuration</div>
+    <h2 class="section-title">Configuration</h2>
+
+    <p>Stage your equipment so it is accessible, organized, and ready. Think about your energy system the way a pilot thinks about an emergency checklist: it needs to be within reach when things go wrong, and you should not have to think about where anything is.</p>
+
+    <div class="config-list">
+      <div class="config-item">
+        <strong>Lighting</strong>
+        <span>Fixed, known location that every person in the household can find in the dark. Headlamps do not live in separate rooms &mdash; they live together in the emergency cabinet. Lanterns stage in the kitchen and main sleeping areas.</span>
+      </div>
+      <div class="config-item">
+        <strong>Power Banks</strong>
+        <span>One fully charged, one on the charger. When you grab the charged one, the depleted one goes on the charger immediately. That is a system, not a task.</span>
+      </div>
+      <div class="config-item">
+        <strong>Propane</strong>
+        <span>All tanks stored upright, outside, shaded, and away from the structure. Camp stove and heater staged with emergency supplies, clean and ready to deploy. Adapter hose stored with the equipment it serves.</span>
+      </div>
+      <div class="config-item">
+        <strong>Power Stations</strong>
+        <span>Plugged in at their staged locations so they are always at full capacity. Solar panels stored in a known location, deployment site selected in advance. Pick your south-facing spot now &mdash; yard, deck, or driveway &mdash; and walk it once in daylight. Extension cords staged with the unit, labeled.</span>
+      </div>
+      <div class="config-item">
+        <strong>Generator (if applicable)</strong>
+        <span>Identify your operating location before you need it. Outside, minimum 20 feet from any window, door, or vent. Extension cords pre-positioned. CO detector staged and within range.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1.6 MAINTENANCE -->
+  <section class="doc-section" id="maintenance">
+    <div class="section-ref">1.6 &mdash; Maintenance</div>
+    <h2 class="section-title">Maintenance</h2>
+
+    <p>Capability degrades without maintenance. Equipment fails when you need it most because you neglected it when you did not &mdash; and that neglect always felt reasonable at the time.</p>
+
+    <div class="subsection-ref">Build It Into Existing Habits</div>
+    <h3 class="subsection-title">Existing Habits</h3>
+
+    <div class="config-list">
+      <div class="config-item">
+        <strong>Power Banks</strong>
+        <span>The staging system handles this automatically: one charged, one charging, swap when you grab one. No calendar reminder required.</span>
+      </div>
+      <div class="config-item">
+        <strong>Power Stations</strong>
+        <span>They stay topped off because they live plugged in. No additional maintenance step required.</span>
+      </div>
+      <div class="config-item">
+        <strong>Propane</strong>
+        <span>Check levels and valve condition when you grill. You are already handling the tanks. Keep two full 20-lb tanks on hand and one in the grill. When the grill tank empties, rotate it out and replace it the next time you get gas.</span>
+      </div>
+    </div>
+
+    <div class="subsection-ref">Once a Year: Use the Hour You Get Back</div>
+    <h3 class="subsection-title">Annual Check (November DST)</h3>
+
+    <p>When Daylight Saving Time ends in November, spend part of that hour on your energy system:</p>
+
+    <details class="protocol">
+      <summary>Annual Energy Maintenance Checklist</summary>
+      <div class="protocol-content">
+        <ul>
+          <li>Test all headlamps and lanterns. Replace batteries as needed.</li>
+          <li>Check battery stock expiration dates. Rotate or replace.</li>
+          <li>Inspect propane tanks for corrosion, valve condition, and fill level.</li>
+          <li>Run the power station through a full discharge and recharge cycle to verify capacity.</li>
+          <li>Test solar panels with a known load. Inspect cable connections for damage or corrosion.</li>
+          <li>If applicable: run generator for 10 minutes under load. Check oil level. Top off fuel with fresh stabilized gasoline.</li>
+          <li>Inspect extension cords for damage, melting, or pinching.</li>
+          <li>Replace CO detector batteries.</li>
+        </ul>
+        <p style="margin-top: 1rem; color: var(--text-dim); font-size: 0.9rem;">The goal is not a perfect maintenance record. It is a system that catches the most dangerous failure modes &mdash; depleted power stations, stale fuel, dead batteries &mdash; before they matter.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- 1.7 WHEN TO UPGRADE -->
+  <section class="doc-section" id="upgrade">
+    <div class="section-ref">1.7 &mdash; When to Upgrade</div>
+    <h2 class="section-title">When to Upgrade</h2>
+
+    <p>The equipment in this section handles 72 hours of energy independence for most suburban households without professional installation, permits, or a five-figure check. It covers the vast majority of outages you will ever experience.</p>
+
+    <p>You will know it is time to go further when the calculus changes: a household member develops a critical medical dependency that cannot tolerate power gaps, you have lived through an outage longer than 72 hours, or you are at a point in life where you want the lights to come on automatically, every time, without action on your part. That is a different conversation, and it is worth having with a professional.</p>
+
+    <p>Whole-house standby generators from Generac or Kohler provide seamless, automatic backup power. They require fuel plumbing, an automatic transfer switch, electrical permits, and professional installation. Budget $5,000 for a transfer switch installation alone, and $15,000 or more for a complete whole-house system.</p>
+
+    <p>Solar and battery systems offer partial or complete grid independence. Proper sizing, electrical integration, permitting, and installation require professional design. In most grid-tied configurations, solar panels are remotely disconnected during grid outages to prevent back-feeding &mdash; a detail many homeowners discover only when they need them most.</p>
+
+    <div class="callout callout-note">
+      <div class="callout-label">A Note Before You Write the Check</div>
+      A whole-house generator does not make the equipment in this section unnecessary. A standby generator still depends on external infrastructure &mdash; natural gas lines serve the whole neighborhood, and those lines face the same surge demand and potential disruption that took the grid down in the first place. A standby generator provides tremendous capability under normal failure conditions, but it does not increase your days of true independence. Cover the fundamentals first. Then upgrade. Section 5 walks you through how to have that professional conversation.
+    </div>
+  </section>
+
+</main>
+
+<a href="#" class="back-top" id="backTop">&uarr;</a>
+
+<footer>
+  <div class="footer-brand">EPICS Consulting, LLC</div>
+  <a href="mailto:epic@epicsconsulting.com">epic@epicsconsulting.com</a>
+  <div class="footer-tagline">
+    ERPs for the <span class="sub">Suburban</span> <span class="jun">Jungle</span>
+    &nbsp;&middot;&nbsp; &copy; 2026 EPICS Consulting, LLC
+  </div>
+</footer>
+
+<script>
+function updateCalc() {
+  const hasCritical = document.getElementById('cl-well').checked ||
+                      document.getElementById('cl-medical').checked ||
+                      document.getElementById('cl-climate').checked;
+
+  document.getElementById('critical-gate').classList.toggle('visible', hasCritical);
+
+  const caps = [
+    document.getElementById('cap-lighting').checked,
+    document.getElementById('cap-power').checked,
+    document.getElementById('cap-cooking').checked,
+    document.getElementById('cap-climate').checked,
+    document.getElementById('cap-backup').checked
+  ];
+
+  const covered = caps.filter(Boolean).length;
+  document.getElementById('calc-covered').textContent = covered;
+
+  let score, level;
+  if      (covered === 5) { score = '3+'; level = 3; }
+  else if (covered === 4) { score = '2';  level = 2; }
+  else if (covered >= 2)  { score = '1';  level = 1; }
+  else                    { score = '0';  level = 0; }
+
+  document.getElementById('calc-score').textContent = score;
+  document.querySelectorAll('.score-level').forEach(el => el.classList.remove('active'));
+  document.getElementById('level-' + level).classList.add('active');
+}
+
+const backTop = document.getElementById('backTop');
+window.addEventListener('scroll', () => {
+  backTop.classList.toggle('visible', window.scrollY > 400);
+});
+</script>
+
+</body>
+</html>
