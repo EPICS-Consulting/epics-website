@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EPICS Dash-1 - Does your household have an Emergency Response Plan?</title>
+<meta name="description" content="EPICS Consulting helps families build Emergency Response Plans for their households. Eight systems. Two paths. Greater Philadelphia and Zoom nationwide." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+
+<style>
+:root {
+  /* Aviation manual palette */
+  --bg:          #f0eee9;
+  --bg-panel:    #e8e5df;
+  --bg-data:     #ffffff;
+  --bg-dark:     #1c1a18;
+  --bg-header:   #2a2826;
+  --border:      #c4c0b8;
+  --border-light:#d8d5cf;
+  --border-hi:   rgba(0,0,0,0.1);
+
+  /* Accent colors */
+  --sage:        #7d8570;
+  --sage-hi:     #99a18a;
+  --sage-dim:    rgba(125,133,112,0.12);
+  --rust:        #c67b5c;
+  --rust-dim:    rgba(198,123,92,0.1);
+  --rust-glow:   rgba(198,123,92,0.2);
+  --navy:        #2e4364;
+  --red:         #d82424;
+  --silver:      #a8a9ad;
+  --green:       #3ddc84;
+  --green-dim:   rgba(61,220,132,0.1);
+
+  /* Text */
+  --text:        #1c1a18;
+  --text-mid:    #5a5750;
+  --text-dim:    #8a8680;
+  --text-light:  #fafafa;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 2.5rem;
+  background: var(--bg-dark);
+  border-bottom: 2px solid var(--sage);
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  text-decoration: none;
+}
+
+.nav-brand img { height: 30px; width: auto; filter: brightness(0) invert(1); opacity: 0.85; }
+
+.nav-brand-text {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-light);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.nav-links a {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(255,255,255,0.6);
+  transition: color 0.2s;
+}
+
+.nav-links a:hover { color: var(--sage-hi); }
+
+.nav-cta {
+  background: transparent !important;
+  border: 1px solid var(--rust) !important;
+  color: var(--rust) !important;
+  padding: 0.4rem 1rem;
+  border-radius: 2px;
+  transition: background 0.2s !important, color 0.2s !important;
+}
+
+.nav-cta:hover {
+  background: var(--rust) !important;
+  color: var(--bg-dark) !important;
+}
+
+/* ── HERO ── */
+.hero {
+  margin-top: 52px;
+  background: var(--bg-header);
+  border-bottom: 3px solid var(--sage);
+  padding: 4rem 2.5rem 3.5rem;
+  position: relative;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 200px;
+  height: 3px;
+  background: var(--rust);
+}
+
+.hero-inner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.hero-eyebrow {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+  margin-bottom: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.hero-eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 32px;
+  height: 1px;
+  background: var(--sage-hi);
+}
+
+h1 {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  margin-bottom: 1.5rem;
+}
+
+h1 .accent-emergency { color: var(--rust); }
+h1 .accent-response  { color: var(--sage-hi); }
+h1 .accent-q         { color: var(--sage-hi); }
+
+.hero-bio {
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: rgba(250,250,250,0.6);
+  font-weight: 400;
+  max-width: 600px;
+  margin-bottom: 1.2rem;
+  border-left: 2px solid var(--sage);
+  padding-left: 1.2rem;
+}
+
+.hero-author {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+  margin-bottom: 2rem;
+}
+
+.hero-author em { color: var(--sage-hi); font-style: normal; }
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-block;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 0.85rem 1.8rem;
+  border-radius: 3px;
+  transition: all 0.25s;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-primary {
+  background: var(--sage);
+  color: var(--bg-dark);
+}
+.btn-primary:hover {
+  background: var(--sage-hi);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(125,133,112,0.3);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--rust);
+  border: 1px solid var(--rust);
+}
+.btn-ghost:hover {
+  background: var(--rust);
+  color: var(--bg-dark);
+  transform: translateY(-2px);
+}
+
+/* ── SECTION COMMON ── */
+.section-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.section-eyebrow {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+}
+
+.section-eyebrow::before,
+.section-eyebrow::after {
+  content: '';
+  display: inline-block;
+  width: 40px;
+  height: 1px;
+  background: var(--sage);
+  opacity: 0.4;
+}
+
+h2 {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  margin-bottom: 0.8rem;
+}
+
+.section-sub {
+  font-size: 1rem;
+  color: var(--text-mid);
+  line-height: 1.65;
+  max-width: 540px;
+  margin: 0 auto;
+  font-weight: 400;
+}
+
+/* ── DIVIDER ── */
+.divider {
+  height: 2px;
+  background: var(--border);
+  margin: 0;
+}
+
+/* ══════════════════════════════════════════════
+   SYSTEMS (8 System Cards)
+   ══════════════════════════════════════════════ */
+.systems {
+  padding: 5rem 2.5rem;
+  background: var(--bg-panel);
+}
+
+.systems-inner {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.systems-grid {
+  max-width: 960px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.system-card {
+  height: 160px;
+  perspective: 800px;
+}
+
+.system-card a,
+.system-card button {
+  width: 100%; height: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+}
+
+.system-card-inner {
+  position: relative;
+  width: 100%; height: 100%;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-style: preserve-3d;
+}
+
+.system-front, .system-back {
+  position: absolute;
+  width: 100%; height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.2rem 1rem;
+  background: var(--bg-data);
+  transition: background 0.3s;
+}
+
+.system-card:hover .system-front {
+  background: var(--bg);
+}
+
+.system-indicator {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 10px rgba(61,220,132,0.5);
+  margin-bottom: 0.8rem;
+  animation: breathe 3s ease-in-out infinite;
+}
+
+.system-indicator-amber {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #d4a843;
+  box-shadow: 0 0 10px rgba(212,168,67,0.5);
+  margin-bottom: 0.8rem;
+  animation: breathe 3s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.system-name {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.system-status {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-top: 0.4rem;
+}
+
+.system-status-soon {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-top: 0.4rem;
+}
+
+.system-back {
+  transform: rotateY(180deg);
+  background: var(--bg-header);
+  border: none;
+  padding: 1rem;
+}
+
+.system-indicator-red {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 10px rgba(216,36,36,0.8);
+  margin-bottom: 0.6rem;
+  animation: pulse-red 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; box-shadow: 0 0 10px rgba(216,36,36,0.8); }
+  50% { opacity: 0.5; box-shadow: 0 0 4px rgba(216,36,36,0.4); }
+}
+
+.system-question {
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: rgba(255,180,160,0.85);
+  text-align: center;
+  font-weight: 500;
+}
+
+@media (hover: hover) {
+  .system-card:hover .system-card-inner { transform: rotateY(180deg); }
+}
+.system-card.flipped .system-card-inner { transform: rotateY(180deg); }
+
+/* ══════════════════════════════════════════════
+   TABLE OF CONTENTS
+   ══════════════════════════════════════════════ */
+.toc {
+  padding: 5rem 2.5rem;
+  background: var(--bg);
+}
+
+.toc-inner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.toc-sections {
+  margin-top: 2.5rem;
+}
+
+/* TOC Section (collapsible) */
+details.toc-section {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+details.toc-section:hover {
+  border-color: var(--sage);
+}
+
+details.toc-section summary {
+  background: var(--bg-data);
+  padding: 1.2rem 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  user-select: none;
+  list-style: none;
+  transition: background 0.2s;
+}
+
+details.toc-section summary::-webkit-details-marker { display: none; }
+details.toc-section summary:hover { background: var(--bg-panel); }
+
+.toc-section-ref {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sage);
+  min-width: 90px;
+  flex-shrink: 0;
+}
+
+.toc-section-name {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  flex: 1;
+}
+
+.toc-section-status {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.toc-status-live {
+  background: var(--green-dim);
+  color: #2a9d5c;
+  border: 1px solid rgba(61,220,132,0.2);
+}
+
+.toc-status-soon {
+  background: rgba(212,168,67,0.08);
+  color: #b8932e;
+  border: 1px solid rgba(212,168,67,0.2);
+}
+
+.toc-status-paywalled {
+  background: var(--rust-dim);
+  color: var(--rust);
+  border: 1px solid rgba(198,123,92,0.2);
+}
+
+details.toc-section summary::after {
+  content: '+';
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1.2rem;
+  color: var(--sage);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+details.toc-section[open] summary::after {
+  content: '-';
+}
+
+.toc-section-body {
+  padding: 0 1.5rem 1.5rem;
+  border-top: 1px solid var(--border-light);
+  background: var(--bg-data);
+}
+
+.toc-subsection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--border-light);
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.toc-subsection:last-child { border-bottom: none; }
+
+.toc-subsection:hover {
+  background: var(--sage-dim);
+  margin: 0 -1.5rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.toc-sub-ref {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  min-width: 60px;
+  flex-shrink: 0;
+}
+
+.toc-sub-name {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-mid);
+  flex: 1;
+}
+
+.toc-sub-arrow {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--sage);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.toc-subsection:hover .toc-sub-arrow { opacity: 1; }
+
+.toc-coming-soon {
+  padding: 1.2rem 0 0.5rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* ══════════════════════════════════════════════
+   JOURNEY / PRICING TIERS
+   ══════════════════════════════════════════════ */
+.journey {
+  padding: 5rem 2.5rem;
+  background: var(--bg-panel);
+}
+
+.journey-inner {
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+.journey-tiers {
+  display: flex;
+  flex-direction: column;
+  margin-top: 3rem;
+}
+
+.journey-tier {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 0 1.5rem;
+}
+
+.journey-price-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.journey-price-badge {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-data);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.j-price-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  line-height: 1;
+  margin-bottom: 3px;
+}
+
+.j-price-value {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--rust);
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.j-connector {
+  flex: 1;
+  width: 1px;
+  background: var(--border);
+  margin: 5px 0;
+  position: relative;
+}
+
+.j-connector::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--rust);
+  opacity: 0.4;
+}
+
+.journey-tier:last-child .j-connector { display: none; }
+
+.journey-card {
+  background: var(--bg-data);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1.5rem 1.8rem;
+  margin-bottom: 14px;
+  transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+  cursor: default;
+}
+
+.journey-tier:last-child .journey-card { margin-bottom: 0; }
+
+.journey-tier:hover .journey-card {
+  border-color: rgba(198,123,92,0.3);
+  transform: translateX(5px);
+  box-shadow: -3px 0 0 var(--rust), 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.journey-tier-free:hover .journey-card {
+  border-color: rgba(125,133,112,0.3);
+  box-shadow: -3px 0 0 var(--sage), 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.journey-tier-free .j-price-value { color: var(--sage-hi); font-size: 11px; }
+.journey-tier-free:hover .journey-price-badge { border-color: var(--sage); box-shadow: 0 0 16px rgba(125,133,112,0.2); }
+
+.j-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+  gap: 1rem;
+}
+
+.j-tier-name {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+}
+
+.j-tier-tag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 2px;
+  background: var(--sage-dim);
+  color: var(--sage);
+  white-space: nowrap;
+  border: 1px solid rgba(125,133,112,0.15);
+}
+
+.j-tier-desc {
+  font-size: 0.92rem;
+  color: var(--text-mid);
+  line-height: 1.65;
+  margin-bottom: 0.9rem;
+  font-weight: 400;
+}
+
+.j-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.j-chip {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 2px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+/* Tier color overrides */
+.tier-wingman .j-price-value { color: var(--silver); }
+.tier-wingman:hover .journey-price-badge { border-color: var(--silver); box-shadow: 0 0 16px rgba(168,169,173,0.2); }
+.tier-wingman:hover .journey-card { box-shadow: -3px 0 0 var(--silver), 0 4px 16px rgba(0,0,0,0.08); border-color: rgba(168,169,173,0.3); }
+.tier-wingman .j-tier-tag { background: rgba(168,169,173,0.08); color: var(--silver); border-color: rgba(168,169,173,0.15); }
+
+.tier-flightlead .j-price-value { color: var(--rust); }
+.tier-flightlead:hover .journey-price-badge { border-color: var(--rust); box-shadow: 0 0 16px var(--rust-glow); }
+.tier-flightlead:hover .journey-card { box-shadow: -3px 0 0 var(--rust), 0 4px 16px rgba(0,0,0,0.08); border-color: rgba(198,123,92,0.3); }
+.tier-flightlead .j-tier-tag { background: var(--rust-dim); color: var(--rust); border-color: rgba(198,123,92,0.15); }
+
+.tier-commander .j-price-value { color: #6496dc; }
+.tier-commander:hover .journey-price-badge { border-color: #6496dc; box-shadow: 0 0 16px rgba(100,150,220,0.2); }
+.tier-commander:hover .journey-card { box-shadow: -3px 0 0 #6496dc, 0 4px 16px rgba(0,0,0,0.08); border-color: rgba(100,150,220,0.3); }
+.tier-commander .j-tier-tag { background: rgba(100,150,220,0.08); color: #6496dc; border-color: rgba(100,150,220,0.15); }
+
+/* ══════════════════════════════════════════════
+   PATHS (Two Ways)
+   ══════════════════════════════════════════════ */
+.paths {
+  padding: 5rem 2.5rem;
+  background: var(--bg);
+}
+
+.paths-inner {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.paths-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+
+.path-card {
+  border-radius: 4px;
+  padding: 2.5rem;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.3s;
+}
+
+.path-card-diy {
+  background: var(--bg-data);
+}
+
+.path-card-diy:hover {
+  border-color: var(--sage);
+}
+
+.path-card-pro {
+  background: var(--bg-data);
+  border-color: rgba(198,123,92,0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.path-card-pro::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--rust-dim) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.path-card-pro:hover {
+  border-color: var(--rust);
+}
+
+.path-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 0.7rem;
+}
+
+.path-card-diy .path-label { color: var(--sage); }
+.path-card-pro .path-label { color: var(--rust); }
+
+.path-title {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+.path-description {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--text-mid);
+  margin-bottom: 2rem;
+  flex: 1;
+  font-weight: 400;
+}
+
+.path-cta { margin-top: auto; position: relative; z-index: 1; }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--bg-dark);
+  border-top: 2px solid var(--sage);
+  padding: 2.5rem;
+  text-align: center;
+}
+
+footer img {
+  height: 32px;
+  margin-bottom: 1rem;
+  filter: brightness(0) invert(1);
+  opacity: 0.2;
+}
+
+.footer-brand {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  margin-bottom: 0.5rem;
+}
+
+.footer-tagline {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.2);
+  margin-top: 0.8rem;
+}
+
+.footer-tagline .sub { color: var(--rust); opacity: 0.6; }
+.footer-tagline .jun { color: var(--sage); opacity: 0.6; }
+
+footer a {
+  color: rgba(255,255,255,0.3);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+footer a:hover { color: var(--sage-hi); }
+
+/* ── ANIMATIONS ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1), transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .system-card-inner { transition: none; }
+  @keyframes breathe { 0%, 100% { opacity: 1; } }
+  @keyframes pulse-red { 0%, 100% { opacity: 1; } }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 960px) {
+  .hero-inner { text-align: left; }
+  .hero-actions { justify-content: flex-start; }
+  .systems-grid { grid-template-columns: repeat(2, 1fr); }
+  .paths-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  nav { padding: 0.8rem 1.25rem; }
+  .nav-links a:not(.nav-cta) { display: none; }
+  .hero { padding: 3rem 1.25rem 2.5rem; }
+  h1 { font-size: 1.5rem; }
+  .systems, .toc, .journey, .paths { padding: 3.5rem 1.25rem; }
+  .systems-grid { grid-template-columns: repeat(2, 1fr); }
+  .system-card { height: 140px; }
+  .toc-section-ref { display: none; }
+  .toc-sub-ref { display: none; }
+  details.toc-section summary { padding: 1rem; }
+  .journey-tier { grid-template-columns: 60px 1fr; }
+  .journey-price-badge { width: 60px; height: 60px; }
+  .j-price-value { font-size: 11px; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-brand" aria-label="EPICS Dash-1 home">
+    <img src="EPICS__web_logo_.png" alt="EPICS Consulting" style="height:40px; width:auto;" />
+  </a>
+  <div class="nav-links">
+    <a href="#systems">Systems</a>
+    <a href="#toc">Dash-1</a>
+    <a href="#journey">Pricing</a>
+    <a href="mailto:alex@epics.consulting?subject=Pre%20Flight%20Check%20Inquiry" class="nav-cta">Book</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">EPICS Consulting &nbsp;&middot;&nbsp; South Jersey</div>
+
+    <h1>
+      Does your household<br>
+      have an <span class="accent-emergency">Emergency</span><br>
+      <span class="accent-response">Response Plan</span><span class="accent-response">?</span>
+    </h1>
+
+    <p class="hero-bio">
+      I spent two decades as an operational planner - the kind of work where a missed detail isn't an inconvenience, it's a catastrophe. Now I help suburban families build Emergency Response Plans with that same standard of precision.
+    </p>
+
+    <div class="hero-author">
+      Author of <em>EPICS Dash-1</em> &nbsp;&middot;&nbsp; ERPs for the <span style="color:var(--rust)">Suburban</span> <span style="color:var(--sage)">Jungle</span>
+    </div>
+
+    <div class="hero-actions">
+      <a href="#toc" class="btn btn-primary">Read EPICS Dash-1</a>
+      <a href="mailto:alex@epics.consulting?subject=Pre%20Flight%20Check%20Inquiry" class="btn btn-ghost">Book a Consultation</a>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- EIGHT SYSTEMS -->
+<section class="systems" id="systems">
+  <div class="systems-inner">
+    <div class="section-header reveal">
+      <div class="section-eyebrow">What EPICS Dash-1 Covers</div>
+      <h2>The Eight Independent Systems</h2>
+      <p class="section-sub">Every household runs on eight systems. When one fails, the others follow. How many of yours are green?</p>
+    </div>
+
+    <div class="systems-grid reveal">
+
+      <div class="system-card">
+        <button type="button" aria-label="Flip card: Energy">
+          <div class="system-card-inner">
+            <div class="system-front">
+              <div class="system-indicator-amber"></div>
+              <span class="system-name">Energy</span>
+              <span class="system-status-soon">Coming Soon</span>
+            </div>
+            <div class="system-back">
+              <div class="system-indicator-red"></div>
+              <span class="system-question">How many days could you stay in your house without any source of power?</span>
+            </div>
+          </div>
+        </button>
+      </div>
+
+      <div class="system-card">
+        <a href="water.html" aria-label="View System 2: Water">
+          <div class="system-card-inner">
+            <div class="system-front">
+              <div class="system-indicator"></div>
+              <span class="system-name">Water</span>
+              <span class="system-status">View System</span>
+            </div>
+            <div class="system-back">
+              <div class="system-indicator-red"></div>
+              <span class="system-question">How many days could you stay in your house without running water?</span>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="system-card">
+        <button type="button" aria-label="Flip card: Food">
+          <div class="system-card-inner">
+            <div class="system-front">
+              <div class="system-indicator-amber"></div>
+              <span class="system-name">Food</span>
+              <span class="system-status-soon">Coming Soon</span>
+            </div>
+            <div class="system-back">
+              <div class="system-indicator-red"></div>
+              <span class="system-question">How many days could you stay in your house without going to a grocery store?</span>
+            </div>
+          </div>
+        </button>
+      </div>
+
+      <div class="system-card">
+        <button type="button" aria-label="Flip card: Medical">
+          <div class="system-card-inner">
+            <div class="system-front">
+              <div class="system-indicator-amber"></div>
+              <span class="system-name">Medical</span>
+              <span class="system-status-soon">Coming Soon</span>
+            </div>
+            <div class="system-back">
+              <div class="system-indicator-red"></div>
+              <span class="system-question">How many days could you stay in your house without access to a doctor or pharmacy?</span>
+            </div>
+          </div>
+        </button>
+      </div>
+
+      <div class="system-card">
+        <button type="button" aria-label="Flip card: Comms">
+          <div class="system-card-inner">
+            <div class="system-front">
+              <div class="system-indicator-amber"></div>
+              <span class="system-name">Comms</span>
+              <span class="system-status-soon">Coming Soon</span>
+            </div>
+            <div class="system-back">
+              <div class="system-indicator-red"></div>
+              <span class="system-question">How many days could you stay in your house without phone or internet service?</span>
+            </div>
+          </div>
+        </button>
+      </div>
+
+      <div class="system-card">
+        <button type="button" aria-label="Flip card: Security">
+          <div class="system-card-inner">
+            <div class="system-front">
+              <div class="system-indicator-amber"></div>
+              <span class="system-name">Security</span>
+              <span class="system-status-soon">Coming Soon</span>
+            </div>
+            <div class="system-back">
+              <div class="system-indicator-red"></div>
+              <span class="system-question">How many days could you stay in your house if your locks, lights, and alarms lost power?</span>
+            </div>
+          </div>
+        </button>
+      </div>
+
+      <div class="system-card">
+        <button type="button" aria-label="Flip card: Sanitation">
+          <div class="system-card-inner">
+            <div class="system-front">
+              <div class="system-indicator-amber"></div>
+              <span class="system-name">Sanitation</span>
+              <span class="system-status-soon">Coming Soon</span>
+            </div>
+            <div class="system-back">
+              <div class="system-indicator-red"></div>
+              <span class="system-question">How many days could you stay in your house without flushing a toilet?</span>
+            </div>
+          </div>
+        </button>
+      </div>
+
+      <div class="system-card">
+        <button type="button" aria-label="Flip card: Records">
+          <div class="system-card-inner">
+            <div class="system-front">
+              <div class="system-indicator-amber"></div>
+              <span class="system-name">Records</span>
+              <span class="system-status-soon">Coming Soon</span>
+            </div>
+            <div class="system-back">
+              <div class="system-indicator-red"></div>
+              <span class="system-question">If you had to leave in 10 minutes, could you grab every critical document?</span>
+            </div>
+          </div>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TABLE OF CONTENTS -->
+<section class="toc" id="toc">
+  <div class="toc-inner">
+    <div class="section-header reveal">
+      <div class="section-eyebrow">EPICS Dash-1</div>
+      <h2>Table of Contents</h2>
+      <p class="section-sub">Your household's emergency response plan, organized by system. Click any section to expand.</p>
+    </div>
+
+    <div class="toc-sections reveal">
+
+      <!-- SECTION 1 -->
+      <details class="toc-section">
+        <summary>
+          <span class="toc-section-ref">Section 1</span>
+          <span class="toc-section-name">Introduction</span>
+          <span class="toc-section-status toc-status-soon">Coming Soon</span>
+        </summary>
+        <div class="toc-section-body">
+          <p class="toc-coming-soon">What is an ERP, what is a Dash-1, and how to use this tool. Content coming soon.</p>
+        </div>
+      </details>
+
+      <!-- SECTION 2: THE EIGHT SYSTEMS -->
+      <details class="toc-section" open>
+        <summary>
+          <span class="toc-section-ref">Section 2</span>
+          <span class="toc-section-name">The Eight Systems</span>
+          <span class="toc-section-status toc-status-live">In Progress</span>
+        </summary>
+        <div class="toc-section-body">
+
+          <div class="toc-subsection" style="padding-top:1rem; border-bottom: 1px solid var(--border-light);">
+            <span class="toc-sub-ref" style="color:var(--text-dim);">Sys 1</span>
+            <span class="toc-sub-name" style="color:var(--text-dim);">Energy</span>
+            <span class="toc-section-status toc-status-soon" style="font-size:0.55rem;">Coming Soon</span>
+          </div>
+
+          <a href="water.html" class="toc-subsection">
+            <span class="toc-sub-ref">Sys 2</span>
+            <span class="toc-sub-name" style="color:var(--text); font-weight:600;">Water</span>
+            <span class="toc-section-status toc-status-live" style="font-size:0.55rem;">Live</span>
+            <span class="toc-sub-arrow">&rarr;</span>
+          </a>
+
+          <div class="toc-subsection" style="border-bottom: 1px solid var(--border-light);">
+            <span class="toc-sub-ref" style="color:var(--text-dim);">Sys 3</span>
+            <span class="toc-sub-name" style="color:var(--text-dim);">Food</span>
+            <span class="toc-section-status toc-status-soon" style="font-size:0.55rem;">Coming Soon</span>
+          </div>
+
+          <div class="toc-subsection" style="border-bottom: 1px solid var(--border-light);">
+            <span class="toc-sub-ref" style="color:var(--text-dim);">Sys 4</span>
+            <span class="toc-sub-name" style="color:var(--text-dim);">Medical</span>
+            <span class="toc-section-status toc-status-soon" style="font-size:0.55rem;">Coming Soon</span>
+          </div>
+
+          <div class="toc-subsection" style="border-bottom: 1px solid var(--border-light);">
+            <span class="toc-sub-ref" style="color:var(--text-dim);">Sys 5</span>
+            <span class="toc-sub-name" style="color:var(--text-dim);">Comms</span>
+            <span class="toc-section-status toc-status-soon" style="font-size:0.55rem;">Coming Soon</span>
+          </div>
+
+          <div class="toc-subsection" style="border-bottom: 1px solid var(--border-light);">
+            <span class="toc-sub-ref" style="color:var(--text-dim);">Sys 6</span>
+            <span class="toc-sub-name" style="color:var(--text-dim);">Security</span>
+            <span class="toc-section-status toc-status-soon" style="font-size:0.55rem;">Coming Soon</span>
+          </div>
+
+          <div class="toc-subsection" style="border-bottom: 1px solid var(--border-light);">
+            <span class="toc-sub-ref" style="color:var(--text-dim);">Sys 7</span>
+            <span class="toc-sub-name" style="color:var(--text-dim);">Sanitation</span>
+            <span class="toc-section-status toc-status-soon" style="font-size:0.55rem;">Coming Soon</span>
+          </div>
+
+          <div class="toc-subsection">
+            <span class="toc-sub-ref" style="color:var(--text-dim);">Sys 8</span>
+            <span class="toc-sub-name" style="color:var(--text-dim);">Records</span>
+            <span class="toc-section-status toc-status-soon" style="font-size:0.55rem;">Coming Soon</span>
+          </div>
+
+        </div>
+      </details>
+
+      <!-- SECTION 3 -->
+      <details class="toc-section">
+        <summary>
+          <span class="toc-section-ref">Section 3</span>
+          <span class="toc-section-name">ERP Checklists</span>
+          <span class="toc-section-status toc-status-paywalled">Wingman+</span>
+        </summary>
+        <div class="toc-section-body">
+          <p class="toc-coming-soon">Detailed checklists for building your household ERP. Available with the Wingman tier and above.</p>
+        </div>
+      </details>
+
+      <!-- SECTION 4 -->
+      <details class="toc-section">
+        <summary>
+          <span class="toc-section-ref">Section 4</span>
+          <span class="toc-section-name">Pre-Flight Checks</span>
+          <span class="toc-section-status toc-status-paywalled">Wingman+</span>
+        </summary>
+        <div class="toc-section-body">
+          <p class="toc-coming-soon">System-by-system Pre-Flight Checks to score your household's readiness. Available with the Wingman tier and above.</p>
+        </div>
+      </details>
+
+      <!-- SECTION 5 -->
+      <details class="toc-section">
+        <summary>
+          <span class="toc-section-ref">Section 5</span>
+          <span class="toc-section-name">Next Steps</span>
+          <span class="toc-section-status toc-status-soon">Coming Soon</span>
+        </summary>
+        <div class="toc-section-body">
+          <p class="toc-coming-soon">How to take what you've learned and turn it into action. Coming soon.</p>
+        </div>
+      </details>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- JOURNEY -->
+<section class="journey" id="journey">
+  <div class="journey-inner">
+    <div class="section-header reveal" style="text-align:center;">
+      <div class="section-eyebrow">The Customer Journey</div>
+      <h2>Four Ways In. One Destination.</h2>
+      <p class="section-sub">Pick your entry point. Every tier is designed to move you closer to a household that's prepared.</p>
+    </div>
+
+    <div class="journey-tiers">
+
+      <!-- SOLO (Free) -->
+      <div class="journey-tier journey-tier-free reveal">
+        <div class="journey-price-col">
+          <div class="journey-price-badge">
+            <div class="j-price-label">Cost</div>
+            <div class="j-price-value">FREE</div>
+          </div>
+          <div class="j-connector"></div>
+        </div>
+        <div class="journey-card">
+          <div class="j-card-header">
+            <div class="j-tier-name">Solo</div>
+            <div class="j-tier-tag">Free DIY</div>
+          </div>
+          <p class="j-tier-desc">Sections 1 and 2 right here on this site. Understand what a family ERP actually is, why it matters, and start building one system at a time. No cost, no commitment - just clarity.</p>
+          <div class="j-chips">
+            <span class="j-chip">Section 1 - Introduction</span>
+            <span class="j-chip">Section 2 - The Eight Systems</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- WINGMAN ($25) -->
+      <div class="journey-tier tier-wingman reveal">
+        <div class="journey-price-col">
+          <div class="journey-price-badge">
+            <div class="j-price-label">From</div>
+            <div class="j-price-value">$25</div>
+          </div>
+          <div class="j-connector"></div>
+        </div>
+        <div class="journey-card">
+          <div class="j-card-header">
+            <div class="j-tier-name">Wingman</div>
+            <div class="j-tier-tag">Self-Directed</div>
+          </div>
+          <p class="j-tier-desc">The downloadable EPICS Dash-1. Sections 1 through 4 including detailed Pre-Flight Checks and printable ERP checklists - everything you need to build your household's plan independently.</p>
+          <div class="j-chips">
+            <span class="j-chip">Sections 1-4</span>
+            <span class="j-chip">Pre-Flight Checks</span>
+            <span class="j-chip">ERP Checklists</span>
+            <span class="j-chip">Print-Ready</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FLIGHT LEAD ($750) -->
+      <div class="journey-tier tier-flightlead reveal">
+        <div class="journey-price-col">
+          <div class="journey-price-badge">
+            <div class="j-price-label">From</div>
+            <div class="j-price-value">$750</div>
+          </div>
+          <div class="j-connector"></div>
+        </div>
+        <div class="journey-card">
+          <div class="j-card-header">
+            <div class="j-tier-name">Flight Lead</div>
+            <div class="j-tier-tag">Custom Design</div>
+          </div>
+          <p class="j-tier-desc">I design your family's custom Dash-1 and pilot-grade ERP checklists - built specifically around your home, your systems, and your household's risks. Delivered as a premium rip-stop book tailored to your family.</p>
+          <div class="j-chips">
+            <span class="j-chip">Custom Household Dash-1</span>
+            <span class="j-chip">Pilot-Grade Checklists</span>
+            <span class="j-chip">Rip-Stop Book</span>
+            <span class="j-chip">You Build</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MISSION COMMANDER ($7,500) -->
+      <div class="journey-tier tier-commander reveal">
+        <div class="journey-price-col">
+          <div class="journey-price-badge">
+            <div class="j-price-label">From</div>
+            <div class="j-price-value">$7.5K</div>
+          </div>
+          <div class="j-connector"></div>
+        </div>
+        <div class="journey-card">
+          <div class="j-card-header">
+            <div class="j-tier-name">Mission Commander</div>
+            <div class="j-tier-tag">White Glove</div>
+          </div>
+          <p class="j-tier-desc">I don't just design your ERP - I build it. On-site assessment, system procurement, full installation, and complete documentation. Your household, mission-ready.</p>
+          <div class="j-chips">
+            <span class="j-chip">On-Site Assessment</span>
+            <span class="j-chip">ERP Design + Build</span>
+            <span class="j-chip">System Procurement</span>
+            <span class="j-chip">Full Documentation</span>
+            <span class="j-chip">Debrief + Handoff</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PATHS -->
+<section class="paths" id="paths">
+  <div class="paths-inner">
+    <div class="section-header reveal" style="text-align:center;">
+      <div class="section-eyebrow">Get Started</div>
+      <h2>Two Ways to Build Your ERP</h2>
+      <p class="section-sub">Read the Dash-1 and build it yourself - or let me do it for you. Either way, your household ends up with a plan built to a professional standard.</p>
+    </div>
+
+    <div class="paths-grid reveal">
+
+      <div class="path-card path-card-diy">
+        <div class="path-label">The Publication</div>
+        <div class="path-title">Build It Yourself</div>
+        <p class="path-description">
+          Read EPICS Dash-1 right here. Sections 1 and 2 are free. Unlock Sections 3 and 4 for $25 to get the complete Pre-Flight Checks and printable checklists to build your ERP on your own terms.
+        </p>
+        <div class="path-cta">
+          <a href="#toc" class="btn btn-primary">Read EPICS Dash-1</a>
+        </div>
+      </div>
+
+      <div class="path-card path-card-pro">
+        <div class="path-label">The Service</div>
+        <div class="path-title">Have Me Build It</div>
+        <p class="path-description">
+          From a custom Dash-1 book ($750) to a full household build-out ($7,500+) - I assess your eight systems, design your ERP, and deliver a plan that's prioritized, budgeted, and ready to execute.
+        </p>
+        <div class="path-cta">
+          <a href="mailto:alex@epics.consulting?subject=Pre%20Flight%20Check%20Inquiry" class="btn btn-ghost">Book a Consultation</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <img src="chompsky.png" alt="EPICS" />
+  <div class="footer-brand">EPICS Consulting, LLC</div>
+  <p><a href="mailto:alex@epics.consulting">alex@epics.consulting</a></p>
+  <div class="footer-tagline">
+    ERPs for the <span class="sub">Suburban</span> <span class="jun">Jungle</span>
+    &nbsp;&middot;&nbsp; &copy; 2026 EPICS Consulting, LLC
+  </div>
+</footer>
+
+<script>
+  // Intersection observer for scroll reveals
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Nav shadow on scroll
+  const nav = document.querySelector('nav');
+  window.addEventListener('scroll', () => {
+    nav.style.boxShadow = window.scrollY > 20 ? '0 2px 24px rgba(0,0,0,0.3)' : 'none';
+  }, { passive: true });
+
+  // System card touch support (only for buttons, not links)
+  document.querySelectorAll('.system-card button').forEach(btn => {
+    btn.closest('.system-card').addEventListener('click', function() {
+      this.classList.toggle('flipped');
+    });
+  });
+
+  // Prevent link cards from flipping on hover - just navigate
+  document.querySelectorAll('.system-card a').forEach(link => {
+    link.closest('.system-card').style.pointerEvents = 'auto';
+  });
+</script>
+
+</body>
+</html>
