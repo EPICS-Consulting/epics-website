@@ -1,0 +1,1961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>System 2: Water - EPICS Dash-1</title>
+<meta name="description" content="Water doctrine, pre-flight calculator, field operations, and loadouts for household water independence." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg:           #f4f3ef;
+  --bg-panel:     #eceae5;
+  --bg-data:      #ffffff;
+  --bg-dark:      #1e2840;
+  --bg-header:    #1e2840;
+  --border:       #c8c4bc;
+  --border-light: #dbd8d2;
+  --border-dark:  #8a8680;
+  --sage:         #5c6b50;
+  --sage-hi:      #7d8f6e;
+  --sage-dim:     rgba(92,107,80,0.10);
+  --rust:         #c0622a;
+  --rust-dim:     rgba(192,98,42,0.10);
+  --navy:         #1e2840;
+  --red:          #c0392b;
+  --red-dim:      rgba(192,57,43,0.08);
+  --amber:        #c8860a;
+  --amber-dim:    rgba(200,134,10,0.08);
+  --green:        #3ddc84;
+  --text:         #1c1a18;
+  --text-mid:     #4a4742;
+  --text-dim:     #8a8680;
+  --text-light:   #f4f3ef;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1.05rem;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* NAV */
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  background: var(--bg-dark);
+  border-bottom: 3px solid var(--sage);
+}
+
+.nav-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: stretch;
+  height: 52px;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  padding-right: 2rem;
+  border-right: 1px solid rgba(255,255,255,0.10);
+  flex-shrink: 0;
+}
+
+.nav-brand img {
+  height: 28px;
+  width: auto;
+  filter: brightness(0) invert(1);
+  opacity: 0.75;
+}
+
+.nav-brand-text {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.nav-brand-sub {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.52rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.32);
+}
+
+.nav-sections {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  padding: 0 1rem;
+}
+
+.nav-section-link {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 1rem;
+  text-decoration: none;
+  border-right: 1px solid rgba(255,255,255,0.10);
+  transition: background 0.15s;
+}
+
+.nav-section-link:hover { background: rgba(255,255,255,0.05); }
+.nav-section-link:hover .nav-sec-label { color: rgba(255,255,255,0.85); }
+
+.nav-sec-ref {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.nav-sec-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.42);
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding-left: 1.5rem;
+  border-left: 1px solid rgba(255,255,255,0.10);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.nav-actions a {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(255,255,255,0.45);
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+
+.nav-actions a:hover { color: rgba(255,255,255,0.9); }
+
+.btn-nav-cta {
+  background: var(--rust) !important;
+  color: #fff !important;
+  padding: 0.42rem 1rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-decoration: none;
+  white-space: nowrap;
+  border: none;
+}
+
+.btn-nav-cta:hover { background: #A8531F !important; }
+
+/* SYSTEM HEADER */
+.system-header {
+  margin-top: 0;
+  background: var(--bg-header);
+  border-bottom: 3px solid var(--sage);
+  padding: 2.5rem 2.5rem 2rem;
+  position: relative;
+}
+
+.system-header::after {
+  content: '';
+  position: absolute;
+  bottom: -3px; left: 0;
+  width: 160px; height: 3px;
+  background: var(--rust);
+}
+
+.system-designation {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+  margin-bottom: 0.5rem;
+}
+
+.system-title {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-light);
+  margin-bottom: 0.4rem;
+}
+
+.system-tagline {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.05rem;
+  color: rgba(244,243,239,0.60);
+  max-width: 64ch;
+  line-height: 1.6;
+}
+
+.system-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(61,220,132,0.6);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+.status-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(61,220,132,0.65);
+}
+
+/* SECTION NAV */
+.section-nav {
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 2.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.5rem;
+  align-items: center;
+  position: sticky;
+  top: 52px;
+  z-index: 800;
+}
+
+.section-nav-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-right: 0.25rem;
+}
+
+.section-nav a {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.67rem;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  color: var(--text-mid);
+  padding: 0.28rem 0.7rem;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.section-nav a:hover {
+  color: var(--text);
+  border-color: var(--border);
+  background: var(--bg-data);
+}
+
+/* MAIN CONTENT */
+main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 2rem 6rem;
+}
+
+/* DOC SECTIONS */
+.doc-section {
+  padding: 3rem 0 2.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.doc-section:last-child {
+  border-bottom: none;
+}
+
+.section-ref {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+  margin-bottom: 0.4rem;
+}
+
+.section-title {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 1.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--border);
+  position: relative;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 0;
+  width: 48px; height: 2px;
+  background: var(--sage);
+}
+
+.subsection-ref {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 2rem 0 0.3rem;
+}
+
+.subsection-title {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  margin-bottom: 0.9rem;
+}
+
+p {
+  margin-bottom: 1rem;
+  color: var(--text-mid);
+}
+
+p:last-child { margin-bottom: 0; }
+
+strong { color: var(--text); font-weight: 600; }
+
+/* FAILURE MODES */
+.failure-modes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.failure-mode {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--rust);
+  padding: 0.85rem 1rem;
+}
+
+.failure-mode-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rust);
+  margin-bottom: 0.25rem;
+}
+
+.failure-mode p {
+  font-size: 0.9rem;
+  color: var(--text-mid);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* NWC BOXES */
+.nwc {
+  display: flex;
+  gap: 0.9rem;
+  padding: 0.85rem 1rem;
+  margin: 1.25rem 0;
+  border-left-width: 3px;
+  border-left-style: solid;
+}
+
+.nwc-note {
+  background: rgba(138,134,128,0.08);
+  border-left-color: var(--border-dark);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border-dark);
+}
+
+.nwc-caution {
+  background: var(--amber-dim);
+  border: 1px solid rgba(200,134,10,0.25);
+  border-left: 3px solid var(--amber);
+}
+
+.nwc-warning {
+  background: var(--red-dim);
+  border: 1px solid rgba(192,57,43,0.22);
+  border-left: 3px solid var(--red);
+}
+
+.nwc-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding-top: 0.15rem;
+  min-width: 4.5rem;
+}
+
+.nwc-note .nwc-label { color: var(--border-dark); }
+.nwc-caution .nwc-label { color: var(--amber); }
+.nwc-warning .nwc-label { color: var(--red); }
+
+.nwc-body {
+  font-size: 0.95rem;
+  color: var(--text-mid);
+  line-height: 1.6;
+}
+
+.nwc-body p { margin: 0; color: inherit; }
+
+/* CAPABILITY CHAIN */
+.capability-chain {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 1.5rem 0;
+  border: 1px solid var(--border);
+}
+
+.capability-item {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.capability-item:last-child { border-bottom: none; }
+
+.capability-num {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: var(--text-light);
+  background: var(--bg-dark);
+  padding: 0.7rem 0.9rem;
+  display: flex;
+  align-items: center;
+  min-width: 3rem;
+  justify-content: center;
+}
+
+.capability-content {
+  padding: 0.7rem 1rem;
+  flex: 1;
+}
+
+.capability-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.capability-desc {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  line-height: 1.4;
+  margin-top: 0.1rem;
+}
+
+/* SOURCE HIERARCHY */
+.source-list {
+  list-style: none;
+  margin: 1rem 0;
+  border: 1px solid var(--border);
+}
+
+.source-list li {
+  display: flex;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+  align-items: flex-start;
+}
+
+.source-list li:last-child { border-bottom: none; }
+
+.source-rank {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  color: var(--text-light);
+  background: var(--navy);
+  padding: 0.2rem 0.5rem;
+  white-space: nowrap;
+  margin-top: 0.15rem;
+}
+
+.source-content strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 0.2rem;
+}
+
+.source-content p {
+  font-size: 0.88rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* PROTOCOL STEPS */
+.protocol-steps {
+  list-style: none;
+  margin: 1rem 0;
+  counter-reset: step;
+}
+
+.protocol-steps li {
+  counter-increment: step;
+  display: flex;
+  gap: 1rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--border-light);
+  align-items: baseline;
+}
+
+.protocol-steps li:last-child { border-bottom: none; }
+
+.protocol-steps li::before {
+  content: counter(step, decimal-leading-zero);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--sage-hi);
+  min-width: 1.8rem;
+  flex-shrink: 0;
+}
+
+/* RATIONING PRIORITY */
+.priority-list {
+  list-style: none;
+  margin: 1rem 0;
+}
+
+.priority-list li {
+  display: flex;
+  gap: 1rem;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+  align-items: baseline;
+  background: var(--bg-data);
+  border: 1px solid var(--border);
+  margin-bottom: 0.4rem;
+}
+
+.priority-num {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--rust);
+  min-width: 1.2rem;
+}
+
+.priority-label {
+  font-weight: 600;
+  color: var(--text);
+  min-width: 7rem;
+}
+
+.priority-desc {
+  font-size: 0.92rem;
+  color: var(--text-mid);
+}
+
+/* MAINTENANCE TABLE */
+.maintenance-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.93rem;
+}
+
+.maintenance-table th {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  background: var(--bg-dark);
+  padding: 0.6rem 0.85rem;
+  text-align: left;
+  border: 1px solid var(--border-dark);
+}
+
+.maintenance-table td {
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--border);
+  color: var(--text-mid);
+  vertical-align: top;
+}
+
+.maintenance-table tr:nth-child(even) td {
+  background: var(--bg-panel);
+}
+
+/* CALCULATOR */
+.calculator {
+  background: var(--bg-data);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--navy);
+  margin: 1.5rem 0;
+}
+
+.calc-header {
+  background: var(--bg-dark);
+  padding: 0.8rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.calc-header-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px rgba(61,220,132,0.5);
+}
+
+.calc-header-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+}
+
+.calc-body {
+  padding: 1.25rem 1.5rem;
+}
+
+.calc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.calc-field label {
+  display: block;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.4rem;
+}
+
+.calc-field input {
+  width: 100%;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1.1rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--border-dark);
+  padding: 0.55rem 0.75rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.calc-field input:focus {
+  border-color: var(--navy);
+  border-top-color: var(--navy);
+}
+
+.calc-output {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.calc-result-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  padding: 0.85rem 1rem;
+}
+
+.calc-result-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.25rem;
+}
+
+.calc-result-value {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--navy);
+  letter-spacing: 0.04em;
+}
+
+.calc-result-unit {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-left: 0.35rem;
+}
+
+/* SCORE BANDS */
+.score-bands {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border: 1px solid var(--border);
+  margin-top: 0.5rem;
+}
+
+.score-band {
+  padding: 0.65rem 0.75rem;
+  border-right: 1px solid var(--border);
+  opacity: 0.45;
+  transition: opacity 0.3s;
+}
+
+.score-band:last-child { border-right: none; }
+.score-band.active { opacity: 1; }
+
+.score-band-range {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+
+.score-band-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.score-band-action {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  margin-top: 0.2rem;
+  line-height: 1.35;
+}
+
+.band-critical .score-band-range { color: var(--red); }
+.band-low .score-band-range { color: var(--rust); }
+.band-solid .score-band-range { color: var(--amber); }
+.band-good .score-band-range { color: var(--sage); }
+
+/* LOADOUT SECTION */
+.loadout-intro {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--navy);
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
+  color: var(--text-mid);
+}
+
+.loadout-calc-strip {
+  background: var(--bg-dark);
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.loadout-calc-strip label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(244,243,239,0.55);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.loadout-calc-strip input {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1rem;
+  color: var(--text-light);
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 0.3rem 0.6rem;
+  width: 64px;
+  outline: none;
+}
+
+.loadout-calc-strip input:focus {
+  border-color: var(--sage-hi);
+}
+
+.loadout-calc-burn {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: var(--sage-hi);
+  margin-left: auto;
+}
+
+/* LOADOUT TABLES */
+.loadout-tier {
+  margin-bottom: 2.5rem;
+}
+
+.loadout-tier-header {
+  background: var(--bg-dark);
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.loadout-tier-name {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-light);
+}
+
+.loadout-tier-badge {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.22rem 0.65rem;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(244,243,239,0.7);
+}
+
+.loadout-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-top: none;
+}
+
+.loadout-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.loadout-table thead tr {
+  background: var(--bg-panel);
+}
+
+.loadout-table th {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 0.55rem 0.85rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border-light);
+  white-space: nowrap;
+}
+
+.loadout-table th:last-child { border-right: none; }
+
+.loadout-table td {
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--border-light);
+  border-right: 1px solid var(--border-light);
+  color: var(--text-mid);
+  vertical-align: top;
+}
+
+.loadout-table td:last-child { border-right: none; }
+
+.loadout-table tbody tr:hover td {
+  background: rgba(92,107,80,0.05);
+}
+
+.loadout-table .col-ref {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: var(--sage-hi);
+  white-space: nowrap;
+}
+
+.loadout-table .col-ref a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(125,143,110,0.4);
+}
+
+.loadout-table .col-ref a:hover {
+  color: var(--sage);
+  border-bottom-color: var(--sage);
+}
+
+.loadout-table .col-brand {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.loadout-table .col-qty {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.85rem;
+  text-align: center;
+  color: var(--text);
+}
+
+.loadout-table .col-cost {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.82rem;
+  text-align: right;
+  white-space: nowrap;
+  color: var(--text-mid);
+}
+
+.loadout-table .col-fb {
+  text-align: center;
+  font-size: 1rem;
+}
+
+/* TOTAL ROW */
+.loadout-table .row-total td {
+  background: var(--bg-dark);
+  border-color: var(--bg-dark);
+  color: rgba(244,243,239,0.6);
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.loadout-table .row-total .total-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(244,243,239,0.5);
+}
+
+.loadout-table .row-total .total-cost {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-light);
+  text-align: right;
+}
+
+.additive-note {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  padding: 0.5rem 0.85rem;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-top: none;
+  margin-bottom: 2rem;
+}
+
+/* SERVICES */
+.services-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.service-card {
+  border: 1px solid var(--border);
+  background: var(--bg-data);
+  padding: 1.25rem;
+}
+
+.service-card-tag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+  margin-bottom: 0.4rem;
+}
+
+.service-card h3 {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.service-card p {
+  font-size: 0.9rem;
+  color: var(--text-mid);
+  margin-bottom: 0.75rem;
+}
+
+.service-card .service-price {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--rust);
+}
+
+/* FLIGHT BAG CALLOUT */
+.flight-bag-box {
+  background: var(--bg-dark);
+  border: 1px solid var(--border-dark);
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.flight-bag-header {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--sage-hi);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.flight-bag-header::before {
+  content: '✈';
+  font-size: 1rem;
+}
+
+.flight-bag-body {
+  font-size: 0.93rem;
+  color: rgba(244,243,239,0.7);
+  line-height: 1.65;
+}
+
+.flight-bag-body p {
+  color: inherit;
+  margin-bottom: 0.75rem;
+}
+
+/* FOOTER */
+footer {
+  background: var(--bg-dark);
+  border-top: 2px solid var(--sage);
+  padding: 2.5rem;
+  text-align: center;
+}
+
+.footer-brand {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(244,243,239,0.5);
+  margin-bottom: 0.5rem;
+}
+
+.footer-sub {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(244,243,239,0.3);
+}
+
+/* RESPONSIVE */
+@media (max-width: 700px) {
+  nav { padding: 0.7rem 1.2rem; }
+  .nav-links { gap: 1rem; }
+  .system-header { padding: 1.75rem 1.25rem 1.5rem; }
+  .section-nav { padding: 0.8rem 1.25rem; top: 48px; }
+  main { padding: 0 1.25rem 4rem; }
+  .calc-grid { grid-template-columns: 1fr; }
+  .calc-output { grid-template-columns: 1fr; }
+  .score-bands { grid-template-columns: 1fr 1fr; }
+  .services-grid { grid-template-columns: 1fr; }
+  .loadout-calc-strip { gap: 1rem; }
+  .failure-modes { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand" aria-label="EPICS Dash-1 home">
+      <img src="EPICS__web_logo_.png" alt="EPICS Consulting" />
+      <div>
+        <div class="nav-brand-text">EPICS Dash-1</div>
+        <div class="nav-brand-sub">Household ERP</div>
+      </div>
+    </a>
+
+    <div class="nav-sections">
+      <a href="index.html#s1" class="nav-section-link">
+        <div class="nav-sec-ref">Sec 1</div>
+        <div class="nav-sec-label">Intro</div>
+      </a>
+      <a href="index.html#s2" class="nav-section-link">
+        <div class="nav-sec-ref">Sec 2</div>
+        <div class="nav-sec-label">8 Systems</div>
+      </a>
+      <a href="index.html#s3" class="nav-section-link">
+        <div class="nav-sec-ref">Sec 3</div>
+        <div class="nav-sec-label">Checklists</div>
+      </a>
+      <a href="index.html#s4" class="nav-section-link">
+        <div class="nav-sec-ref">Sec 4</div>
+        <div class="nav-sec-label">Loadouts</div>
+      </a>
+      <a href="index.html#s5" class="nav-section-link">
+        <div class="nav-sec-ref">Sec 5</div>
+        <div class="nav-sec-label">Services</div>
+      </a>
+    </div>
+
+    <div class="nav-actions">
+      <a href="index.html#flight-path">Your Flight Path</a>
+      <a href="index.html#cta" class="btn-nav-cta">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- SYSTEM HEADER -->
+<header class="system-header">
+  <div class="system-designation">EPICS Dash-1 - System 2</div>
+  <h1 class="system-title">Water</h1>
+  <p class="system-tagline">Store it. Source it. Treat it. In that order.</p>
+  <div class="system-status-bar">
+    <div class="status-dot"></div>
+    <span class="status-text">Active - Version 1.0 - March 2026</span>
+  </div>
+</header>
+
+<!-- SECTION NAV -->
+<div class="section-nav">
+  <span class="section-nav-label">Sections:</span>
+  <a href="#w-overview">2.0 Overview</a>
+  <a href="#w-preflight">2.1 Pre-Flight</a>
+  <a href="#w-doctrine">2.2 Doctrine</a>
+  <a href="#w-ops">2.3 Field Ops</a>
+  <a href="#w-loadouts">2.4 Loadouts</a>
+  <a href="#w-services">2.5 Services</a>
+</div>
+
+<main>
+
+<!-- ═══════════════════════════════════════
+     2.0 OVERVIEW
+     ═══════════════════════════════════════ -->
+<section class="doc-section" id="w-overview">
+  <div class="section-ref">2.0 - Overview</div>
+  <h2 class="section-title">Overview</h2>
+
+  <p>Water is the first system to go critical. Most households in the suburban jungle store weeks of food but less than a single day of water. Water infrastructure is centralized and invisible, which means its failure is sudden and disruptive.</p>
+
+  <p>The math is unforgiving. At a survival minimum, plan 0.5 gallons per person per day just for drinking. A realistic household baseline - one that includes cooking and basic hygiene - is 2.5 gallons per person per day. A family of four burns through 10 gallons a day. In three days, that's 30 gallons.</p>
+
+  <p>Municipal water feels infinite until it isn't. Pumping stations need electricity. Main breaks happen. Contamination triggers boil notices. If you're on a well, water is actually an energy problem - no power means no pump means no water, regardless of how much is in the ground.</p>
+
+  <p>Unlike energy, water has hard biological limits. You can dim the lights. You cannot dim your kidneys.</p>
+
+  <div class="subsection-ref">2.0.1 - Failure Modes</div>
+  <h3 class="subsection-title">Failure Modes</h3>
+
+  <div class="failure-modes">
+    <div class="failure-mode">
+      <div class="failure-mode-label">Pressure Loss</div>
+      <p>Municipal pumping stations fail during power outages. No power means no pressure, even if the water is clean.</p>
+    </div>
+    <div class="failure-mode">
+      <div class="failure-mode-label">Contamination</div>
+      <p>Boil notices are common after storms, floods, and infrastructure damage. Water flows but is unsafe to use untreated.</p>
+    </div>
+    <div class="failure-mode">
+      <div class="failure-mode-label">Infrastructure Break</div>
+      <p>Main breaks can isolate sections of a distribution system for hours to days with no warning.</p>
+    </div>
+    <div class="failure-mode">
+      <div class="failure-mode-label">Well Pump Failure</div>
+      <p>Well-dependent households lose water the moment they lose power. Water independence score is tied directly to Energy score.</p>
+    </div>
+  </div>
+
+  <div class="nwc nwc-note">
+    <span class="nwc-label">Note</span>
+    <div class="nwc-body"><p>Well-dependent households: your Water Independence Score is bounded by your Energy Independence Score. If energy is zero, water may be zero regardless of what's in the ground. Address both systems together.</p></div>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════
+     2.1 PRE-FLIGHT CHECK
+     ═══════════════════════════════════════ -->
+<section class="doc-section" id="w-preflight">
+  <div class="section-ref">2.1 - Pre-Flight Check</div>
+  <h2 class="section-title">Pre-Flight Check</h2>
+
+  <p>Every household water system answers three questions: How much water do you have right now? How will you get more when that runs out? How will you make new water safe to drink? Storage answers the first. Sources and Transfer answer the second. Purification and Filtration answer the third.</p>
+
+  <p>Run the calculator. Your score tells you exactly which loadout to build.</p>
+
+  <div class="calculator">
+    <div class="calc-header">
+      <div class="calc-header-dot"></div>
+      <span class="calc-header-title">Water Independence Calculator</span>
+    </div>
+    <div class="calc-body">
+      <div class="calc-grid">
+        <div class="calc-field">
+          <label>People in household</label>
+          <input type="number" id="pf-people" value="4" min="1" max="20" />
+        </div>
+        <div class="calc-field">
+          <label>Pets (dogs / large animals)</label>
+          <input type="number" id="pf-pets" value="1" min="0" max="20" />
+        </div>
+        <div class="calc-field">
+          <label>Gallons stored (now)</label>
+          <input type="number" id="pf-gallons" value="0" min="0" max="10000" />
+        </div>
+      </div>
+      <div class="calc-output">
+        <div class="calc-result-box">
+          <div class="calc-result-label">Daily burn rate</div>
+          <div>
+            <span class="calc-result-value" id="pf-daily">11.0</span>
+            <span class="calc-result-unit">gal / day</span>
+          </div>
+        </div>
+        <div class="calc-result-box">
+          <div class="calc-result-label">Water Independence Score</div>
+          <div>
+            <span class="calc-result-value" id="pf-score">0.0</span>
+            <span class="calc-result-unit">days</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="score-bands">
+        <div class="score-band band-critical" id="band-0">
+          <div class="score-band-range">&lt; 3 days</div>
+          <div class="score-band-label">Critical</div>
+          <div class="score-band-action">Start with the 72-Hour Loadout now.</div>
+        </div>
+        <div class="score-band band-low" id="band-3">
+          <div class="score-band-range">3 - 7 days</div>
+          <div class="score-band-label">Baseline</div>
+          <div class="score-band-action">You have a floor. Build toward the 7-Day Loadout.</div>
+        </div>
+        <div class="score-band band-solid" id="band-7">
+          <div class="score-band-range">7 - 14 days</div>
+          <div class="score-band-label">Resilient</div>
+          <div class="score-band-action">Solid. Review the 14-Day Loadout for gaps.</div>
+        </div>
+        <div class="score-band band-good" id="band-14">
+          <div class="score-band-range">14+ days</div>
+          <div class="score-band-label">Independent</div>
+          <div class="score-band-action">You have a renewable system. Maintain it.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════
+     2.2 DOCTRINE
+     ═══════════════════════════════════════ -->
+<section class="doc-section" id="w-doctrine">
+  <div class="section-ref">2.2 - Doctrine</div>
+  <h2 class="section-title">Doctrine</h2>
+
+  <p>Every household water system requires three capabilities: the ability to <strong>store</strong> water, the ability to <strong>source and transfer</strong> water when storage runs out, and the ability to <strong>treat</strong> it - purification first, filtration second. A household without all three is not independent. It is on a countdown.</p>
+
+  <div class="capability-chain">
+    <div class="capability-item">
+      <div class="capability-num">01</div>
+      <div class="capability-content">
+        <div class="capability-name">Storage</div>
+        <div class="capability-desc">Sets the floor of your independence score. Buys time for everything else.</div>
+      </div>
+    </div>
+    <div class="capability-item">
+      <div class="capability-num">02</div>
+      <div class="capability-content">
+        <div class="capability-name">Alternate Sources</div>
+        <div class="capability-desc">Removes the ceiling. Storage runs out - sources do not have to.</div>
+      </div>
+    </div>
+    <div class="capability-item">
+      <div class="capability-num">03</div>
+      <div class="capability-content">
+        <div class="capability-name">Transfer</div>
+        <div class="capability-desc">Logistics: moves water from alternate sources into your treatment chain.</div>
+      </div>
+    </div>
+    <div class="capability-item">
+      <div class="capability-num">04</div>
+      <div class="capability-content">
+        <div class="capability-name">Purification</div>
+        <div class="capability-desc">Neutralizes biological threats. Makes alternate sources safe to use.</div>
+      </div>
+    </div>
+    <div class="capability-item">
+      <div class="capability-num">05</div>
+      <div class="capability-content">
+        <div class="capability-name">Filtration</div>
+        <div class="capability-desc">Removes particulates and chemical contaminants. Makes purified water livable.</div>
+      </div>
+    </div>
+    <div class="capability-item">
+      <div class="capability-num">06</div>
+      <div class="capability-content">
+        <div class="capability-name">Use Discipline</div>
+        <div class="capability-desc">Conservation multiplies every other capability. Costs nothing.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2.2.1 Storage -->
+  <div class="subsection-ref">2.2.1 - Storage</div>
+  <h3 id="w-doctrine-storage" class="subsection-title">Storage</h3>
+
+  <p>Storage sets the floor of your Water Independence Score. Before you can source, transfer, or treat water, you need time - time to assess the situation, identify alternate sources, or let the problem resolve. Most disruptions do resolve. Stored water buys that time.</p>
+
+  <p>The math is simple. A realistic household baseline is 2.5 gallons per person per day. Pets add roughly a gallon each. A family of four with one dog burns through about 11 gallons a day. Thirty gallons covers 72 hours and fits in a corner of your basement.</p>
+
+  <p>Use food-grade containers only - HDPE or stainless steel. Containers should be portable, sealable, and sized so one person can move them when full. A spigot matters more than it sounds: water you can access without lifting a full container gets rotated. Water that requires a wrestling match does not.</p>
+
+  <p>For surge capacity, your bathrooms are an underused asset. A bathtub bladder turns a standard tub into 65 gallons of sealed, contamination-free storage in minutes. If you have warning - and most disruptions give you some - filling your bladders is the highest-value action you can take in the first ten minutes.</p>
+
+  <p>Properly treated and sealed water does not need to be refreshed every six months. That advice exists because most people store water incorrectly. Fill food-grade containers from your tap, add a measured dose of dedicated water preserver - not standard bleach, which degrades and is often scented - seal them, and label with the treatment date. Properly preserved and sealed water stores safely for five years.</p>
+
+  <div class="nwc nwc-note">
+    <span class="nwc-label">Note</span>
+    <div class="nwc-body"><p>Most hot water heaters hold 40-50 gallons of potable water, accessible via the drain valve at the base of the tank. This is water you already own.</p></div>
+  </div>
+
+  <div class="nwc nwc-caution">
+    <span class="nwc-label">Caution</span>
+    <div class="nwc-body"><p>Water preservers are formulated for long-term sealed storage. Standard household bleach degrades within 6-12 months and is not a substitute for dedicated water preserver in sealed containers.</p></div>
+  </div>
+
+  <div class="nwc nwc-caution">
+    <span class="nwc-label">Caution</span>
+    <div class="nwc-body"><p>Non-food-grade containers leach chemicals over time and degrade under UV exposure. Do not use containers not rated for potable water storage.</p></div>
+  </div>
+
+  <!-- 2.2.2 Sources + Transfer -->
+  <div class="subsection-ref">2.2.2 - Alternate Sources &amp; Transfer</div>
+  <h3 id="w-doctrine-sources" class="subsection-title">Alternate Sources &amp; Transfer</h3>
+
+  <p>Storage removes your immediate vulnerability. Alternate sources remove your ceiling. When stored water runs out, independence does not have to end - it transitions. You stop depending on what you stored and start depending on what you can access, move, and treat. The suburban jungle has water everywhere. Most people simply never notice because they have never needed to.</p>
+
+  <p><strong>Source hierarchy - safest to most conditional:</strong></p>
+
+  <ol class="source-list">
+    <li>
+      <span class="source-rank">01</span>
+      <div class="source-content">
+        <strong>Nearby structures with pressurized water</strong>
+        <p>Water utilities fail in sections, not all at once. During a localized outage, a school, hospital, or neighbor two blocks away may have full pressure while your home does not. This is the most reliable and most overlooked alternate source.</p>
+      </div>
+    </li>
+    <li>
+      <span class="source-rank">02</span>
+      <div class="source-content">
+        <strong>Your hot water heater</strong>
+        <p>Already addressed in Storage. Worth repeating here - this is your first alternate source because it requires no sourcing at all. 40-50 gallons, already in your home.</p>
+      </div>
+    </li>
+    <li>
+      <span class="source-rank">03</span>
+      <div class="source-content">
+        <strong>Swimming pools and spas</strong>
+        <p>An average residential pool holds 10,000 to 20,000 gallons. Not immediately drinkable - requires full treatment - but a single neighborhood pool can supply hundreds of households for an extended period.</p>
+      </div>
+    </li>
+    <li>
+      <span class="source-rank">04</span>
+      <div class="source-content">
+        <strong>Rainwater</strong>
+        <p>Your roof is a collection surface. Even light rainfall produces meaningful volume from a standard gutter system. Always filter and purify before use.</p>
+      </div>
+    </li>
+    <li>
+      <span class="source-rank">05</span>
+      <div class="source-content">
+        <strong>Surface water</strong>
+        <p>Rivers, streams, ponds. Available but highest biological risk. Your contingency, not your plan. Requires full treatment chain.</p>
+      </div>
+    </li>
+  </ol>
+
+  <p>Once a source is identified, you need to move water. Transfer capability is water logistics: the containers, pumps, and handling discipline that bridge alternate sources and your clean supply. The critical principle in transfer is <strong>contamination control</strong> - untreated source water and clean drinking water must never share the same container, surface, or handling path. Your transfer system requires dedicated dirty-water containers and dedicated clean-water containers. They are not interchangeable. Ever.</p>
+
+  <p>For field transfer at the 72-hour tier, an integrated filter-and-carry unit handles sourcing, transport, and filtration in a single piece of equipment. Fill it from any freshwater source and it delivers filtered, safe drinking water immediately. At the 7-day tier, add four dedicated jerry cans - two permanently designated for untreated source water, two for purified water only. Color-code them.</p>
+
+  <div class="nwc nwc-warning">
+    <span class="nwc-label">Warning</span>
+    <div class="nwc-body"><p>Cross-contaminating clean water storage with untreated source water is a silent failure. Contaminated water is indistinguishable from safe water by sight or smell. The consequences - severe gastrointestinal illness - accelerate dehydration and create medical problems when medical care may be unavailable.</p></div>
+  </div>
+
+  <!-- 2.2.3 Purification -->
+  <div class="subsection-ref">2.2.3 - Purification</div>
+  <h3 id="w-doctrine-purification" class="subsection-title">Purification</h3>
+
+  <p>Purification is what makes alternate sources safe to use. Storage buys time. Alternate sources remove the ceiling. Purification is the capability that connects them. Without it, every source on the hierarchy above is potential, not supply.</p>
+
+  <p>Most alternate water sources contain biological contamination - bacteria, viruses, and parasites. Purification neutralizes biological threats. It is not optional and it is not tier-dependent. Every household water system requires purification capability regardless of how much water is stored. Purification always happens before filtration and before water enters your clean containers.</p>
+
+  <p><strong>Chemical purification</strong> is the primary method for household use. No electricity, no moving parts, works at any scale. The instinct to reach for household bleach is correct in principle - unscented bleach at 5-8% sodium hypochlorite is effective and widely available. The problem is that most bleach on store shelves is scented or contains additives that make it unsafe for water treatment. In a disruption, this distinction matters. Pre-measured purification tablets eliminate the variable entirely. One tablet, one liter, no measuring, no label-reading under stress. Keep both. Use the tablets by default.</p>
+
+  <p><strong>Boiling</strong> is the most reliable purification method known. A rolling boil for one minute destroys bacteria, viruses, and parasites completely. It does not remove sediment, heavy metals, or chemical contaminants - and it consumes fuel. Treat boiling as your backup when chemical methods are unavailable, not your primary method for sustained operations.</p>
+
+  <div class="nwc nwc-warning">
+    <span class="nwc-label">Warning</span>
+    <div class="nwc-body"><p>If you are not certain water is safe, treat it. Giardia, cryptosporidium, and common waterborne bacteria cause severe gastrointestinal illness. In a resource-limited environment, illness multiplies every other problem you face.</p></div>
+  </div>
+
+  <!-- 2.2.4 Filtration -->
+  <div class="subsection-ref">2.2.4 - Filtration</div>
+  <h3 id="w-doctrine-filtration" class="subsection-title">Filtration</h3>
+
+  <p>Purification makes water biologically safe. Filtration makes it livable. These are not the same process.</p>
+
+  <p>Chemical purification and boiling neutralize biological threats. They do not remove sediment, particulates, chlorine, heavy metals, or environmental contaminants. Water that has been purified but not filtered is safe to drink. Water that has been purified and filtered is safe to live on indefinitely. That distinction matters when you are not sure how long the situation lasts.</p>
+
+  <p>Filtration is the final step before water enters your drinking supply. It always happens after purification, always in the clean zone.</p>
+
+  <p>For household use, the correct architecture is a <strong>gravity filtration system</strong>. No electricity. No water pressure. No moving parts. Pour treated water into the upper chamber and gravity does the rest. This is not a compromise solution. It is the right design for any water system that needs to function independently of infrastructure.</p>
+
+  <p>When evaluating gravity filters, look for NSF/ANSI certification and independent lab testing against a broad contaminant list. Flow rate matters in practice - a single-element filter that runs overnight is more useful than a system you have to babysit. Stainless steel construction outlasts plastic for long-term use.</p>
+
+  <div class="nwc nwc-note">
+    <span class="nwc-label">Note</span>
+    <div class="nwc-body"><p>Berkey Water Filters received an EPA stop-sale order and cannot be legally sold in the United States. They have not obtained NSF certifications. Do not purchase Berkey products.</p></div>
+  </div>
+
+  <div class="nwc nwc-caution">
+    <span class="nwc-label">Caution</span>
+    <div class="nwc-body"><p>Filtration elements have rated service lives. An overloaded or expired element does not fail loudly - it continues to pass water that may no longer meet treatment standards. Track element usage and replace on schedule.</p></div>
+  </div>
+
+  <!-- 2.2.5 Use Discipline -->
+  <div class="subsection-ref">2.2.5 - Use Discipline</div>
+  <h3 id="w-doctrine-discipline" class="subsection-title">Use Discipline</h3>
+
+  <p>Conservation is capability multiplication. Reduce consumption by 25% and you extend your independence by 25%. Cut it in half and you double it. This costs nothing and requires no equipment - only awareness of where water actually goes.</p>
+
+  <p>Priority order under scarcity: drinking first and non-negotiable; cooking second with menus adjusted to minimize water cost; hygiene third using wipes and basins rather than running water; sanitation last. A standard toilet flush uses 1.6 gallons. At typical household frequency, flushing consumes more water per day than drinking. Gray water recycling for sanitation is addressed in the Sanitation system.</p>
+
+  <div class="nwc nwc-note">
+    <span class="nwc-label">Note</span>
+    <div class="nwc-body"><p>Electrolyte supplements improve hydration efficiency. In a water-limited situation, what your body absorbs from each glass matters as much as total volume. Worth keeping in the pantry.</p></div>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════
+     2.3 FIELD OPERATIONS
+     ═══════════════════════════════════════ -->
+<section class="doc-section" id="w-ops">
+  <div class="section-ref">2.3 - Field Operations</div>
+  <h2 class="section-title">Field Operations</h2>
+
+  <p>Doctrine tells you what to build and why. Field Operations tells you how to run it.</p>
+
+  <!-- Storage Protocol -->
+  <div class="subsection-ref">2.3.1 - Storage Protocol</div>
+  <h3 class="subsection-title">Storage Protocol</h3>
+
+  <p>Water stored correctly lasts five years. Water stored carelessly becomes a problem you discover at the worst possible time.</p>
+
+  <p><strong>Fill and treat:</strong></p>
+  <ol class="protocol-steps">
+    <li>Fill food-grade containers from your tap</li>
+    <li>Add dedicated water preserver per manufacturer dosing - one bottle treats up to 55 gallons</li>
+    <li>Seal tightly and confirm seal integrity</li>
+    <li>Label with fill date and treatment date</li>
+    <li>Store in a cool, dark, temperature-stable location - basement or interior ground floor</li>
+  </ol>
+
+  <p><strong>Placement:</strong> Primary storage in the basement or interior ground floor. AquaPod bladders staged in the bathrooms where they will be deployed. Treatment supplies stored with water storage - one station, one location. Transfer gear near your exit point.</p>
+
+  <p><strong>What you are actually inspecting annually:</strong> Container integrity - cracks, discoloration, seal condition. Label legibility and treatment date. The area around containers for moisture, leaks, or pest activity. The water inside a properly treated, sealed, undamaged container does not need to be touched until year five.</p>
+
+  <div class="nwc nwc-caution">
+    <span class="nwc-label">Caution</span>
+    <div class="nwc-body"><p>Garages and exterior storage areas expose containers to temperature cycling and UV radiation, both of which accelerate HDPE degradation regardless of treatment method. Primary storage belongs indoors.</p></div>
+  </div>
+
+  <!-- Decontamination Protocol -->
+  <div class="subsection-ref">2.3.2 - Decontamination Protocol</div>
+  <h3 class="subsection-title">Decontamination Protocol</h3>
+
+  <p>This protocol governs how water moves from an alternate source into your clean drinking supply. The objective is simple: contamination moves in one direction only - toward purification, never backward into clean storage.</p>
+
+  <p>Your transfer system at the 7-day tier requires four containers in two permanently designated pairs. Two dirty. Two clean. Color-code them - one color for untreated source water, one color for purified water only. Under stress, color is faster than reading a label.</p>
+
+  <ol class="protocol-steps">
+    <li>Collect source water using dirty containers only</li>
+    <li>Strain visibly cloudy water through cloth or a pre-filter before treatment</li>
+    <li>Purify in dirty containers using Aquatabs or bleach - wait the full contact time</li>
+    <li>Transfer purified water into clean containers only</li>
+    <li>Feed clean containers into the gravity filtration system</li>
+    <li>Dispense filtered water into drinking containers</li>
+  </ol>
+
+  <p>The chain runs one direction. Source - purify - filter - drink.</p>
+
+  <div class="nwc nwc-warning">
+    <span class="nwc-label">Warning</span>
+    <div class="nwc-body"><p>Never transfer untreated source water directly into clean containers or your gravity filter. A single cross-contamination event compromises your entire clean supply.</p></div>
+  </div>
+
+  <!-- Rationing Protocol -->
+  <div class="subsection-ref">2.3.3 - Rationing Protocol</div>
+  <h3 class="subsection-title">Rationing Protocol</h3>
+
+  <p>Water discipline is arithmetic. Reduce daily consumption by 25% and you extend your independence by 25%. The math works in your favor if you work it deliberately. Dehydration degrades judgment before it degrades physical capability - you will make worse decisions before you feel sick.</p>
+
+  <ul class="priority-list">
+    <li><span class="priority-num">01</span><span class="priority-label">Drinking</span><span class="priority-desc">Non-negotiable. Minimum intake for every household member before water goes anywhere else.</span></li>
+    <li><span class="priority-num">02</span><span class="priority-label">Cooking</span><span class="priority-desc">Audit your food system before a disruption. Canned goods and ready-to-eat foods cost zero water. Shift your menu accordingly.</span></li>
+    <li><span class="priority-num">03</span><span class="priority-label">Hygiene</span><span class="priority-desc">Wipes, washcloths, and basins handle most needs at a fraction of the water cost. Hygiene is not optional - illness multiplies every other problem.</span></li>
+    <li><span class="priority-num">04</span><span class="priority-label">Sanitation</span><span class="priority-desc">A standard flush uses 1.6 gallons. At typical frequency, this exceeds daily drinking requirements. See the Sanitation system for gray water protocol.</span></li>
+  </ul>
+
+  <!-- Maintenance Schedule -->
+  <div class="subsection-ref">2.3.4 - Maintenance Schedule</div>
+  <h3 class="subsection-title">Maintenance Schedule</h3>
+
+  <p>Water is the easiest system to neglect because stored water looks fine right up until it isn't. Build maintenance into habits you already have.</p>
+
+  <table class="maintenance-table">
+    <thead>
+      <tr>
+        <th>Frequency</th>
+        <th>Task</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Ongoing</td>
+        <td>Visual inspection of containers when you check smoke detectors</td>
+      </tr>
+      <tr>
+        <td>Ongoing</td>
+        <td>Confirm AquaPod bladders are staged and undamaged when cleaning bathrooms</td>
+      </tr>
+      <tr>
+        <td>Ongoing</td>
+        <td>Run a flush cycle on the gravity filter if it has not been used recently</td>
+      </tr>
+      <tr>
+        <td>Annually (November - DST)</td>
+        <td>Full container inspection - cracks, seals, label integrity</td>
+      </tr>
+      <tr>
+        <td>Annually (November - DST)</td>
+        <td>Check purification tablet expiration dates - replace if within six months of expiry</td>
+      </tr>
+      <tr>
+        <td>Annually (November - DST)</td>
+        <td>Replace AquaPod liners regardless of use - staging equipment, not long-term storage</td>
+      </tr>
+      <tr>
+        <td>Annually (November - DST)</td>
+        <td>Service gravity filter elements per manufacturer schedule</td>
+      </tr>
+      <tr>
+        <td>Every 5 years</td>
+        <td>Drain, retreat, and refill all primary storage containers</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Flight Bag -->
+  <div class="subsection-ref">2.3.5 - The Flight Bag</div>
+  <h3 class="subsection-title">The Flight Bag</h3>
+
+  <div class="flight-bag-box">
+    <div class="flight-bag-header">Flight Bag</div>
+    <div class="flight-bag-body">
+      <p>The Flight Bag is not a prepper concept. It is a grab list. The goal of EPICS Dash-1 is always to keep your household in place - your home is your shelter, your infrastructure, your supply chain. The Flight Bag exists for the scenario where staying is not the right call, and you need to move with capability rather than without it.</p>
+      <p>If you built your loadout from portable, modular components - and the doctrine recommends that you do - your Flight Bag is already assembled. You are not packing. You are grabbing.</p>
+      <p>Items marked ✈ in your loadout table belong in your Flight Bag. The LifeSaver Jerrycan is the most important item: fill it from any freshwater source in the suburban jungle and it delivers filtered, safe drinking water immediately. No second step. That capability is why it appears at the 72-hour tier regardless of stored water volume.</p>
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════
+     2.4 LOADOUTS
+     ═══════════════════════════════════════ -->
+<section class="doc-section" id="w-loadouts">
+  <div class="section-ref">2.4 - Loadouts</div>
+  <h2 class="section-title">Loadouts</h2>
+
+  <div class="loadout-intro">
+    Three complete builds. Each tier is additive - the 7-Day Loadout assumes everything in the 72-Hour Loadout is already in place. Quantities marked <em>calc</em> update automatically based on your household size below.
+  </div>
+
+  <!-- Dynamic calc strip -->
+  <div class="loadout-calc-strip">
+    <label>People <input type="number" id="lo-people" value="4" min="1" max="20" /></label>
+    <label>Pets <input type="number" id="lo-pets" value="1" min="0" max="20" /></label>
+    <span class="loadout-calc-burn">Burn rate: <span id="lo-burn">11.0</span> gal / day</span>
+  </div>
+
+  <!-- 72-HOUR LOADOUT -->
+  <div class="loadout-tier">
+    <div class="loadout-tier-header">
+      <span class="loadout-tier-name">72-Hour Loadout</span>
+      <span class="loadout-tier-badge">Baseline capability</span>
+    </div>
+    <div class="loadout-table-wrap">
+      <table class="loadout-table">
+        <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Requirement</th>
+            <th>Recommended</th>
+            <th>Qty</th>
+            <th>Unit Cost</th>
+            <th>Total</th>
+            <th>✈</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-ref"><a href="#w-doctrine-storage">2.2.1</a></td>
+            <td>Bathtub bladder kit</td>
+            <td class="col-brand">AquaPod Kit 2.0</td>
+            <td class="col-qty">2</td>
+            <td class="col-cost">-</td>
+            <td class="col-cost">-</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#w-doctrine-storage">2.2.1</a></td>
+            <td>Portable food-grade containers w/ spigot</td>
+            <td class="col-brand">Reliance Aqua-Tainer 7-gal</td>
+            <td class="col-qty" id="qty-aquatainer">-</td>
+            <td class="col-cost">-</td>
+            <td class="col-cost">-</td>
+            <td class="col-fb">✈</td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#w-doctrine-storage">2.2.1</a></td>
+            <td>Water preserver - 5-year treatment</td>
+            <td class="col-brand">Water Preserver Concentrate - Mayday</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">-</td>
+            <td class="col-cost">-</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#w-doctrine-sources">2.2.2</a></td>
+            <td>Integrated field filter + transport</td>
+            <td class="col-brand">LifeSaver Jerrycan 20000UF</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">-</td>
+            <td class="col-cost">-</td>
+            <td class="col-fb">✈</td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#w-doctrine-purification">2.2.3</a></td>
+            <td>Personal water purification + electrolyte kit</td>
+            <td class="col-brand">CANA Provisions Personal Water Kit</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">-</td>
+            <td class="col-cost">-</td>
+            <td class="col-fb">✈</td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#w-doctrine-purification">2.2.3</a></td>
+            <td>Chemical purification - unscented bleach</td>
+            <td class="col-brand">Any unscented 5-8% sodium hypochlorite</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">-</td>
+            <td class="col-cost">-</td>
+            <td class="col-fb">✈</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="row-total">
+            <td colspan="5" class="total-label">Total</td>
+            <td class="total-cost">-</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- 7-DAY LOADOUT -->
+  <div class="loadout-tier">
+    <div class="loadout-tier-header">
+      <span class="loadout-tier-name">7-Day Loadout</span>
+      <span class="loadout-tier-badge">Additive - assumes 72-Hour is complete</span>
+    </div>
+    <div class="loadout-table-wrap">
+      <table class="loadout-table">
+        <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Requirement</th>
+            <th>Recommended</th>
+            <th>Qty</th>
+            <th>Unit Cost</th>
+            <th>Total</th>
+            <th>✈</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-ref"><a href="#w-doctrine-storage">2.2.1</a></td>
+            <td>Modular stackable storage</td>
+            <td class="col-brand">WaterBrick 3.5-gal</td>
+            <td class="col-qty" id="qty-waterbrick">-</td>
+            <td class="col-cost">-</td>
+            <td class="col-cost">-</td>
+            <td class="col-fb">✈</td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#w-doctrine-sources">2.2.2</a></td>
+            <td>Transfer cans - dirty/clean separation</td>
+            <td class="col-brand">Scepter Military Water Can</td>
+            <td class="col-qty">4</td>
+            <td class="col-cost">-</td>
+            <td class="col-cost">-</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#w-doctrine-sources">2.2.2</a></td>
+            <td>Dispensing pump</td>
+            <td class="col-brand">Shaker siphon pump</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">-</td>
+            <td class="col-cost">-</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#w-doctrine-filtration">2.2.4</a></td>
+            <td>Gravity filtration system</td>
+            <td class="col-brand">Alexapure Pro</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">-</td>
+            <td class="col-cost">-</td>
+            <td class="col-fb"></td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="row-total">
+            <td colspan="5" class="total-label">Additional</td>
+            <td class="total-cost">-</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="additive-note">Four Scepter cans: two designated dirty, two designated clean. See 2.3.2 Decontamination Protocol.</div>
+  </div>
+
+  <!-- 14-DAY LOADOUT -->
+  <div class="loadout-tier">
+    <div class="loadout-tier-header">
+      <span class="loadout-tier-name">14-Day Loadout</span>
+      <span class="loadout-tier-badge">Additive - assumes 7-Day is complete</span>
+    </div>
+    <div class="loadout-table-wrap">
+      <table class="loadout-table">
+        <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Requirement</th>
+            <th>Recommended</th>
+            <th>Qty</th>
+            <th>Unit Cost</th>
+            <th>Total</th>
+            <th>✈</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-ref"><a href="#w-doctrine-storage">2.2.1</a></td>
+            <td>High-volume stationary storage</td>
+            <td class="col-brand">WaterPrepared 55-gal Tank</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">-</td>
+            <td class="col-cost">-</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#w-doctrine-sources">2.2.2</a></td>
+            <td>Motorized dispensing pump</td>
+            <td class="col-brand">Lone Rock Motorized Pump</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">-</td>
+            <td class="col-cost">-</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#w-doctrine-filtration">2.2.4</a></td>
+            <td>Gravity filter replacement elements - 2-pack</td>
+            <td class="col-brand">Alexapure Pro Filter Elements</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">-</td>
+            <td class="col-cost">-</td>
+            <td class="col-fb"></td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="row-total">
+            <td colspan="5" class="total-label">Additional</td>
+            <td class="total-cost">-</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="additive-note">The 55-gallon tank weighs over 450 lbs when full. Verify structural load capacity and proximity to a drain before placement.</div>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════
+     2.5 SERVICES
+     ═══════════════════════════════════════ -->
+<section class="doc-section" id="w-services">
+  <div class="section-ref">2.5 - Professional Services</div>
+  <h2 class="section-title">Professional Services</h2>
+
+  <p>The equipment in the loadout sections above covers well beyond 14 days for most suburban households without professional installation, permits, or five-figure checks. You will know it is time to think beyond the loadouts when the calculus changes: you are on well water without backup power, you want storage beyond 500 gallons, you are in a high-risk flood or contamination zone, or you are doing new construction.</p>
+
+  <p>Professional water systems can be excellent - but they all have dependencies. Municipal systems depend on infrastructure you do not control. Well systems depend on electricity. Many whole-house solutions depend on pressure to refill. Your WaterBricks do not need a pump. Your gravity filter does not need electricity. Your bleach card does not need WiFi. Cover the fundamentals first. Then upgrade.</p>
+
+  <div class="services-grid">
+    <div class="service-card">
+      <div class="service-card-tag">Professional System</div>
+      <h3>Constant Water</h3>
+      <p>A closed, battery-powered backup that connects to your main water line and delivers water to your fixtures when pressure drops. No generator required. Patented push technology prevents contamination. Sits in your utility room and you forget it exists until the day you need it.</p>
+      <div class="service-price">From ~$3,490 - constantwater.com</div>
+    </div>
+    <div class="service-card">
+      <div class="service-card-tag">Professional System</div>
+      <h3>BULL Water Systems</h3>
+      <p>Integrates directly into your main water line with isolated storage and their Surflo Control System. 250-750 gallon capacity. Best suited for new construction or major renovations. Professional installation required.</p>
+      <div class="service-price">From ~$4,000 - bullwaterstorage.com</div>
+    </div>
+  </div>
+
+  <p style="margin-top:1.5rem;">For a professionally designed household water system - or a full EPICS Dash-1 assessment across all eight domains - see <a href="index.html#section-5" style="color:var(--sage);border-bottom:1px dashed rgba(92,107,80,0.4);">Section 5: Services</a>.</p>
+
+</section>
+
+</main>
+
+<footer>
+  <div class="footer-brand">EPICS Dash-1</div>
+  <div class="footer-sub">Suburban Systems · Jungle Doctrine · Independence by Design</div>
+</footer>
+
+<script>
+// PRE-FLIGHT CALCULATOR
+function updatePreflight() {
+  const people = parseFloat(document.getElementById('pf-people').value) || 0;
+  const pets   = parseFloat(document.getElementById('pf-pets').value)   || 0;
+  const stored = parseFloat(document.getElementById('pf-gallons').value)|| 0;
+  const daily  = (people * 2.5) + (pets * 1.0);
+  const score  = daily > 0 ? stored / daily : 0;
+  document.getElementById('pf-daily').textContent = daily.toFixed(1);
+  document.getElementById('pf-score').textContent = score.toFixed(1);
+  // Update score bands
+  const bands = ['band-0','band-3','band-7','band-14'];
+  bands.forEach(id => document.getElementById(id).classList.remove('active'));
+  if      (score < 3)  document.getElementById('band-0').classList.add('active');
+  else if (score < 7)  document.getElementById('band-3').classList.add('active');
+  else if (score < 14) document.getElementById('band-7').classList.add('active');
+  else                 document.getElementById('band-14').classList.add('active');
+}
+
+['pf-people','pf-pets','pf-gallons'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updatePreflight);
+});
+updatePreflight();
+
+// LOADOUT CALCULATOR
+function updateLoadout() {
+  const people = parseFloat(document.getElementById('lo-people').value) || 0;
+  const pets   = parseFloat(document.getElementById('lo-pets').value)   || 0;
+  const daily  = (people * 2.5) + (pets * 1.0);
+  document.getElementById('lo-burn').textContent = daily.toFixed(1);
+
+  // Aqua-Tainer qty: cover 72-hour need (daily * 3) at 7 gal per container
+  const aquatainerQty = Math.max(1, Math.ceil((daily * 3) / 7));
+  document.getElementById('qty-aquatainer').textContent = aquatainerQty;
+
+  // WaterBrick qty: additional 4 days of storage at 3.5 gal per brick
+  const waterbrickQty = Math.max(4, Math.ceil((daily * 4) / 3.5));
+  document.getElementById('qty-waterbrick').textContent = waterbrickQty;
+}
+
+['lo-people','lo-pets'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateLoadout);
+});
+updateLoadout();
+</script>
+
+</body>
+</html>
