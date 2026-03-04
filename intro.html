@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Introduction — EPICS Dash-1</title>
+<meta name="description" content="What is an ERP, what is a Dash-1, and how to use this tool. The orientation guide for EPICS Dash-1." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+
+<style>
+:root {
+  --page:        #F4F3EF;
+  --page-alt:    #ECEAE4;
+  --panel:       #1E2840;
+  --panel-mid:   #243050;
+  --panel-soft:  #2A3860;
+  --ink:         #12151A;
+  --ink-mid:     #3A404A;
+  --ink-dim:     #6A7080;
+  --ink-ghost:   #9AA0AA;
+  --rust:        #C0622A;
+  --rust-dim:    rgba(192,98,42,0.12);
+  --sage:        #5C6B50;
+  --sage-hi:     #8FA07E;
+  --sage-dim:    rgba(92,107,80,0.12);
+  --amber:       #B8882A;
+  --green:       #2E8B57;
+  --rule:        #C8C5BC;
+  --rule-dark:   rgba(255,255,255,0.10);
+  --mono:        'Share Tech Mono', monospace;
+  --head:        'Syncopate', sans-serif;
+  --body:        'Rajdhani', sans-serif;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+
+body {
+  font-family: var(--body);
+  background: var(--page);
+  color: var(--ink);
+  font-size: 1.05rem;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ── NAV ── */
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  background: var(--panel);
+  border-bottom: 3px solid var(--sage);
+}
+
+.nav-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: stretch;
+  height: 52px;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  padding-right: 2rem;
+  border-right: 1px solid var(--rule-dark);
+  flex-shrink: 0;
+}
+
+.nav-brand img {
+  height: 28px;
+  width: auto;
+  filter: brightness(0) invert(1);
+  opacity: 0.75;
+}
+
+.nav-brand-text {
+  font-family: var(--head);
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.nav-brand-sub {
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.32);
+}
+
+.nav-sections {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  padding: 0 1rem;
+}
+
+.nav-section-link {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 1rem;
+  text-decoration: none;
+  border-right: 1px solid var(--rule-dark);
+  transition: background 0.15s;
+}
+
+.nav-section-link:hover { background: rgba(255,255,255,0.05); }
+.nav-section-link:hover .nav-sec-label { color: rgba(255,255,255,0.85); }
+.nav-section-link.active { background: rgba(255,255,255,0.04); }
+.nav-section-link.active .nav-sec-label { color: var(--sage-hi); }
+
+.nav-sec-ref {
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.nav-sec-label {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.42);
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding-left: 1.5rem;
+  border-left: 1px solid var(--rule-dark);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.nav-actions a {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(255,255,255,0.45);
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+
+.nav-actions a:hover { color: rgba(255,255,255,0.9); }
+
+.btn-nav-cta {
+  background: var(--rust) !important;
+  color: #fff !important;
+  padding: 0.42rem 1rem;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-decoration: none;
+  white-space: nowrap;
+  border: none;
+}
+
+.btn-nav-cta:hover { background: #A8531F !important; }
+
+/* ── PAGE HEADER ── */
+.page-header {
+  background: var(--panel);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 3.5rem 2rem 3rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+}
+
+.page-header::after {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--sage);
+}
+
+.page-header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.page-header-eyebrow {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.page-header-eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 28px;
+  height: 1px;
+  background: var(--sage-hi);
+}
+
+h1 {
+  font-family: var(--head);
+  font-weight: 700;
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  line-height: 1.12;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #fff;
+  margin-bottom: 0.8rem;
+}
+
+.page-header-sub {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.28);
+}
+
+/* ── SECTION COMMON ── */
+.section-wrap     { padding: 5rem 2rem; background: var(--page); }
+.section-wrap-alt { padding: 5rem 2rem; background: var(--page-alt); }
+
+.inner { max-width: 1100px; margin: 0 auto; }
+
+.section-label {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.section-label::before {
+  content: '';
+  display: inline-block;
+  width: 24px;
+  height: 1px;
+  background: var(--sage);
+}
+
+h2 {
+  font-family: var(--head);
+  font-weight: 700;
+  font-size: clamp(1.05rem, 2vw, 1.5rem);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  margin-bottom: 2rem;
+}
+
+.rule { height: 1px; background: var(--rule); margin: 0; }
+
+/* ── PROSE ── */
+.prose {
+  max-width: 680px;
+}
+
+.prose p {
+  font-size: 1.02rem;
+  line-height: 1.82;
+  color: var(--ink-mid);
+  font-weight: 400;
+  margin-bottom: 1.2rem;
+}
+
+.prose p:last-child { margin-bottom: 0; }
+
+.prose em {
+  font-style: italic;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.prose strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ── HOW-TO STEPS ── */
+.how-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin-top: 2.5rem;
+}
+
+.how-step {
+  background: #fff;
+  padding: 2rem 1.8rem;
+}
+
+.how-step-num {
+  font-family: var(--mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 0.6rem;
+}
+
+.how-step-title {
+  font-family: var(--head);
+  font-weight: 700;
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 0.8rem;
+}
+
+.how-step p {
+  font-size: 0.93rem;
+  line-height: 1.72;
+  color: var(--ink-dim);
+  font-weight: 400;
+  margin-bottom: 0.9rem;
+}
+
+.how-step p:last-of-type { margin-bottom: 0; }
+
+.how-step-callout {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--rust);
+  margin-top: 1.2rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--rule);
+}
+
+/* ── NEXT STEPS BAR ── */
+.next-bar {
+  background: var(--panel);
+  padding: 2.5rem 2rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.next-bar-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.next-bar-label {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.28);
+  margin-bottom: 0.4rem;
+}
+
+.next-bar-text {
+  font-family: var(--head);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #fff;
+}
+
+.btn {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 0.9rem 1.8rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: var(--sage);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #4A5840;
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--rust);
+  border: 1px solid var(--rust);
+}
+
+.btn-ghost:hover {
+  background: var(--rust);
+  color: #fff;
+}
+
+/* ── FOOTER ── */
+footer {
+  background: var(--ink);
+  border-top: 3px solid var(--sage);
+  padding: 2.5rem 2rem;
+}
+
+.footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+footer img {
+  height: 28px;
+  width: auto;
+  filter: brightness(0) invert(1);
+  opacity: 0.18;
+}
+
+.footer-brand {
+  font-family: var(--head);
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.22);
+}
+
+.footer-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.footer-tagline {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+}
+
+.footer-copy {
+  font-family: var(--mono);
+  font-size: 0.54rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.2);
+}
+
+footer a {
+  color: rgba(255,255,255,0.3);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+footer a:hover { color: var(--sage-hi); }
+
+/* ── REVEAL ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1), transform 0.7s cubic-bezier(0.22,1,0.36,1);
+}
+.reveal.visible { opacity:1; transform:translateY(0); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 700px) {
+  .nav-sections { display: none; }
+  .nav-inner { justify-content: space-between; }
+  .page-header { padding: 2.5rem 1.25rem 2rem; }
+  h1 { font-size: 1.3rem; }
+  .section-wrap, .section-wrap-alt { padding: 3.5rem 1.25rem; }
+  .how-steps { grid-template-columns: 1fr; }
+  .next-bar-inner { flex-direction: column; align-items: flex-start; }
+  .footer-inner { flex-direction: column; align-items: flex-start; }
+  .footer-right { align-items: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { opacity:1; transform:none; transition:none; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand" aria-label="EPICS Dash-1 home">
+      <img src="EPICS__web_logo_.png" alt="EPICS Consulting" />
+      <div>
+        <div class="nav-brand-text">EPICS Dash-1</div>
+        <div class="nav-brand-sub">Household ERP</div>
+      </div>
+    </a>
+
+    <div class="nav-sections">
+      <a href="#what-is-erp" class="nav-section-link active">
+        <div class="nav-sec-ref">Sec 1.1</div>
+        <div class="nav-sec-label">What is an ERP</div>
+      </a>
+      <a href="#what-is-dash1" class="nav-section-link">
+        <div class="nav-sec-ref">Sec 1.2</div>
+        <div class="nav-sec-label">What is a Dash-1</div>
+      </a>
+      <a href="#how-to-use" class="nav-section-link">
+        <div class="nav-sec-ref">Sec 1.3</div>
+        <div class="nav-sec-label">How to Use</div>
+      </a>
+    </div>
+
+    <div class="nav-actions">
+      <a href="index.html#toc">Table of Contents</a>
+      <a href="index.html#cta" class="btn-nav-cta">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="page-header-inner">
+    <div class="page-header-eyebrow">EPICS Dash-1 &nbsp;·&nbsp; Section 1</div>
+    <h1>Introduction</h1>
+    <div class="page-header-sub">What is an ERP &nbsp;·&nbsp; What is a Dash-1 &nbsp;·&nbsp; How to Use This Tool</div>
+  </div>
+</div>
+
+<div class="rule"></div>
+
+<!-- SECTION 1.1 — WHAT IS AN ERP -->
+<section class="section-wrap" id="what-is-erp">
+  <div class="inner">
+    <div class="reveal">
+      <div class="section-label">Section 1.1</div>
+      <h2>What Is an ERP?</h2>
+    </div>
+    <div class="prose reveal">
+      <p>ERP stands for Emergency Response Plan.</p>
+      <p>Hospitals have them. Airports have them. The airline you flew on last Thanksgiving has one. Your kid's school has one. The company you work for almost certainly has one.</p>
+      <p>Your house probably does not.</p>
+      <p><em>Homo suburbanus</em> evolved to be exceptionally good at outsourcing. Electricity comes from the grid. Water comes from the tap. Food comes from a store that gets restocked twice a week. This arrangement works beautifully - right up until it doesn't.</p>
+      <p>An Emergency Response Plan is simply a pre-thought-out answer to predictable questions:</p>
+      <p>Where is our water coming from if the tap stops working?<br>
+      How do we cook if the power is out?<br>
+      What happens when the cell network goes down?<br>
+      Who handles what when someone gets hurt?</p>
+      <p>The suburban jungle delivers disruptions on a regular schedule. Power outages. Winter storms. Water main breaks. Supply chain hiccups. None of these are apocalypse scenarios. Most of them are a Tuesday in South Jersey.</p>
+      <p>The difference between a household that handles disruptions well and one that doesn't usually isn't resources. It's whether anyone bothered to think it through before the stress arrived.</p>
+      <p>EPICS Dash-1 exists to help you do exactly that - systematically, calmly, and without buying a bunker.</p>
+    </div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- SECTION 1.2 — WHAT IS A DASH-1 -->
+<section class="section-wrap-alt" id="what-is-dash1">
+  <div class="inner">
+    <div class="reveal">
+      <div class="section-label">Section 1.2</div>
+      <h2>What Is a Dash-1?</h2>
+    </div>
+    <div class="prose reveal">
+      <p>In aviation, the Dash-1 is the primary flight manual for an aircraft. It documents how the systems work, how to operate them under normal conditions, and what to do when something goes wrong.</p>
+      <p>Every aircraft has one. Every pilot knows where it is before they strap in.</p>
+      <p>Your house is also a system of systems. Water. Energy. Food. Medical. Communications. Security. Sanitation. Records. Each one runs mostly on autopilot because modern infrastructure does the heavy lifting.</p>
+      <p>Until it doesn't.</p>
+      <p>Most households have no real picture of how their own systems actually function - how much water is on hand, how long the pantry would last, what the plan is when the power has been out for eighteen hours and nobody has thought this through.</p>
+      <p>A household Dash-1 changes that. It maps your systems, measures your actual capabilities, and establishes simple procedures for when something breaks down.</p>
+      <p>Not so you can bug out. So you can operate.</p>
+      <p>The goal isn't perfection. The goal is <strong>systems awareness</strong> - knowing what you have, knowing what you don't, and having a clear picture of where your household actually stands.</p>
+    </div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- SECTION 1.3 — HOW TO USE THIS TOOL -->
+<section class="section-wrap" id="how-to-use">
+  <div class="inner">
+    <div class="reveal">
+      <div class="section-label">Section 1.3</div>
+      <h2>How to Use This Tool</h2>
+      <p style="font-size:1rem; color:var(--ink-dim); max-width:520px; line-height:1.65; font-weight:400; margin-bottom:2rem;">Three steps. No certification required.</p>
+    </div>
+
+    <div class="how-steps reveal">
+
+      <div class="how-step">
+        <div class="how-step-num">Step 01</div>
+        <div class="how-step-title">Assess Your Systems</div>
+        <p>Each section of the site walks through a critical household system and asks a handful of practical questions.</p>
+        <p>How much water do you actually have stored? How long can your home operate without grid power? What food supply is already in the pantry right now?</p>
+        <p>These questions feed a set of simple calculators that generate your <strong>Independence Score</strong> - a realistic measure of how long your household can operate if a system goes down.</p>
+        <div class="how-step-callout">→ Eight systems. Eight scores.</div>
+      </div>
+
+      <div class="how-step">
+        <div class="how-step-num">Step 02</div>
+        <div class="how-step-title">Find the Weak Links</div>
+        <p>Every household has gaps. Usually it isn't everything - it's one or two systems that are thin.</p>
+        <p>Solid pantry, almost no water storage. Good equipment, no backup power. Everything staged, but nobody has practiced using any of it.</p>
+        <p>Dash-1 surfaces these gaps clearly so you can see where a small investment or a little organization makes the biggest difference.</p>
+        <div class="how-step-callout">→ Preparedness is about the weakest link.</div>
+      </div>
+
+      <div class="how-step">
+        <div class="how-step-num">Step 03</div>
+        <div class="how-step-title">Improve Gradually</div>
+        <p>Once the gaps are visible, the path forward is straightforward.</p>
+        <p>Add some water storage. Rotate the pantry. Stage a medical kit. Plug in a power station.</p>
+        <p>Small changes compound quickly. Most households can meaningfully improve their resilience with a few targeted upgrades and an afternoon of honest organization.</p>
+        <div class="how-step-callout">→ A reference you keep. Not a checklist you finish.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- NEXT STEPS BAR -->
+<div class="next-bar">
+  <div class="next-bar-inner">
+    <div>
+      <div class="next-bar-label">Next — Section 2</div>
+      <div class="next-bar-text">The Eight Systems</div>
+    </div>
+    <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+      <a href="energy.html" class="btn btn-primary">Start with Energy</a>
+      <a href="index.html#toc" class="btn btn-ghost">Back to Contents</a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-left">
+      <img src="chompsky.png" alt="EPICS Consulting" />
+      <div class="footer-brand">EPICS Consulting, LLC &nbsp;·&nbsp; South Jersey</div>
+    </div>
+    <div class="footer-right">
+      <div class="footer-tagline">SUBURBAN SYSTEMS &nbsp;·&nbsp; JUNGLE DOCTRINE</div>
+      <div class="footer-copy">© 2026 EPICS Consulting, LLC &nbsp;·&nbsp; <a href="mailto:alex@epics.consulting">alex@epics.consulting</a></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 100);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
