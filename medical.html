@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>System 4: Medical - EPICS Dash-1</title>
+<meta name="description" content="Medical doctrine, pre-flight calculator, field operations, and loadouts for household medical independence." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg:#f4f3ef;--bg-panel:#eceae5;--bg-data:#ffffff;--bg-dark:#1e2840;--bg-header:#1e2840;
+  --border:#c8c4bc;--border-light:#dbd8d2;--border-dark:#8a8680;
+  --sage:#5c6b50;--sage-hi:#7d8f6e;--sage-dim:rgba(92,107,80,0.10);
+  --rust:#c0622a;--rust-dim:rgba(192,98,42,0.10);--navy:#1e2840;
+  --red:#c0392b;--red-dim:rgba(192,57,43,0.08);
+  --amber:#c8860a;--amber-dim:rgba(200,134,10,0.08);
+  --green:#3ddc84;--text:#1c1a18;--text-mid:#4a4742;--text-dim:#8a8680;--text-light:#f4f3ef;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}.status-dot{animation:none!important;box-shadow:none!important;}}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);font-size:1.05rem;line-height:1.75;-webkit-font-smoothing:antialiased;}
+nav{position:sticky;top:0;z-index:900;background:var(--bg-dark);border-bottom:3px solid var(--sage);}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 2rem;display:flex;align-items:stretch;height:52px;}
+.nav-brand{display:flex;align-items:center;gap:0.75rem;text-decoration:none;padding-right:2rem;border-right:1px solid rgba(255,255,255,0.10);flex-shrink:0;}
+.nav-brand-text{font-family:'Syncopate',sans-serif;font-weight:700;font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:#fff;line-height:1.2;}
+.nav-brand-sub{font-family:'Share Tech Mono',monospace;font-size:0.52rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.32);}
+.nav-sections{display:flex;align-items:stretch;flex:1;padding:0 1rem;}
+.nav-section-link{display:flex;flex-direction:column;justify-content:center;padding:0 1rem;text-decoration:none;border-right:1px solid rgba(255,255,255,0.10);transition:background 0.15s;}
+.nav-section-link:hover{background:rgba(255,255,255,0.05);}
+.nav-section-link:hover .nav-sec-label{color:rgba(255,255,255,0.85);}
+.nav-sec-ref{font-family:'Share Tech Mono',monospace;font-size:0.5rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--sage-hi);line-height:1;margin-bottom:2px;}
+.nav-sec-label{font-family:'Share Tech Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.42);line-height:1;transition:color 0.15s;}
+.nav-actions{display:flex;align-items:center;gap:1.2rem;padding-left:1.5rem;border-left:1px solid rgba(255,255,255,0.10);flex-shrink:0;margin-left:auto;}
+.nav-actions a{font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;color:rgba(255,255,255,0.45);transition:color 0.2s;white-space:nowrap;}
+.nav-actions a:hover{color:rgba(255,255,255,0.9);}
+.btn-nav-cta{background:var(--rust)!important;color:#fff!important;padding:0.42rem 1rem;font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:background 0.2s;text-decoration:none;white-space:nowrap;border:none;}
+.btn-nav-cta:hover{background:#A8531F!important;}
+.system-header{background:var(--bg-header);border-bottom:3px solid var(--sage);padding:2.5rem 2.5rem 2rem;position:relative;}
+.system-header::after{content:'';position:absolute;bottom:-3px;left:0;width:160px;height:3px;background:var(--rust);}
+.system-designation{font-family:'Share Tech Mono',monospace;font-size:0.68rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--sage-hi);margin-bottom:0.5rem;}
+.system-title{font-family:'Syncopate',sans-serif;font-weight:700;font-size:clamp(1.8rem,4vw,2.8rem);text-transform:uppercase;letter-spacing:0.04em;color:var(--text-light);margin-bottom:0.4rem;}
+.system-tagline{font-family:'Rajdhani',sans-serif;font-size:1.05rem;color:rgba(244,243,239,0.60);max-width:64ch;line-height:1.6;}
+.system-status-bar{display:flex;align-items:center;gap:0.6rem;margin-top:1rem;}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px rgba(61,220,132,0.6);animation:pulse 2.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.45;}}
+.status-text{font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(61,220,132,0.65);}
+.section-nav{background:var(--bg-panel);border-bottom:1px solid var(--border);padding:1rem 2.5rem;display:flex;flex-wrap:wrap;gap:0.3rem 1.5rem;align-items:center;position:sticky;top:52px;z-index:800;}
+.section-nav-label{font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin-right:0.25rem;}
+.section-nav a{font-family:'Share Tech Mono',monospace;font-size:0.67rem;letter-spacing:0.06em;text-decoration:none;color:var(--text-mid);padding:0.28rem 0.7rem;border:1px solid transparent;transition:all 0.15s;}
+.section-nav a:hover{color:var(--text);border-color:var(--border);background:var(--bg-data);}
+main{max-width:860px;margin:0 auto;padding:0 2rem 6rem;}
+.doc-section{padding:3rem 0 2.5rem;border-bottom:1px solid var(--border-light);}
+.doc-section:last-child{border-bottom:none;}
+.section-ref{font-family:'Share Tech Mono',monospace;font-size:0.64rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--sage-hi);margin-bottom:0.4rem;}
+.section-title{font-family:'Syncopate',sans-serif;font-weight:700;font-size:1.35rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text);margin-bottom:1.5rem;padding-bottom:0.75rem;border-bottom:2px solid var(--border);position:relative;}
+.section-title::after{content:'';position:absolute;bottom:-2px;left:0;width:48px;height:2px;background:var(--sage);}
+.subsection-ref{font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin:2rem 0 0.3rem;}
+.subsection-title{font-family:'Syncopate',sans-serif;font-weight:700;font-size:0.95rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text);margin-bottom:0.9rem;}
+.sub-subsection-ref{font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);margin:1.5rem 0 0.25rem;padding-left:1rem;border-left:2px solid var(--border);}
+.sub-subsection-title{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.9rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text);margin-bottom:0.75rem;padding-left:1rem;}
+p{margin-bottom:1rem;color:var(--text-mid);}
+p:last-child{margin-bottom:0;}
+strong{color:var(--text);font-weight:600;}
+.failure-modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0.75rem;margin:1.5rem 0;}
+.failure-mode{background:var(--bg-panel);border:1px solid var(--border);border-left:3px solid var(--rust);padding:0.85rem 1rem;}
+.failure-mode-label{font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--rust);margin-bottom:0.25rem;}
+.failure-mode p{font-size:0.9rem;color:var(--text-mid);margin:0;line-height:1.5;}
+.nwc{display:flex;gap:0.9rem;padding:0.85rem 1rem;margin:1.25rem 0;}
+.nwc-note{background:rgba(138,134,128,0.08);border:1px solid var(--border);border-left:3px solid var(--border-dark);}
+.nwc-caution{background:var(--amber-dim);border:1px solid rgba(200,134,10,0.25);border-left:3px solid var(--amber);}
+.nwc-warning{background:var(--red-dim);border:1px solid rgba(192,57,43,0.22);border-left:3px solid var(--red);}
+.nwc-label{font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:0.16em;text-transform:uppercase;white-space:nowrap;padding-top:0.15rem;min-width:4.5rem;}
+.nwc-note .nwc-label{color:var(--border-dark);}
+.nwc-caution .nwc-label{color:var(--amber);}
+.nwc-warning .nwc-label{color:var(--red);}
+.nwc-body{font-size:0.95rem;color:var(--text-mid);line-height:1.6;}
+.nwc-body p{margin:0;color:inherit;}
+
+/* CALCULATOR */
+.calculator{border:1px solid var(--border);margin:1.5rem 0;background:var(--bg-data);}
+.calc-header{background:var(--bg-dark);padding:0.75rem 1.25rem;display:flex;align-items:center;gap:0.75rem;}
+.calc-header-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 6px rgba(61,220,132,0.5);flex-shrink:0;}
+.calc-header-title{font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(244,243,239,0.7);}
+.calc-body{padding:1.5rem;}
+.calc-grid{display:grid;gap:1rem;margin-bottom:1rem;}
+.calc-grid-2{grid-template-columns:1fr 1fr;}
+.calc-grid-3{grid-template-columns:1fr 1fr 1fr;}
+.calc-field{display:flex;flex-direction:column;gap:0.35rem;}
+.calc-field label{font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);}
+.calc-field input[type="number"],.calc-field input[type="text"]{font-family:'Share Tech Mono',monospace;font-size:1rem;color:var(--text);background:var(--bg);border:1px solid var(--border);border-top:2px solid var(--border-dark);padding:0.55rem 0.75rem;outline:none;width:100%;transition:border-color 0.15s;}
+.calc-field input[type="number"]::-webkit-outer-spin-button,.calc-field input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.calc-field input[type="number"]{-moz-appearance:textfield;}
+.calc-field input:focus{border-color:var(--navy);border-top-color:var(--navy);}
+.calc-toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg-panel);border:1px solid var(--border);border-top:2px solid var(--border-dark);padding:0.75rem 1rem;margin-bottom:0.75rem;gap:1rem;}
+.calc-toggle-label{font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);}
+.calc-toggle-label span{display:block;font-size:0.82rem;color:var(--text-mid);text-transform:none;letter-spacing:0.02em;margin-top:0.15rem;font-family:'Rajdhani',sans-serif;}
+.toggle-btns{display:flex;border:1px solid var(--border);overflow:hidden;flex-shrink:0;}
+.toggle-btn{font-family:'Share Tech Mono',monospace;font-size:0.72rem;letter-spacing:0.16em;text-transform:uppercase;padding:0.45rem 1.25rem;border:none;cursor:pointer;background:var(--bg-data);color:var(--text-dim);transition:background 0.15s,color 0.15s;border-right:1px solid var(--border);}
+.toggle-btn:last-child{border-right:none;}
+.toggle-btn.active-yes{background:var(--navy);color:var(--green);}
+.toggle-btn.active-no{background:var(--amber);color:#fff;}
+.toggle-btn.active-warn{background:var(--red);color:#fff;}
+.score-output-box{background:var(--bg-dark);padding:1.25rem 1.5rem;text-align:center;margin:1.5rem 0 1rem;}
+.score-output-label{font-family:'Share Tech Mono',monospace;font-size:0.55rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(244,243,239,0.5);margin-bottom:0.2rem;}
+.score-output-row{display:flex;align-items:baseline;justify-content:center;gap:0.5rem;}
+.score-output-value{font-family:'Syncopate',sans-serif;font-size:2.2rem;font-weight:700;color:#fff;letter-spacing:0.04em;}
+.score-output-unit{font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:rgba(244,243,239,0.4);text-transform:uppercase;}
+.score-limiting{font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(244,243,239,0.45);margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid rgba(255,255,255,0.08);}
+.score-limiting span{color:var(--amber);display:block;font-size:0.7rem;margin-top:0.2rem;letter-spacing:0.06em;}
+.calc-flags{margin:0.75rem 0;display:flex;flex-direction:column;gap:0.5rem;}
+.calc-flag{padding:0.6rem 0.85rem;font-size:0.88rem;line-height:1.4;border-left:3px solid;}
+.calc-flag-warning{background:var(--red-dim);border-color:var(--red);color:var(--red);}
+.calc-flag-caution{background:var(--amber-dim);border-color:var(--amber);color:var(--amber);}
+.calc-flag-note{background:var(--bg-panel);border-color:var(--border-dark);color:var(--text-mid);}
+.score-bands{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:1.25rem;border:1px solid var(--border);}
+.score-band{padding:0.75rem 0.85rem;border-right:1px solid var(--border);opacity:0.38;transition:opacity 0.2s;}
+.score-band:last-child{border-right:none;}
+.score-band.active{opacity:1;}
+.score-band-range{font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;color:var(--text-dim);margin-bottom:0.2rem;}
+.score-band-label{font-family:'Syncopate',sans-serif;font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.35rem;}
+.score-band-action{font-size:0.82rem;color:var(--text-mid);line-height:1.4;}
+.band-critical{background:var(--red-dim);}.band-critical .score-band-label{color:var(--red);}
+.band-low{background:var(--amber-dim);}.band-low .score-band-label{color:var(--amber);}
+.band-solid{background:var(--sage-dim);}.band-solid .score-band-label{color:var(--sage);}
+.band-good{background:rgba(30,40,64,0.05);}.band-good .score-band-label{color:var(--navy);}
+
+/* MEMBER TABS */
+.member-size-row{display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;padding-bottom:1.25rem;border-bottom:1px solid var(--border-light);}
+.member-size-label{font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);white-space:nowrap;}
+.member-size-input{font-family:'Share Tech Mono',monospace;font-size:1rem;color:var(--text);background:var(--bg);border:1px solid var(--border);border-top:2px solid var(--border-dark);padding:0.4rem 0.6rem;width:60px;outline:none;}
+.member-tabs{display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:1rem;}
+.member-tab{font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.35rem 0.85rem;border:1px solid var(--border);background:var(--bg-panel);color:var(--text-dim);cursor:pointer;transition:all 0.15s;}
+.member-tab.active{background:var(--navy);color:var(--text-light);border-color:var(--navy);}
+.member-panel{display:none;border:1px solid var(--border-light);background:var(--bg-panel);padding:1rem;}
+.member-panel.visible{display:block;}
+.member-panel-name{margin-bottom:0.85rem;}
+.rx-list{display:flex;flex-direction:column;gap:0.5rem;margin-bottom:0.75rem;}
+.rx-row{display:grid;grid-template-columns:1fr 100px;gap:0.5rem;}
+.rx-row input{font-family:'Share Tech Mono',monospace;font-size:0.82rem;color:var(--text);background:var(--bg-data);border:1px solid var(--border);padding:0.4rem 0.6rem;outline:none;width:100%;}
+.rx-row input:focus{border-color:var(--navy);}
+.rx-row-labels{display:grid;grid-template-columns:1fr 100px;gap:0.5rem;margin-bottom:0.3rem;}
+.rx-row-label{font-family:'Share Tech Mono',monospace;font-size:0.56rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);}
+.add-rx-btn{font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.35rem 0.75rem;border:1px dashed var(--border-dark);background:transparent;color:var(--text-dim);cursor:pointer;transition:all 0.15s;margin-top:0.25rem;}
+.add-rx-btn:hover{border-color:var(--sage);color:var(--sage);}
+
+/* READINESS PROFILE */
+.readiness-profile{margin:1.25rem 0;border:1px solid var(--border);}
+.readiness-header{font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);background:var(--bg-panel);padding:0.55rem 0.85rem;border-bottom:1px solid var(--border);}
+.readiness-row{display:flex;align-items:center;gap:1rem;padding:0.65rem 0.85rem;border-bottom:1px solid var(--border-light);}
+.readiness-row:last-child{border-bottom:none;}
+.readiness-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.readiness-dot-green{background:var(--green);}
+.readiness-dot-amber{background:var(--amber);}
+.readiness-dot-red{background:var(--red);}
+.readiness-label{font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text);min-width:9rem;}
+.readiness-status{font-size:0.9rem;color:var(--text-mid);}
+
+/* SKILLS CHECKLIST */
+.skills-grid{display:flex;flex-direction:column;gap:0.45rem;margin:1rem 0;}
+.skill-check-row{display:flex;align-items:center;gap:0.75rem;padding:0.55rem 0.85rem;background:var(--bg-panel);border:1px solid var(--border-light);cursor:pointer;transition:background 0.15s;}
+.skill-check-row:hover{background:var(--bg-data);}
+.skill-checkbox{width:16px;height:16px;border:2px solid var(--border-dark);background:var(--bg-data);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.skill-checkbox.checked{background:var(--navy);border-color:var(--navy);}
+.skill-checkbox.checked::after{content:'';display:block;width:8px;height:5px;border-left:2px solid var(--green);border-bottom:2px solid var(--green);transform:rotate(-45deg) translateY(-1px);}
+.skill-check-label{font-size:0.95rem;color:var(--text-mid);}
+.skills-section-label{font-family:'Share Tech Mono',monospace;font-size:0.58rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);margin-bottom:0.35rem;margin-top:1rem;}
+
+/* POWER BACKUP ROW */
+.power-backup-row{display:none;margin-top:0.75rem;}
+.power-backup-row.visible{display:block;}
+
+/* LOADOUTS */
+.loadout-intro{background:var(--bg-panel);border:1px solid var(--border);border-left:3px solid var(--navy);padding:1rem 1.25rem;margin:1.5rem 0;font-size:0.95rem;color:var(--text-mid);}
+.loadout-calc-strip{display:flex;align-items:center;gap:2rem;flex-wrap:wrap;background:var(--bg-panel);border:1px solid var(--border);padding:0.85rem 1.25rem;margin-bottom:2rem;font-family:'Share Tech Mono',monospace;font-size:0.8rem;letter-spacing:0.08em;color:var(--text-dim);}
+.loadout-calc-strip label{display:flex;align-items:center;gap:0.6rem;color:var(--text-mid);text-transform:uppercase;font-size:0.7rem;letter-spacing:0.12em;}
+.loadout-calc-strip input{width:3.5rem;background:var(--bg-dark);border:1px solid var(--border);color:var(--text-light);font-family:'Share Tech Mono',monospace;font-size:0.85rem;padding:0.25rem 0.5rem;text-align:center;}
+.loadout-calc-strip input:focus{outline:none;border-color:var(--sage);}
+.loadout-tier{margin-bottom:2.5rem;}
+.loadout-tier-header{background:var(--bg-dark);padding:0.85rem 1.25rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;}
+.loadout-tier-name{font-family:'Syncopate',sans-serif;font-weight:700;font-size:0.88rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-light);}
+.loadout-tier-badge{font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;padding:0.22rem 0.65rem;border:1px solid rgba(255,255,255,0.2);color:rgba(244,243,239,0.7);}
+.loadout-table-wrap{overflow-x:auto;border:1px solid var(--border);border-top:none;}
+.loadout-table{width:100%;border-collapse:collapse;font-size:0.9rem;}
+.loadout-table thead tr{background:var(--bg-panel);}
+.loadout-table th{font-family:'Share Tech Mono',monospace;font-size:0.58rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);padding:0.55rem 0.85rem;text-align:left;border-bottom:1px solid var(--border);border-right:1px solid var(--border-light);white-space:nowrap;}
+.loadout-table th:last-child{border-right:none;}
+.loadout-table td{padding:0.6rem 0.85rem;border-bottom:1px solid var(--border-light);border-right:1px solid var(--border-light);color:var(--text-mid);vertical-align:top;}
+.loadout-table td:last-child{border-right:none;}
+.loadout-table tbody tr:hover td{background:rgba(92,107,80,0.05);}
+.loadout-table .col-ref{font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;color:var(--sage-hi);white-space:nowrap;}
+.loadout-table .col-ref a{color:inherit;text-decoration:none;border-bottom:1px dashed rgba(125,143,110,0.4);}
+.loadout-table .col-ref a:hover{color:var(--sage);border-bottom-color:var(--sage);}
+.loadout-table .col-brand{font-size:0.88rem;font-weight:600;color:var(--text);}
+.loadout-table .col-qty{font-family:'Share Tech Mono',monospace;font-size:0.85rem;text-align:center;color:var(--text);}
+.loadout-table .col-cost{font-family:'Share Tech Mono',monospace;font-size:0.82rem;text-align:right;white-space:nowrap;color:var(--text-mid);}
+.loadout-table .col-fb{text-align:center;font-size:1rem;}
+.loadout-table .row-total td{background:var(--bg-dark);border-color:var(--bg-dark);color:rgba(244,243,239,0.6);padding-top:0.75rem;padding-bottom:0.75rem;}
+.loadout-table .row-total .total-label{font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(244,243,239,0.5);}
+.loadout-table .row-total .total-cost{font-family:'Syncopate',sans-serif;font-size:1.15rem;font-weight:700;color:var(--text-light);text-align:right;}
+.additive-note{font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;color:var(--text-dim);text-transform:uppercase;padding:0.5rem 0.85rem;background:var(--bg-panel);border:1px solid var(--border);border-top:none;margin-bottom:2rem;}
+.cond-note{font-size:0.82rem;color:var(--text-dim);font-style:italic;display:block;margin-top:0.15rem;}
+
+/* SERVICES */
+.services-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.5rem 0;}
+.service-card{border:1px solid var(--border);background:var(--bg-data);padding:1.25rem;}
+.service-card-tag{font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--sage-hi);margin-bottom:0.4rem;}
+.service-card h3{font-family:'Rajdhani',sans-serif;font-weight:600;font-size:1.05rem;color:var(--text);margin-bottom:0.6rem;}
+.service-card p{font-size:0.9rem;color:var(--text-mid);margin-bottom:0.75rem;}
+.service-price{font-family:'Share Tech Mono',monospace;font-size:0.7rem;letter-spacing:0.08em;color:var(--sage-hi);margin-top:0.85rem;padding-top:0.75rem;border-top:1px solid var(--border-light);}
+
+/* FLIGHT BAG */
+.flight-bag-box{background:var(--bg-dark);border:1px solid var(--border-dark);padding:1.25rem 1.5rem;margin:1.5rem 0;}
+.flight-bag-header{font-family:'Syncopate',sans-serif;font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--sage-hi);margin-bottom:0.75rem;display:flex;align-items:center;gap:0.75rem;}
+.flight-bag-header::before{content:'✈';font-size:1rem;}
+.flight-bag-body{font-size:0.93rem;color:rgba(244,243,239,0.7);line-height:1.65;}
+.flight-bag-body p{color:inherit;margin-bottom:0.75rem;}
+.flight-bag-body p:last-child{margin-bottom:0;}
+
+/* MAINTENANCE TABLE */
+.maintenance-table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.93rem;}
+.maintenance-table th{font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-light);background:var(--bg-dark);padding:0.6rem 0.85rem;text-align:left;border:1px solid var(--border-dark);}
+.maintenance-table td{padding:0.6rem 0.85rem;border:1px solid var(--border);color:var(--text-mid);vertical-align:top;}
+.maintenance-table tr:nth-child(even) td{background:var(--bg-panel);}
+
+footer{background:var(--bg-dark);padding:2rem 2.5rem;text-align:center;border-top:3px solid var(--sage);}
+.footer-brand{font-family:'Syncopate',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(244,243,239,0.7);margin-bottom:0.3rem;}
+.footer-sub{font-family:'Share Tech Mono',monospace;font-size:0.58rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(244,243,239,0.28);}
+
+@media(max-width:700px){
+  .system-header{padding:1.75rem 1.25rem 1.5rem;}
+  .section-nav{padding:0.8rem 1.25rem;top:48px;}
+  main{padding:0 1.25rem 4rem;}
+  .calc-grid-2,.calc-grid-3{grid-template-columns:1fr;}
+  .score-bands{grid-template-columns:1fr 1fr;}
+  .services-grid{grid-template-columns:1fr;}
+  .nav-sections{padding:0 0.6rem;}
+  .calc-toggle-row{flex-direction:column;align-items:flex-start;}
+  .rx-row{grid-template-columns:1fr 80px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      <div>
+        <div class="nav-brand-text">EPICS Dash-1</div>
+        <div class="nav-brand-sub">epicsdash1.com</div>
+      </div>
+    </a>
+    <div class="nav-sections">
+      <a href="index.html#s1" class="nav-section-link"><div class="nav-sec-ref">Sec 1</div><div class="nav-sec-label">Intro</div></a>
+      <a href="index.html#s2" class="nav-section-link"><div class="nav-sec-ref">Sec 2</div><div class="nav-sec-label">8 Systems</div></a>
+      <a href="index.html#s3" class="nav-section-link"><div class="nav-sec-ref">Sec 3</div><div class="nav-sec-label">Checklists</div></a>
+      <a href="index.html#s4" class="nav-section-link"><div class="nav-sec-ref">Sec 4</div><div class="nav-sec-label">Loadouts</div></a>
+      <a href="index.html#s5" class="nav-section-link"><div class="nav-sec-ref">Sec 5</div><div class="nav-sec-label">Services</div></a>
+    </div>
+    <div class="nav-actions">
+      <a href="index.html#systems">All Systems</a>
+      <a href="index.html#s5" class="btn-nav-cta">Get Assessment</a>
+    </div>
+  </div>
+</nav>
+
+<header class="system-header">
+  <div class="system-designation">System 4 / Medical</div>
+  <div class="system-title">Medical</div>
+  <div class="system-tagline">Prescriptions first. Skills second. Equipment third. In that order.</div>
+  <div class="system-status-bar">
+    <div class="status-dot"></div>
+    <span class="status-text">Dash-1 Active</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <span class="section-nav-label">Sections:</span>
+  <a href="#m-overview">4.0 Overview</a>
+  <a href="#m-preflight">4.1 Pre-Flight</a>
+  <a href="#m-doctrine">4.2 Doctrine</a>
+  <a href="#m-ops">4.3 Field Ops</a>
+  <a href="#m-loadouts">4.4 Loadouts</a>
+  <a href="#m-services">4.5 Services</a>
+</div>
+
+<main>
+
+<!-- ═══════════════════════════════════════
+     4.0 OVERVIEW
+     ═══════════════════════════════════════ -->
+<section class="doc-section" id="m-overview">
+  <div class="section-ref">4.0 - Overview</div>
+  <h2 class="section-title">Overview</h2>
+
+  <p>Medical is the system most people get wrong - not because they buy the wrong things, but because they focus on the wrong problems.</p>
+
+  <p>The preparedness industry wants to sell you trauma kits and field surgery manuals. The internet is full of guides on how to suture wounds and set broken bones. That is fantasy medicine. If you are suturing wounds in your living room, something has gone catastrophically wrong and a first aid kit was not going to save you anyway.</p>
+
+  <p>Here is what actually threatens your household during a disruption.</p>
+
+  <p><strong>Running out of medication.</strong> This is the number one medical emergency during any disruption, and it is completely preventable. Nobody dies from a cut during a power outage. People absolutely die - or end up in crisis - from running out of insulin, blood pressure medication, cardiac drugs, or psychiatric medications. Suddenly stopping certain prescriptions does not just cause discomfort. It triggers withdrawal, rebound effects, or physiological emergencies that may require the hospital you cannot reach.</p>
+
+  <p><strong>Life-threatening emergencies with delayed EMS response.</strong> Choking, severe bleeding, cardiac arrest. These happen during normal life. During a disruption, emergency response times stretch from minutes to hours - or longer. That gap between incident and professional help is where survivable events become fatal ones.</p>
+
+  <p><strong>Everything else.</strong> Cuts, burns, fevers, upset stomachs, allergic reactions. These are the same problems you deal with on any given Tuesday. They do not require special emergency medicine knowledge. They require a stocked medicine cabinet, a good reference, and common sense.</p>
+
+  <p>The most dangerous medical decision during a disruption is not doing the wrong thing. It is convincing yourself you can handle something that requires a hospital. Know your ceiling. Know when you have reached it. And when in doubt, evacuate.</p>
+
+  <div class="subsection-ref">4.0.1 - Failure Modes</div>
+  <h3 class="subsection-title">Failure Modes</h3>
+
+  <div class="failure-modes">
+    <div class="failure-mode">
+      <div class="failure-mode-label">Prescription Gap</div>
+      <p>Critical medication runs out because a buffer was never established. The most common serious medical event during any disruption - and the most preventable.</p>
+    </div>
+    <div class="failure-mode">
+      <div class="failure-mode-label">Delayed EMS Response</div>
+      <p>A survivable emergency becomes fatal because the household cannot stabilize the patient until professional care arrives.</p>
+    </div>
+    <div class="failure-mode">
+      <div class="failure-mode-label">Power-Dependent Equipment</div>
+      <p>Medical devices or refrigerated medications fail when the Energy system fails. Medical independence may be zero regardless of supplies on hand.</p>
+    </div>
+    <div class="failure-mode">
+      <div class="failure-mode-label">Documentation Failure</div>
+      <p>Emergency responders cannot obtain accurate medication, allergy, or medical history information for an incapacitated patient.</p>
+    </div>
+    <div class="failure-mode">
+      <div class="failure-mode-label">Scope Creep</div>
+      <p>A household attempts to manage a condition that requires hospital care, losing critical treatment time in the process.</p>
+    </div>
+    <div class="failure-mode">
+      <div class="failure-mode-label">Supply Degradation</div>
+      <p>Expired medications, depleted kits, or lapsed training reduce medical capability exactly when it is needed most.</p>
+    </div>
+  </div>
+
+  <div class="nwc nwc-note">
+    <span class="nwc-label">Note</span>
+    <div class="nwc-body"><p>Households with power-dependent medical equipment or refrigerated medications: your Medical Independence Score is bounded by your Energy Independence Score. Address both systems together.</p></div>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════
+     4.1 PRE-FLIGHT CHECK
+     ═══════════════════════════════════════ -->
+<section class="doc-section" id="m-preflight">
+  <div class="section-ref">4.1 - Pre-Flight Check</div>
+  <h2 class="section-title">Pre-Flight Check</h2>
+
+  <p>The most important medical question for any household is what prescriptions each member takes and how many days of supply are on hand right now. Go check. Open the medicine cabinet. Count the pills. Your medical independence is limited by whoever runs out first.</p>
+
+  <p>Beyond prescriptions, two other questions matter: does anyone depend on powered medical equipment or refrigerated medication, and does the household have the skills and equipment to respond to a life-threatening emergency before professional care arrives.</p>
+
+  <p>Run the calculator. Your score tells you exactly which loadout to build.</p>
+
+  <div class="calculator">
+    <div class="calc-header">
+      <div class="calc-header-dot"></div>
+      <span class="calc-header-title">Medical Independence Calculator</span>
+    </div>
+    <div class="calc-body">
+
+      <!-- Household size -->
+      <div class="member-size-row">
+        <span class="member-size-label">Household members</span>
+        <input class="member-size-input" type="number" id="m-size" value="2" min="1" max="8" />
+      </div>
+
+      <!-- Member tabs -->
+      <div class="member-tabs" id="m-tabs"></div>
+
+      <!-- Member panels -->
+      <div id="m-panels"></div>
+
+      <!-- Power backup row (conditional) -->
+      <div class="power-backup-row" id="m-backup-row">
+        <div class="calc-toggle-row">
+          <div class="calc-toggle-label">
+            Energy backup for powered equipment
+            <span>Does your Energy system provide reliable backup power for medical devices or refrigerated medications?</span>
+          </div>
+          <div class="toggle-btns">
+            <button class="toggle-btn" id="m-backup-yes" onclick="setBackup(true)">Yes</button>
+            <button class="toggle-btn active-no" id="m-backup-no" onclick="setBackup(false)">No</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skills and equipment -->
+      <div class="skills-section-label">Skills &amp; Equipment - check all that apply</div>
+      <div class="skills-grid">
+        <div class="skill-check-row" onclick="toggleSkill('stopBleed')">
+          <div class="skill-checkbox" id="sk-stopBleed"></div>
+          <span class="skill-check-label">Stop the Bleed training completed</span>
+        </div>
+        <div class="skill-check-row" onclick="toggleSkill('cprAed')">
+          <div class="skill-checkbox" id="sk-cprAed"></div>
+          <span class="skill-check-label">CPR / AED certification current</span>
+        </div>
+        <div class="skill-check-row" onclick="toggleSkill('medKit')">
+          <div class="skill-checkbox" id="sk-medKit"></div>
+          <span class="skill-check-label">Med kit staged and stocked</span>
+        </div>
+        <div class="skill-check-row" onclick="toggleSkill('traumaGear')">
+          <div class="skill-checkbox" id="sk-traumaGear"></div>
+          <span class="skill-check-label">Trauma gear accessible (tourniquet, hemostatic gauze)</span>
+        </div>
+        <div class="skill-check-row" onclick="toggleSkill('dechoker')">
+          <div class="skill-checkbox" id="sk-dechoker"></div>
+          <span class="skill-check-label">Anti-choking device staged in kitchen</span>
+        </div>
+      </div>
+
+      <!-- Score output -->
+      <div class="score-output-box">
+        <div class="score-output-label">Medical Independence Score</div>
+        <div class="score-output-row">
+          <span class="score-output-value" id="m-score-val">-</span>
+          <span class="score-output-unit" id="m-score-unit">days</span>
+        </div>
+        <div class="score-limiting" id="m-limiting" style="display:none;">
+          Limiting factor
+          <span id="m-limiting-text"></span>
+        </div>
+      </div>
+
+      <!-- Flags -->
+      <div class="calc-flags" id="m-flags" style="display:none;"></div>
+
+      <!-- Readiness profile -->
+      <div class="readiness-profile" id="m-profile" style="display:none;">
+        <div class="readiness-header">Readiness Profile</div>
+        <div class="readiness-row" id="rp-rx">
+          <div class="readiness-dot readiness-dot-amber" id="rp-rx-dot"></div>
+          <span class="readiness-label">Prescription Runway</span>
+          <span class="readiness-status" id="rp-rx-status">No prescriptions entered</span>
+        </div>
+        <div class="readiness-row" id="rp-power">
+          <div class="readiness-dot readiness-dot-green" id="rp-power-dot"></div>
+          <span class="readiness-label">Power Dependencies</span>
+          <span class="readiness-status" id="rp-power-status">No power-dependent equipment</span>
+        </div>
+        <div class="readiness-row" id="rp-skills">
+          <div class="readiness-dot readiness-dot-red" id="rp-skills-dot"></div>
+          <span class="readiness-label">Skills</span>
+          <span class="readiness-status" id="rp-skills-status">0 of 2 core skills complete</span>
+        </div>
+        <div class="readiness-row" id="rp-equip">
+          <div class="readiness-dot readiness-dot-red" id="rp-equip-dot"></div>
+          <span class="readiness-label">Equipment</span>
+          <span class="readiness-status" id="rp-equip-status">0 of 3 items staged</span>
+        </div>
+      </div>
+
+      <!-- Score bands -->
+      <div class="score-bands">
+        <div class="score-band band-critical" id="m-band-0">
+          <div class="score-band-range">&lt; 3 days</div>
+          <div class="score-band-label">Critical</div>
+          <div class="score-band-action">Start with the 72-Hour Loadout now.</div>
+        </div>
+        <div class="score-band band-low" id="m-band-3">
+          <div class="score-band-range">3 - 7 days</div>
+          <div class="score-band-label">Baseline</div>
+          <div class="score-band-action">You have a floor. Build toward the 7-Day Loadout.</div>
+        </div>
+        <div class="score-band band-solid" id="m-band-7">
+          <div class="score-band-range">7 - 14 days</div>
+          <div class="score-band-label">Resilient</div>
+          <div class="score-band-action">Solid. Review the 14-Day Loadout for gaps.</div>
+        </div>
+        <div class="score-band band-good" id="m-band-14">
+          <div class="score-band-range">14+ days</div>
+          <div class="score-band-label">Independent</div>
+          <div class="score-band-action">Strong buffer. Maintain it and build skills.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════
+     4.2 DOCTRINE
+     ═══════════════════════════════════════ -->
+<section class="doc-section" id="m-doctrine">
+  <div class="section-ref">4.2 - Doctrine</div>
+  <h2 class="section-title">Doctrine</h2>
+
+  <p>Medical doctrine begins with an honest accounting of probability. The events most likely to harm your household during a disruption are not the dramatic ones. They are the quiet ones - the prescription that runs out, the wound that gets infected, the illness that degrades capability before it becomes a crisis. Doctrine sequences accordingly: invisible threats first, visible ones last.</p>
+
+  <!-- 4.2.1 Medication Continuity -->
+  <div class="subsection-ref">4.2.1 - Medication Continuity</div>
+  <h3 class="subsection-title">Medication Continuity</h3>
+
+  <p>Medical independence begins before any emergency occurs. For households with prescription medications, independence is measured not in skills or equipment, but in days of supply.</p>
+
+  <p>The most common serious medical event during any disruption is not trauma. It is running out of medication. Insulin, cardiac drugs, blood pressure medications, psychiatric medications - these are not optional. Interrupting them does not cause discomfort. It causes physiological emergencies that may require the hospital you cannot reach.</p>
+
+  <p>Maintain a minimum 30-day buffer on every prescription for every household member. Refill when you have 30 days remaining, not when you are running low.</p>
+
+  <p>Your household's medical independence is limited by whoever runs out first. A 90-day buffer on one medication and a 4-day buffer on another gives you 4 days. Period.</p>
+
+  <p>Medications requiring refrigeration are an Energy problem as much as a Medical problem. If your Energy system cannot maintain cold storage during a disruption, your effective buffer on those medications may be measured in hours, not days.</p>
+
+  <div class="nwc nwc-warning">
+    <span class="nwc-label">Warning</span>
+    <div class="nwc-body"><p>Do not abruptly stop psychiatric medications without medical guidance. Antidepressants, mood stabilizers, and antipsychotics can trigger seizures, psychotic episodes, or dangerous rebound effects if discontinued suddenly.</p></div>
+  </div>
+
+  <div class="nwc nwc-caution">
+    <span class="nwc-label">Caution</span>
+    <div class="nwc-body"><p>Medications requiring refrigeration are an Energy problem. Know exactly how long each medication remains viable without power before a disruption begins - ask your pharmacist, not the internet.</p></div>
+  </div>
+
+  <!-- 4.2.2 Everyday Care -->
+  <div class="subsection-ref">4.2.2 - Everyday Care</div>
+  <h3 class="subsection-title">Everyday Care</h3>
+
+  <p>Most medical issues during a disruption are the same problems you deal with on any given Tuesday. Scraped knees. Burns. Blisters. Sprains. Insect stings. Colds. Fevers. Upset stomachs. Allergic reactions.</p>
+
+  <p>These do not require emergency medicine knowledge. They require common sense, the right supplies, and a good reference within reach.</p>
+
+  <p>The risk is not that these conditions are dangerous. The risk is that they are degrading. A household member flattened by a fever or sidelined by an untreated injury reduces your capability at exactly the moment you need it most. Minor problems managed well stay minor. Minor problems ignored compound.</p>
+
+  <p>Own a comprehensive first aid reference and know where it is. Stock the supplies to back it up. That combination handles the overwhelming majority of medical events your household will actually experience during a disruption.</p>
+
+  <!-- 4.2.3 Bridging the EMS Gap -->
+  <div class="subsection-ref">4.2.3 - Bridging the EMS Gap</div>
+  <h3 class="subsection-title">Bridging the EMS Gap</h3>
+
+  <p>During a disruption, emergency medical response times stretch. What is normally minutes may become hours. That gap - between the moment an emergency occurs and the moment professional care arrives - is where survivable events become fatal ones.</p>
+
+  <p>Three scenarios account for the overwhelming majority of situations where household intervention determines the outcome. Severe bleeding. Airway obstruction. Cardiac arrest. None of these require advanced medical training to address. All three require specific skills and specific equipment, and the two are inseparable. Equipment without training is expensive decoration. Training without equipment has a ceiling. You need both.</p>
+
+  <p>The goal is not to replace professional care. The goal is to keep someone alive long enough to receive it. Stabilize. Maintain. Transfer. That is the entire mission.</p>
+
+  <p>Skills decay. A certification earned two years ago and never practiced is not a capability - it is a memory. Bridging the EMS gap is not a one-time training event. It is a maintained proficiency, renewed on a schedule and practiced before it is needed.</p>
+
+  <!-- 4.2.4 Boundary of Care -->
+  <div class="subsection-ref">4.2.4 - Boundary of Care</div>
+  <h3 class="subsection-title">Boundary of Care</h3>
+
+  <p>Household medical capability has a ceiling. Knowing where that ceiling is may be the most important medical skill in this entire system.</p>
+
+  <p>The most dangerous medical decision during a disruption is not doing the wrong thing. It is convincing yourself you can handle something that requires a hospital. Attempting to manage a condition beyond your capability does not keep someone out of the emergency room - it delays how long it takes them to get there, in worse condition than when you started.</p>
+
+  <p>Prepared households provide stabilization and basic care. They do not provide definitive treatment. The correct response to a serious medical emergency is not heroic improvisation. It is stabilize, evacuate, transfer care - in that order, as fast as possible.</p>
+
+  <p>Knowing your boundary requires honesty. A fever you can manage. A broken bone you can immobilize and monitor. A suspected stroke, a chest wound, a diabetic emergency spiraling out of control - these require a hospital. Recognizing the difference before you are in the moment is what preparation actually means.</p>
+
+  <p>When in doubt, evacuate. The cost of an unnecessary hospital trip is inconvenience and an uncomfortable bill. The cost of a necessary trip delayed may be permanent.</p>
+
+  <!-- 4.2.5 Medical Records -->
+  <div class="subsection-ref">4.2.5 - Medical Records</div>
+  <h3 class="subsection-title">Medical Records</h3>
+
+  <p>Medical records are medical equipment. In an emergency, the inability to communicate a household member's medications, allergies, or medical conditions to a provider is not an inconvenience - it is a clinical liability.</p>
+
+  <p>If you are incapacitated, someone else must be able to speak for you. If that person does not know what you take, what you are allergic to, or what conditions you manage, the providers treating you are working blind. Errors made in that gap are not easily recoverable.</p>
+
+  <p>Every household member's medical profile must be recorded and accessible in at least three locations: a printed copy with your emergency supplies, a digital copy accessible from any device, and a copy held by a trusted person outside your household. A copy locked in a drawer at home does not help you if you arrive at an emergency room unconscious.</p>
+
+  <p>Your medical records are the last thing you update and the first thing you take when you leave. They are covered in full in System 8 - Records.</p>
+
+</section>
+
+<!-- ═══════════════════════════════════════
+     4.3 FIELD OPERATIONS
+     ═══════════════════════════════════════ -->
+<section class="doc-section" id="m-ops">
+  <div class="section-ref">4.3 - Field Operations</div>
+  <h2 class="section-title">Field Operations</h2>
+
+  <p>Doctrine tells you what to build and why. Field Operations tells you how to run it.</p>
+
+  <!-- 4.3.1 Prescription Buffer Protocol -->
+  <div class="subsection-ref">4.3.1 - Prescription Buffer Protocol</div>
+  <h3 class="subsection-title">Prescription Buffer Protocol</h3>
+
+  <p>The 30-day buffer does not build itself. It requires a deliberate change in refill behavior, one that runs counter to how most people manage prescriptions.</p>
+
+  <p>Most insurance plans allow refills when 7 to 10 days of supply remain. Start refilling at that point consistently and the buffer builds over several cycles without confrontation with your insurance company. The goal is 30 days ahead at all times. Ninety days is better.</p>
+
+  <p>Talk to your prescribing physicians. Tell them you are maintaining an emergency preparedness buffer and ask whether a 90-day supply is appropriate for your situation. Most physicians understand this request and will accommodate it. This is a conversation, not a confrontation.</p>
+
+  <p>Your buffer is only as strong as your least-stocked prescription. Track every household member's supply separately. When you pick up any prescription, count what remains and confirm the buffer is holding.</p>
+
+  <!-- 4.3.2 Everyday Care Supplies -->
+  <div class="subsection-ref">4.3.2 - Everyday Care Supplies</div>
+  <h3 class="subsection-title">Everyday Care Supplies</h3>
+
+  <p>Stock a meaningful supply of the over-the-counter medications your household already uses. The time to acquire them is not during a disruption when pharmacies are closed, picked over, or inaccessible. Rotate through normal household use and replace what you consume. Use what you have, replace what you use.</p>
+
+  <p>A quality pre-built kit costs more than a cart of loose supplies from a big box store. It also contains the right things in the right quantities, assembled by people who know the difference. The hidden cost of building your own is not the money - it is the expertise required to know what belongs, what does not, and what you will actually reach for under stress. Buy a good kit. Supplement it for your household's specific needs.</p>
+
+  <p>Own a comprehensive first aid reference and keep it with your kit. When something happens, you want the answer in your hands in seconds, not on a screen that requires power or a signal. The loadout section identifies recommended titles.</p>
+
+  <p>Stage the kit in a central location known to every adult in the household. Not in the master bedroom. Not in the basement. Somewhere accessible from wherever an incident is most likely to occur.</p>
+
+  <div class="nwc nwc-note">
+    <span class="nwc-label">Note</span>
+    <div class="nwc-body"><p>Check expiration dates on OTC medications when the clocks change. Expired medications lose effectiveness and some degrade into compounds that can cause harm.</p></div>
+  </div>
+
+  <!-- 4.3.3 Emergency Responses -->
+  <div class="subsection-ref">4.3.3 - Emergency Responses</div>
+  <h3 class="subsection-title">Emergency Responses</h3>
+
+  <p>Some medical events cannot wait. Severe bleeding, airway obstruction, and cardiac arrest each have windows measured in minutes. During normal life those windows are covered by professional responders. During a disruption they may not be.</p>
+
+  <p>EPICS does not teach emergency medical technique. What follows identifies the capability each scenario requires, the equipment that supports it, and where to get properly trained. That combination - the right gear, staged correctly, backed by current certification - is what closes the gap.</p>
+
+  <!-- 4.3.3.1 Severe Bleeding -->
+  <div class="sub-subsection-ref">4.3.3.1 - Severe Bleeding</div>
+  <h4 class="sub-subsection-title">Severe Bleeding</h4>
+
+  <p>Uncontrolled bleeding from a severed artery can be fatal within minutes. It is also the most survivable life-threatening emergency - if the right equipment is available and someone in the household has been trained to use it.</p>
+
+  <p>The equipment is a tourniquet and hemostatic gauze. These are not accessories. They are the tools that make intervention possible. Owning them without training is not preparedness - it is false confidence. Take Stop the Bleed first. Buy the equipment second. In that order.</p>
+
+  <p>Stop the Bleed is a nationally standardized course, widely available, often free, and takes approximately two hours. It is taught through hospitals, fire departments, and community organizations. Find a course at stopthebleed.org.</p>
+
+  <p>Stage bleeding control equipment where it can be reached in seconds - not buried inside a general first aid kit. A separate marked pouch mounted alongside the kit, or staged on top of it. Every adult in the household should know exactly where it is without having to search.</p>
+
+  <div class="nwc nwc-warning">
+    <span class="nwc-label">Warning</span>
+    <div class="nwc-body"><p>Take Stop the Bleed before buying the equipment. A tourniquet applied without training can cause nerve damage or limb loss. Training first, equipment second, in that order.</p></div>
+  </div>
+
+  <!-- 4.3.3.2 Airway Obstruction -->
+  <div class="sub-subsection-ref">4.3.3.2 - Airway Obstruction</div>
+  <h4 class="sub-subsection-title">Airway Obstruction</h4>
+
+  <p>A fully obstructed airway causes irreversible brain injury within minutes. During a disruption with delayed EMS response, the window between obstruction and professional intervention may be far longer than during normal life.</p>
+
+  <p>The capability every household needs is the ability to respond immediately to a choking event. That means trained adults and a mechanical backup device staged where choking incidents most commonly occur - the kitchen and dining area, not with the med kit.</p>
+
+  <p>Anti-choking devices provide a mechanical option when manual techniques are insufficient - particularly useful when the rescuer is smaller than the victim, or in the rare scenario where someone is choking alone. The loadout section identifies a recommended device.</p>
+
+  <p>Training is non-negotiable. Both the American Red Cross and the American Heart Association teach choking response as part of their standard CPR and first aid certification courses. Take one. It covers adults, children, and infants - the techniques differ and the differences matter.</p>
+
+  <!-- 4.3.3.3 Cardiac Response -->
+  <div class="sub-subsection-ref">4.3.3.3 - Cardiac Response</div>
+  <h4 class="sub-subsection-title">Cardiac Response</h4>
+
+  <p>When the heart stops, survival depends on immediate intervention. Brain death begins within minutes. Every minute without defibrillation reduces survival odds significantly. During a disruption, the gap between cardiac arrest and professional response may be the difference between survival and death.</p>
+
+  <p>Two capabilities are required. CPR maintains circulation until a shockable rhythm can be restored or professional care arrives. An AED - automated external defibrillator - delivers the electrical shock that CPR alone cannot. Modern AEDs are designed for untrained bystanders. They analyze heart rhythm automatically, provide voice prompts, and will not deliver a shock unless one is indicated. The technology removes the guesswork. Training builds the confidence to act.</p>
+
+  <p>For households with members who have cardiac risk factors - history of heart disease, arrhythmia, high blood pressure, or family history of sudden cardiac events - a home AED is worth a direct conversation with your cardiologist.</p>
+
+  <p>Stage the AED in a central, known location. Mounted on a wall is ideal. Every adult in the household should be able to locate it without thinking. An AED stored behind other things in a closet might as well not exist - its entire value is speed of deployment.</p>
+
+  <p>Training for both CPR and AED use is available through the American Red Cross and the American Heart Association. Certification takes a few hours and should be renewed every two years.</p>
+
+  <div class="nwc nwc-note">
+    <span class="nwc-label">Note</span>
+    <div class="nwc-body"><p>Modern AEDs analyze heart rhythm automatically and will not deliver a shock unless one is indicated. You cannot accidentally harm someone with a properly functioning AED.</p></div>
+  </div>
+
+  <!-- 4.3.4 Boundary of Care -->
+  <div class="subsection-ref">4.3.4 - Boundary of Care</div>
+  <h3 class="subsection-title">Boundary of Care</h3>
+
+  <p>Knowing when to stop managing and start evacuating is a capability. It requires the same deliberate preparation as owning a tourniquet or building a prescription buffer. The time to establish your decision criteria is not in the middle of an emergency.</p>
+
+  <p>The EPICS standard is simple: prepared households stabilize and provide basic care. They do not provide definitive treatment. When a condition exceeds that boundary, the correct response is immediate evacuation - not improvisation.</p>
+
+  <p>Some conditions cross that boundary without ambiguity. Chest pain or pressure. Difficulty breathing that does not resolve. Suspected stroke - facial drooping, arm weakness, slurred speech. Severe allergic reaction. Uncontrolled bleeding that does not respond to intervention. Loss of consciousness. Seizures in someone with no seizure history. Any condition that is worsening rather than stabilizing.</p>
+
+  <p>When in doubt, evacuate. The cost of an unnecessary hospital trip is inconvenience and an uncomfortable bill. The cost of a necessary trip delayed may be permanent.</p>
+
+  <!-- 4.3.5 Medical Records -->
+  <div class="subsection-ref">4.3.5 - Medical Records</div>
+  <h3 class="subsection-title">Medical Records</h3>
+
+  <p>Every household member's medical profile must be documented, current, and accessible before an emergency occurs. Medications, dosages, allergies, conditions, prescribing physicians, and pharmacy information.</p>
+
+  <p>This is covered in full in System 8 - Records.</p>
+
+  <!-- 4.3.6 Maintenance Schedule -->
+  <div class="subsection-ref">4.3.6 - Maintenance Schedule</div>
+  <h3 class="subsection-title">Maintenance Schedule</h3>
+
+  <p>Medical is the system where maintenance failures have the highest consequences. Expired medications, depleted supplies, and lapsed certifications do not announce themselves. They reveal themselves during the emergency you needed them for.</p>
+
+  <p>Tie every check to something you already do.</p>
+
+  <table class="maintenance-table">
+    <thead>
+      <tr>
+        <th>Frequency</th>
+        <th>Task</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Every prescription refill</td>
+        <td>Count what remains and confirm the buffer is holding. Thirty seconds at the pharmacy counter. The single most important maintenance habit in this system.</td>
+      </tr>
+      <tr>
+        <td>After any use</td>
+        <td>Restock immediately. Kits deplete one item at a time and nobody notices until half the contents are gone. Use it, replace it the same day.</td>
+      </tr>
+      <tr>
+        <td>Every time the clocks change</td>
+        <td>Check AED battery status and pad expiration, inspect trauma equipment for damaged packaging, and rotate any OTC medications approaching expiration. Twice a year. Five minutes. Every adult in the household already walks the house anyway.</td>
+      </tr>
+      <tr>
+        <td>Annually</td>
+        <td>Update medical records for every household member. New medications, new conditions, new allergies, new physicians. Tie it to your annual physical.</td>
+      </tr>
+      <tr>
+        <td>Every two years</td>
+        <td>Renew CPR/AED certification and Stop the Bleed training. Skills decay faster than equipment does. A certification that felt sharp at six months is unreliable at two years.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 4.3.7 The Flight Bag -->
+  <div class="subsection-ref">4.3.7 - The Flight Bag</div>
+  <h3 class="subsection-title">The Flight Bag</h3>
+
+  <div class="flight-bag-box">
+    <div class="flight-bag-header">Flight Bag</div>
+    <div class="flight-bag-body">
+      <p>The Flight Bag is not a prepper concept. It is a grab list. The goal of EPICS Dash-1 is always to keep your household in place. Your home is your shelter, your infrastructure, your supply chain. The Flight Bag exists for the scenario where staying is not the right call.</p>
+      <p>What travels: your med kit, your prescription buffer, your refrigerated medications, and your medical records. The AED stays - it is staged infrastructure, not portable equipment. If you are leaving for a hospital or a shelter, those four things go with you. Everything else is secondary.</p>
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════
+     4.4 LOADOUTS
+     ═══════════════════════════════════════ -->
+<section class="doc-section" id="m-loadouts">
+  <div class="section-ref">4.4 - Loadouts</div>
+  <h2 class="section-title">Loadouts</h2>
+
+  <div class="loadout-intro">
+    Three complete builds. Each tier is additive - the 7-Day Loadout assumes everything in the 72-Hour Loadout is already in place. This is the premium reference build. Lower-cost alternatives exist for most line items.
+  </div>
+
+  <!-- 72-HOUR LOADOUT -->
+  <div class="loadout-tier">
+    <div class="loadout-tier-header">
+      <span class="loadout-tier-name">72-Hour Loadout</span>
+      <span class="loadout-tier-badge">Baseline capability</span>
+    </div>
+    <div class="loadout-table-wrap">
+      <table class="loadout-table">
+        <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Requirement</th>
+            <th>Recommended</th>
+            <th>Qty</th>
+            <th>Unit Cost</th>
+            <th>Total</th>
+            <th>✈</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-ref"><a href="#m-ops">4.3.2</a></td>
+            <td>Comprehensive pre-built trauma med kit - 200+ supplies</td>
+            <td class="col-brand">MyFAK Large Pro - MyMedic</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">$425</td>
+            <td class="col-cost">$425</td>
+            <td class="col-fb">&#x2708;</td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#m-ops">4.3.1</a></td>
+            <td>Emergency prescription kit - antibiotics, antiparasitic, anti-nausea, GI coverage</td>
+            <td class="col-brand">Jase Case - Jase Medical</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">$280</td>
+            <td class="col-cost">$280</td>
+            <td class="col-fb">&#x2708;</td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#m-ops">4.3.3</a></td>
+            <td>Anti-choking device - mechanical airway clearance</td>
+            <td class="col-brand">Dechoker</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">$70</td>
+            <td class="col-cost">$70</td>
+            <td class="col-fb">&#x2708;</td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#m-ops">4.3.2</a></td>
+            <td>OTC medications - pain, fever, allergy, GI, topical, cold/flu</td>
+            <td class="col-brand">Household supply - see Field Ops 4.3.2</td>
+            <td class="col-qty">1 set</td>
+            <td class="col-cost">~$75</td>
+            <td class="col-cost">~$75</td>
+            <td class="col-fb">&#x2708;</td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#m-ops">4.3.2</a></td>
+            <td>Comprehensive first aid reference - austere environment medicine</td>
+            <td class="col-brand">The Survival Medicine Handbook - Alton</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">$40</td>
+            <td class="col-cost">$40</td>
+            <td class="col-fb">&#x2708;</td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#m-ops">4.3.3</a></td>
+            <td>Bleeding control training - nationally standardized, 2 hours</td>
+            <td class="col-brand">Stop the Bleed - stopthebleed.org</td>
+            <td class="col-qty">per adult</td>
+            <td class="col-cost">Free</td>
+            <td class="col-cost">Free</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#m-ops">4.3.3</a></td>
+            <td>Online trauma first aid course - M.A.R.C.H. framework, Special Forces curriculum</td>
+            <td class="col-brand">MARCH Course - MyMedic</td>
+            <td class="col-qty">per adult</td>
+            <td class="col-cost">$125</td>
+            <td class="col-cost">$125</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr class="row-total">
+            <td colspan="5" class="total-label">Total</td>
+            <td class="total-cost">~$1,015</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="additive-note">MyFAK Large Pro includes tourniquet, hemostatic gauze, and pressure dressings. Dechoker stages in the kitchen, not with the med kit.</div>
+  </div>
+
+  <!-- 7-DAY LOADOUT -->
+  <div class="loadout-tier">
+    <div class="loadout-tier-header">
+      <span class="loadout-tier-name">7-Day Loadout</span>
+      <span class="loadout-tier-badge">Additive - assumes 72-Hour is complete</span>
+    </div>
+    <div class="loadout-table-wrap">
+      <table class="loadout-table">
+        <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Requirement</th>
+            <th>Recommended</th>
+            <th>Qty</th>
+            <th>Unit Cost</th>
+            <th>Total</th>
+            <th>✈</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-ref"><a href="#m-ops">4.3.1</a></td>
+            <td>Pediatric antibiotic and illness kit
+              <span class="cond-note">Conditional - households with children</span>
+            </td>
+            <td class="col-brand">Jase KidCase - Jase Medical</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">$218</td>
+            <td class="col-cost">$218</td>
+            <td class="col-fb">&#x2708;</td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#m-ops">4.3.1</a></td>
+            <td>Pediatric emergency kit with epinephrine auto-injector
+              <span class="cond-note">Substitution for KidCase - children with known severe allergy risk</span>
+            </td>
+            <td class="col-brand">Kids Emergency Kit - The Wellness Company</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">$385</td>
+            <td class="col-cost">$385</td>
+            <td class="col-fb">&#x2708;</td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#m-ops">4.3.1</a></td>
+            <td>Dental emergency kit - pain, infection, temporary repair
+              <span class="cond-note">Conditional - all households recommended</span>
+            </td>
+            <td class="col-brand">Dental Emergency Kit - Jase Medical</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">~$150</td>
+            <td class="col-cost">~$150</td>
+            <td class="col-fb">&#x2708;</td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#m-ops">4.3.2</a></td>
+            <td>Pet emergency medical kit
+              <span class="cond-note">Conditional - households with pets</span>
+            </td>
+            <td class="col-brand">Pet Emergency Kit - The Wellness Company</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">~$99</td>
+            <td class="col-cost">~$99</td>
+            <td class="col-fb">&#x2708;</td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#m-ops">4.3.3</a></td>
+            <td>CPR / AED certification - Red Cross or AHA</td>
+            <td class="col-brand">CPR/AED with First Aid - American Red Cross</td>
+            <td class="col-qty">per adult</td>
+            <td class="col-cost">~$90</td>
+            <td class="col-cost">~$90</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr class="row-total">
+            <td colspan="5" class="total-label">Additional (non-conditional)</td>
+            <td class="total-cost">~$90</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="additive-note">Dental pain is a capability killer. Dental infections escalate quickly without access to care. The dental kit is conditional on the table but recommended for all households.</div>
+  </div>
+
+  <!-- 14-DAY LOADOUT -->
+  <div class="loadout-tier">
+    <div class="loadout-tier-header">
+      <span class="loadout-tier-name">14-Day Loadout</span>
+      <span class="loadout-tier-badge">Additive - assumes 7-Day is complete</span>
+    </div>
+    <div class="loadout-table-wrap">
+      <table class="loadout-table">
+        <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Requirement</th>
+            <th>Recommended</th>
+            <th>Qty</th>
+            <th>Unit Cost</th>
+            <th>Total</th>
+            <th>✈</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-ref"><a href="#m-ops">4.3.3</a></td>
+            <td>Home AED - staged infrastructure, wall-mounted
+              <span class="cond-note">Pull forward to 7-Day for households with known cardiac risk factors</span>
+            </td>
+            <td class="col-brand">Philips HeartStart Onsite - via HeartSmart</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">~$1,399</td>
+            <td class="col-cost">~$1,399</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr class="row-total">
+            <td colspan="5" class="total-label">Additional</td>
+            <td class="total-cost">~$1,399</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="additive-note">AED stays with the house - it is staged infrastructure. Mount it in a central location. Every adult in the household should be able to locate it without thinking.</div>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════
+     4.5 PROFESSIONAL SERVICES
+     ═══════════════════════════════════════ -->
+<section class="doc-section" id="m-services">
+  <div class="section-ref">4.5 - Professional Services</div>
+  <h2 class="section-title">Professional Services</h2>
+
+  <p>The loadouts above handle most households through most disruptions. You will know it is time to go further when any of the following apply: your household has complex or interacting medical conditions that generic guidance cannot address, someone depends on power-dependent medical equipment and the Energy system does not yet have reliable backup, or you want advanced medical capability beyond the basics.</p>
+
+  <p>Advanced training is the most impactful upgrade available. No product purchase closes the gap that skills open.</p>
+
+  <div class="services-grid">
+    <div class="service-card">
+      <div class="service-card-tag">Advanced Training</div>
+      <h3>Wilderness First Responder</h3>
+      <p>The gold standard for medical capability outside a clinical setting. WFR teaches assessment and management of medical emergencies when evacuation to a hospital is delayed or impossible. It is a significant time commitment - typically 70 to 80 hours - but it is the right credential for households that want genuine medical depth.</p>
+      <p>Particularly relevant for remote households, families who spend significant time away from quick EMS access, or anyone who wants to move beyond stabilization into confident field assessment.</p>
+      <div class="service-price">From ~$700 - offered through NOLS, Wilderness Medical Associates, and regional providers</div>
+    </div>
+    <div class="service-card">
+      <div class="service-card-tag">Integrated Planning</div>
+      <h3>EPICS Mission Commander</h3>
+      <p>Complex medical households - multiple chronic conditions, power-dependent equipment, medications with contraindications, or conditions requiring monitoring - need integrated planning across Medical and Energy systems. Generic guidance cannot account for the specific ways your medications and conditions interact during extended disruption.</p>
+      <p>Mission Commander includes a full household medical assessment integrated with your Energy and Water independence profile, a prescription runway analysis, and a custom staging plan for your specific conditions and equipment.</p>
+      <div class="service-price">See epics.consulting for current pricing and availability</div>
+    </div>
+  </div>
+
+  <p style="margin-top:1.5rem;">For a full EPICS Dash-1 assessment across all eight systems, see <a href="index.html#s5" style="color:var(--sage);border-bottom:1px dashed rgba(92,107,80,0.4);">Section 5: Services</a>.</p>
+
+</section>
+
+</main>
+
+<footer>
+  <div class="footer-brand">EPICS Dash-1</div>
+  <div class="footer-sub">Suburban Systems - Jungle Doctrine - Independence by Design</div>
+</footer>
+
+<script>
+(function () {
+
+  // ── State ────────────────────────────────────────────────────────────────
+  var state = {
+    memberCount: 2,
+    activeMember: 0,
+    energyBackup: false,
+    members: [],
+    skills: {
+      stopBleed: false,
+      cprAed: false,
+      medKit: false,
+      traumaGear: false,
+      dechoker: false
+    }
+  };
+
+  for (var i = 0; i < 8; i++) {
+    state.members.push({
+      name: '',
+      powerDep: false,
+      prescriptions: [{ name: '', days: '' }]
+    });
+  }
+
+  // ── Build member UI ───────────────────────────────────────────────────────
+  function buildMemberUI() {
+    var tabs = document.getElementById('m-tabs');
+    var panels = document.getElementById('m-panels');
+    tabs.innerHTML = '';
+    panels.innerHTML = '';
+
+    for (var i = 0; i < state.memberCount; i++) {
+      (function(idx) {
+        // Tab
+        var tab = document.createElement('div');
+        tab.className = 'member-tab' + (idx === state.activeMember ? ' active' : '');
+        tab.textContent = state.members[idx].name || ('Person ' + (idx + 1));
+        tab.onclick = function() { state.activeMember = idx; buildMemberUI(); };
+        tabs.appendChild(tab);
+
+        // Panel
+        var panel = document.createElement('div');
+        panel.className = 'member-panel' + (idx === state.activeMember ? ' visible' : '');
+
+        var m = state.members[idx];
+
+        // Name field
+        var nameHtml = '<div class="member-panel-name">';
+        nameHtml += '<div class="calc-field"><label>Name (optional)</label>';
+        nameHtml += '<input type="text" placeholder="Person ' + (idx+1) + '" value="' + escHtml(m.name) + '" id="mn-' + idx + '" oninput="updateMemberName(' + idx + ',this.value)" /></div></div>';
+
+        // Power dep toggle
+        var pdYes = m.powerDep ? ' active-yes' : '';
+        var pdNo  = m.powerDep ? '' : ' active-no';
+        var pdHtml = '<div class="calc-toggle-row">';
+        pdHtml += '<div class="calc-toggle-label">Power-dependent equipment or refrigerated medication<span>CPAP, oxygen concentrator, nebulizer, insulin or other refrigerated medication</span></div>';
+        pdHtml += '<div class="toggle-btns">';
+        pdHtml += '<button class="toggle-btn' + pdYes + '" onclick="setMemberPowerDep(' + idx + ',true)">Yes</button>';
+        pdHtml += '<button class="toggle-btn' + pdNo + '" onclick="setMemberPowerDep(' + idx + ',false)">No</button>';
+        pdHtml += '</div></div>';
+
+        // Prescriptions
+        var rxHtml = '<div class="skills-section-label">Prescriptions</div>';
+        rxHtml += '<div class="rx-row-labels"><span class="rx-row-label">Medication</span><span class="rx-row-label">Days on hand</span></div>';
+        rxHtml += '<div class="rx-list" id="rxlist-' + idx + '">';
+        for (var j = 0; j < m.prescriptions.length; j++) {
+          rxHtml += rxRowHtml(idx, j, m.prescriptions[j]);
+        }
+        rxHtml += '</div>';
+        if (m.prescriptions.length < 5) {
+          rxHtml += '<button class="add-rx-btn" onclick="addRx(' + idx + ')">+ Add prescription</button>';
+        }
+
+        panel.innerHTML = nameHtml + pdHtml + rxHtml;
+        panels.appendChild(panel);
+      })(i);
+    }
+
+    checkPowerDepVisibility();
+    calcAndRender();
+  }
+
+  function rxRowHtml(memberIdx, rxIdx, rx) {
+    return '<div class="rx-row">' +
+      '<input type="text" placeholder="Medication name" value="' + escHtml(rx.name) + '" ' +
+        'oninput="updateRxName(' + memberIdx + ',' + rxIdx + ',this.value)" />' +
+      '<input type="number" placeholder="Days" min="0" max="999" value="' + escHtml(rx.days) + '" ' +
+        'oninput="updateRxDays(' + memberIdx + ',' + rxIdx + ',this.value)" />' +
+      '</div>';
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── Member update functions (global) ─────────────────────────────────────
+  window.updateMemberName = function(idx, val) {
+    state.members[idx].name = val;
+    var tabs = document.getElementById('m-tabs').children;
+    if (tabs[idx]) tabs[idx].textContent = val || ('Person ' + (idx+1));
+    calcAndRender();
+  };
+
+  window.setMemberPowerDep = function(idx, val) {
+    state.members[idx].powerDep = val;
+    buildMemberUI();
+  };
+
+  window.addRx = function(idx) {
+    if (state.members[idx].prescriptions.length < 5) {
+      state.members[idx].prescriptions.push({ name: '', days: '' });
+      buildMemberUI();
+    }
+  };
+
+  window.updateRxName = function(memberIdx, rxIdx, val) {
+    state.members[memberIdx].prescriptions[rxIdx].name = val;
+    calcAndRender();
+  };
+
+  window.updateRxDays = function(memberIdx, rxIdx, val) {
+    state.members[memberIdx].prescriptions[rxIdx].days = val;
+    calcAndRender();
+  };
+
+  window.setBackup = function(val) {
+    state.energyBackup = val;
+    document.getElementById('m-backup-yes').className = 'toggle-btn' + (val ? ' active-yes' : '');
+    document.getElementById('m-backup-no').className  = 'toggle-btn' + (!val ? ' active-no' : '');
+    calcAndRender();
+  };
+
+  window.toggleSkill = function(key) {
+    state.skills[key] = !state.skills[key];
+    var el = document.getElementById('sk-' + key);
+    if (el) el.className = 'skill-checkbox' + (state.skills[key] ? ' checked' : '');
+    calcAndRender();
+  };
+
+  // ── Power dep visibility ──────────────────────────────────────────────────
+  function checkPowerDepVisibility() {
+    var hasPowerDep = false;
+    for (var i = 0; i < state.memberCount; i++) {
+      if (state.members[i].powerDep) { hasPowerDep = true; break; }
+    }
+    var row = document.getElementById('m-backup-row');
+    row.className = 'power-backup-row' + (hasPowerDep ? ' visible' : '');
+  }
+
+  // ── Calculate and render ──────────────────────────────────────────────────
+  function calcAndRender() {
+    // Gather all prescription runways
+    var runways = [];
+    var hasPowerDep = false;
+    var limitingMember = -1;
+    var limitingMed = '';
+
+    for (var i = 0; i < state.memberCount; i++) {
+      var m = state.members[i];
+      if (m.powerDep) hasPowerDep = true;
+      for (var j = 0; j < m.prescriptions.length; j++) {
+        var rx = m.prescriptions[j];
+        var days = parseFloat(rx.days);
+        if (!isNaN(days) && rx.name.trim() !== '') {
+          runways.push({ days: days, memberIdx: i, med: rx.name });
+        }
+      }
+    }
+
+    var powerGate = hasPowerDep && !state.energyBackup;
+
+    // Find minimum runway
+    var minRunway = null;
+    if (runways.length > 0) {
+      var minEntry = runways.reduce(function(a, b) { return a.days <= b.days ? a : b; });
+      minRunway = minEntry.days;
+      limitingMember = minEntry.memberIdx;
+      limitingMed = minEntry.med;
+    }
+
+    // Score
+    var scoreVal, scoreUnit, bandId;
+    if (powerGate) {
+      scoreVal = 'hours';
+      scoreUnit = '';
+      bandId = 'm-band-0';
+    } else if (minRunway === null) {
+      scoreVal = '14+';
+      scoreUnit = 'days';
+      bandId = 'm-band-14';
+    } else if (minRunway >= 14) {
+      scoreVal = '14+';
+      scoreUnit = 'days';
+      bandId = 'm-band-14';
+    } else if (minRunway >= 7) {
+      scoreVal = Math.floor(minRunway).toString();
+      scoreUnit = 'days';
+      bandId = 'm-band-7';
+    } else if (minRunway >= 3) {
+      scoreVal = Math.floor(minRunway).toString();
+      scoreUnit = 'days';
+      bandId = 'm-band-3';
+    } else {
+      scoreVal = Math.floor(minRunway).toString();
+      scoreUnit = 'days';
+      bandId = 'm-band-0';
+    }
+
+    document.getElementById('m-score-val').textContent  = scoreVal;
+    document.getElementById('m-score-unit').textContent = scoreUnit;
+
+    // Score bands
+    ['m-band-0','m-band-3','m-band-7','m-band-14'].forEach(function(id) {
+      document.getElementById(id).classList.remove('active');
+    });
+    document.getElementById(bandId).classList.add('active');
+
+    // Limiting factor
+    var limitEl = document.getElementById('m-limiting');
+    var limitTextEl = document.getElementById('m-limiting-text');
+    if (powerGate || limitingMember >= 0) {
+      limitEl.style.display = 'block';
+      if (powerGate) {
+        limitTextEl.textContent = 'Power-dependent equipment without Energy backup - see System 1';
+      } else {
+        var mName = state.members[limitingMember].name || ('Person ' + (limitingMember + 1));
+        limitTextEl.textContent = 'Prescription runway - ' + mName + ' - ' + limitingMed + ' (' + Math.floor(minRunway) + ' days)';
+      }
+    } else {
+      limitEl.style.display = 'none';
+    }
+
+    // Flags
+    var flags = [];
+    if (powerGate) {
+      flags.push({ type: 'warning', msg: 'Power-dependent medical equipment or refrigerated medications detected without confirmed Energy backup. Medical independence may be measured in hours, not days. Address this in System 1 - Energy before proceeding.' });
+    }
+    if (hasPowerDep && state.energyBackup) {
+      flags.push({ type: 'note', msg: 'Power-dependent equipment confirmed with Energy backup. Verify backup duration covers your prescription buffer window.' });
+    }
+    if (!state.skills.stopBleed || !state.skills.cprAed) {
+      flags.push({ type: 'caution', msg: 'Core emergency skills incomplete. Stop the Bleed and CPR/AED certification are the minimum baseline for bridging the EMS gap.' });
+    }
+
+    var flagsEl = document.getElementById('m-flags');
+    if (flags.length > 0) {
+      flagsEl.style.display = 'flex';
+      flagsEl.innerHTML = flags.map(function(f) {
+        return '<div class="calc-flag calc-flag-' + f.type + '">' + f.msg + '</div>';
+      }).join('');
+    } else {
+      flagsEl.style.display = 'none';
+      flagsEl.innerHTML = '';
+    }
+
+    // Readiness profile
+    var profileEl = document.getElementById('m-profile');
+    profileEl.style.display = 'block';
+
+    // Rx runway
+    var rxDot = document.getElementById('rp-rx-dot');
+    var rxStatus = document.getElementById('rp-rx-status');
+    if (powerGate) {
+      rxDot.className = 'readiness-dot readiness-dot-red';
+      rxStatus.textContent = 'Power gate active - effective runway may be hours';
+    } else if (minRunway === null) {
+      rxDot.className = 'readiness-dot readiness-dot-green';
+      rxStatus.textContent = 'No prescriptions entered';
+    } else if (minRunway >= 30) {
+      rxDot.className = 'readiness-dot readiness-dot-green';
+      rxStatus.textContent = Math.floor(minRunway) + ' days - buffer maintained';
+    } else if (minRunway >= 7) {
+      rxDot.className = 'readiness-dot readiness-dot-amber';
+      rxStatus.textContent = Math.floor(minRunway) + ' days - below 30-day target';
+    } else {
+      rxDot.className = 'readiness-dot readiness-dot-red';
+      rxStatus.textContent = Math.floor(minRunway) + ' days - critical gap';
+    }
+
+    // Power dependencies
+    var pwrDot = document.getElementById('rp-power-dot');
+    var pwrStatus = document.getElementById('rp-power-status');
+    if (!hasPowerDep) {
+      pwrDot.className = 'readiness-dot readiness-dot-green';
+      pwrStatus.textContent = 'No power-dependent equipment';
+    } else if (state.energyBackup) {
+      pwrDot.className = 'readiness-dot readiness-dot-amber';
+      pwrStatus.textContent = 'Power-dependent equipment with Energy backup confirmed';
+    } else {
+      pwrDot.className = 'readiness-dot readiness-dot-red';
+      pwrStatus.textContent = 'Power-dependent equipment without Energy backup - critical gap';
+    }
+
+    // Skills (core = stopBleed + cprAed)
+    var skillsDot = document.getElementById('rp-skills-dot');
+    var skillsStatus = document.getElementById('rp-skills-status');
+    var coreSkills = (state.skills.stopBleed ? 1 : 0) + (state.skills.cprAed ? 1 : 0);
+    if (coreSkills === 2) {
+      skillsDot.className = 'readiness-dot readiness-dot-green';
+      skillsStatus.textContent = 'Both core certifications complete';
+    } else if (coreSkills === 1) {
+      skillsDot.className = 'readiness-dot readiness-dot-amber';
+      skillsStatus.textContent = '1 of 2 core certifications complete';
+    } else {
+      skillsDot.className = 'readiness-dot readiness-dot-red';
+      skillsStatus.textContent = '0 of 2 core certifications complete';
+    }
+
+    // Equipment (medKit + traumaGear + dechoker)
+    var equipDot = document.getElementById('rp-equip-dot');
+    var equipStatus = document.getElementById('rp-equip-status');
+    var equipCount = (state.skills.medKit ? 1 : 0) + (state.skills.traumaGear ? 1 : 0) + (state.skills.dechoker ? 1 : 0);
+    if (equipCount === 3) {
+      equipDot.className = 'readiness-dot readiness-dot-green';
+      equipStatus.textContent = 'All 3 items staged';
+    } else if (equipCount >= 1) {
+      equipDot.className = 'readiness-dot readiness-dot-amber';
+      equipStatus.textContent = equipCount + ' of 3 items staged';
+    } else {
+      equipDot.className = 'readiness-dot readiness-dot-red';
+      equipStatus.textContent = '0 of 3 items staged';
+    }
+  }
+
+  // ── Household size change ─────────────────────────────────────────────────
+  document.getElementById('m-size').addEventListener('input', function() {
+    var val = parseInt(this.value) || 1;
+    val = Math.max(1, Math.min(8, val));
+    state.memberCount = val;
+    if (state.activeMember >= val) state.activeMember = val - 1;
+    buildMemberUI();
+  });
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  buildMemberUI();
+
+})();
+</script>
+
+</body>
+</html>
