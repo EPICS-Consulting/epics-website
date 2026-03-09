@@ -1,0 +1,2382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>System 1: Energy - EPICS Dash-1</title>
+<meta name="description" content="Energy doctrine, pre-flight calculator, field operations, and loadouts for household energy independence." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg:           #f4f3ef;
+  --bg-panel:     #eceae5;
+  --bg-data:      #ffffff;
+  --bg-dark:      #1e2840;
+  --bg-header:    #1e2840;
+  --border:       #c8c4bc;
+  --border-light: #dbd8d2;
+  --border-dark:  #8a8680;
+  --sage:         #5c6b50;
+  --sage-hi:      #8FA07E;
+  --sage-dim:     rgba(92,107,80,0.10);
+  --rust:         #c0622a;
+  --rust-dim:     rgba(192,98,42,0.10);
+  --navy:         #1e2840;
+  --red:          #D82424;
+  --red-dim:      rgba(216,36,36,0.08);
+  --amber:        #c8860a;
+  --amber-dim:    rgba(200,134,10,0.08);
+  --green:        #3ddc84;
+  --green-accent: #2E8B57;
+  --text:         #1c1a18;
+  --text-mid:     #4a4742;
+  --text-dim:     #8a8680;
+  --text-light:   #f4f3ef;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .status-dot { animation: none !important; box-shadow: none !important; }
+}
+
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1.05rem;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* NAV */
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  background: var(--bg-dark);
+  border-bottom: 3px solid var(--sage);
+}
+
+.nav-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: stretch;
+  height: 52px;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  padding-right: 2rem;
+  border-right: 1px solid rgba(255,255,255,0.10);
+  flex-shrink: 0;
+}
+
+.nav-brand img {
+  height: 28px;
+  width: auto;
+  filter: brightness(0) invert(1);
+  opacity: 0.75;
+}
+
+.nav-brand-text {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.nav-brand-sub {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.52rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.32);
+}
+
+.nav-sections {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  padding: 0 1rem;
+}
+
+.nav-section-link {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 1rem;
+  text-decoration: none;
+  border-right: 1px solid rgba(255,255,255,0.10);
+  transition: background 0.15s;
+}
+
+.nav-section-link:hover { background: rgba(255,255,255,0.05); }
+.nav-section-link:hover .nav-sec-label { color: rgba(255,255,255,0.85); }
+
+.nav-sec-ref {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.nav-sec-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.42);
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding-left: 1.5rem;
+  border-left: 1px solid rgba(255,255,255,0.10);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.nav-actions a {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(255,255,255,0.45);
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+
+.nav-actions a:hover { color: rgba(255,255,255,0.9); }
+
+.btn-nav-cta {
+  background: var(--rust) !important;
+  color: #fff !important;
+  padding: 0.42rem 1rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-decoration: none;
+  white-space: nowrap;
+  border: none;
+}
+
+.btn-nav-cta:hover { background: #A8531F !important; }
+
+/* SYSTEM HEADER */
+.system-header {
+  margin-top: 0;
+  background: var(--bg-header);
+  border-bottom: 3px solid var(--sage);
+  padding: 2.5rem 2.5rem 2rem;
+  position: relative;
+}
+
+.system-header::after {
+  content: '';
+  position: absolute;
+  bottom: -3px; left: 0;
+  width: 160px; height: 3px;
+  background: var(--rust);
+}
+
+.system-designation {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+  margin-bottom: 0.5rem;
+}
+
+.system-title {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-light);
+  margin-bottom: 0.4rem;
+}
+
+.system-tagline {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.05rem;
+  color: rgba(244,243,239,0.60);
+  max-width: 64ch;
+  line-height: 1.6;
+}
+
+.system-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(61,220,132,0.6);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+.status-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(61,220,132,0.65);
+}
+
+/* SECTION NAV */
+.section-nav {
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 2.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.5rem;
+  align-items: center;
+  position: sticky;
+  top: 52px;
+  z-index: 800;
+}
+
+.section-nav-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-right: 0.25rem;
+}
+
+.section-nav a {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.67rem;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  color: var(--text-mid);
+  padding: 0.28rem 0.7rem;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.section-nav a:hover {
+  color: var(--text);
+  border-color: var(--border);
+  background: var(--bg-data);
+}
+
+/* MAIN CONTENT */
+main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 2rem 6rem;
+}
+
+/* DOC SECTIONS */
+.doc-section {
+  padding: 3rem 0 2.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.doc-section:last-child {
+  border-bottom: none;
+}
+
+.section-ref {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+  margin-bottom: 0.4rem;
+}
+
+.section-title {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 1.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--border);
+  position: relative;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 0;
+  width: 48px; height: 2px;
+  background: var(--sage);
+}
+
+.subsection-ref {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 2rem 0 0.3rem;
+}
+
+.subsection-title {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  margin-bottom: 0.9rem;
+}
+
+p {
+  margin-bottom: 1rem;
+  color: var(--text-mid);
+}
+
+p:last-child { margin-bottom: 0; }
+
+strong { color: var(--text); font-weight: 600; }
+
+/* FAILURE MODES */
+.failure-modes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.failure-mode {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--rust);
+  padding: 0.85rem 1rem;
+}
+
+.failure-mode-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rust);
+  margin-bottom: 0.25rem;
+}
+
+.failure-mode p {
+  font-size: 0.9rem;
+  color: var(--text-mid);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* NWC BOXES */
+.nwc {
+  display: flex;
+  gap: 0.9rem;
+  padding: 0.85rem 1rem;
+  margin: 1.25rem 0;
+  border-left-width: 3px;
+  border-left-style: solid;
+}
+
+.nwc-note {
+  background: rgba(138,134,128,0.08);
+  border-left-color: var(--border-dark);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border-dark);
+}
+
+.nwc-caution {
+  background: var(--amber-dim);
+  border: 1px solid rgba(200,134,10,0.25);
+  border-left: 3px solid var(--amber);
+}
+
+.nwc-warning {
+  background: var(--red-dim);
+  border: 1px solid rgba(192,57,43,0.22);
+  border-left: 3px solid var(--red);
+}
+
+.nwc-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding-top: 0.15rem;
+  min-width: 4.5rem;
+}
+
+.nwc-note .nwc-label { color: var(--border-dark); }
+.nwc-caution .nwc-label { color: var(--amber); }
+.nwc-warning .nwc-label { color: var(--red); }
+
+.nwc-body {
+  font-size: 0.95rem;
+  color: var(--text-mid);
+  line-height: 1.6;
+}
+
+.nwc-body p { margin: 0; color: inherit; }
+
+/* CAPABILITY CHAIN */
+.capability-chain {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 1.5rem 0;
+  border: 1px solid var(--border);
+}
+
+.capability-item {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.capability-item:last-child { border-bottom: none; }
+
+.capability-num {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: var(--text-light);
+  background: var(--bg-dark);
+  padding: 0.7rem 0.9rem;
+  display: flex;
+  align-items: center;
+  min-width: 3rem;
+  justify-content: center;
+}
+
+.capability-content {
+  padding: 0.7rem 1rem;
+  flex: 1;
+}
+
+.capability-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.capability-desc {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  line-height: 1.4;
+  margin-top: 0.1rem;
+}
+
+/* SOURCE HIERARCHY */
+.source-list {
+  list-style: none;
+  margin: 1rem 0;
+  border: 1px solid var(--border);
+}
+
+.source-list li {
+  display: flex;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+  align-items: flex-start;
+}
+
+.source-list li:last-child { border-bottom: none; }
+
+.source-rank {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  color: var(--text-light);
+  background: var(--navy);
+  padding: 0.2rem 0.5rem;
+  white-space: nowrap;
+  margin-top: 0.15rem;
+}
+
+.source-content strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 0.2rem;
+}
+
+.source-content p {
+  font-size: 0.88rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* PROTOCOL STEPS */
+.protocol-steps {
+  list-style: none;
+  margin: 1rem 0;
+  counter-reset: step;
+}
+
+.protocol-steps li {
+  counter-increment: step;
+  display: flex;
+  gap: 1rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--border-light);
+  align-items: baseline;
+}
+
+.protocol-steps li:last-child { border-bottom: none; }
+
+.protocol-steps li::before {
+  content: counter(step, decimal-leading-zero);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--sage-hi);
+  min-width: 1.8rem;
+  flex-shrink: 0;
+}
+
+/* RATIONING PRIORITY */
+.priority-list {
+  list-style: none;
+  margin: 1rem 0;
+}
+
+.priority-list li {
+  display: flex;
+  gap: 1rem;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+  align-items: baseline;
+  background: var(--bg-data);
+  border: 1px solid var(--border);
+  margin-bottom: 0.4rem;
+}
+
+.priority-num {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--rust);
+  min-width: 1.2rem;
+}
+
+.priority-label {
+  font-weight: 600;
+  color: var(--text);
+  min-width: 7rem;
+}
+
+.priority-desc {
+  font-size: 0.92rem;
+  color: var(--text-mid);
+}
+
+/* MAINTENANCE TABLE */
+.maintenance-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.93rem;
+}
+
+.maintenance-table th {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  background: var(--bg-dark);
+  padding: 0.6rem 0.85rem;
+  text-align: left;
+  border: 1px solid var(--border-dark);
+}
+
+.maintenance-table td {
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--border);
+  color: var(--text-mid);
+  vertical-align: top;
+}
+
+.maintenance-table tr:nth-child(even) td {
+  background: var(--bg-panel);
+}
+
+/* CALCULATOR */
+.calculator {
+  background: var(--bg-data);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--navy);
+  margin: 1.5rem 0;
+}
+
+.calc-header {
+  background: var(--bg-dark);
+  padding: 0.8rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.calc-header-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px rgba(61,220,132,0.5);
+}
+
+.calc-header-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+}
+
+.calc-body {
+  padding: 1.25rem 1.5rem;
+}
+
+.calc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.calc-field label {
+  display: block;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.4rem;
+}
+
+.calc-field input {
+  width: 100%;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1.1rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--border-dark);
+  padding: 0.55rem 0.75rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.calc-field input:focus {
+  border-color: var(--navy);
+  border-top-color: var(--navy);
+}
+
+.calc-output {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.calc-result-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  padding: 0.85rem 1rem;
+}
+
+.calc-result-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.25rem;
+}
+
+.calc-result-value {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--navy);
+  letter-spacing: 0.04em;
+}
+
+.calc-result-unit {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-left: 0.35rem;
+}
+
+/* SCORE BANDS */
+.score-bands {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border: 1px solid var(--border);
+  margin-top: 0.5rem;
+}
+
+.score-band {
+  padding: 0.65rem 0.75rem;
+  border-right: 1px solid var(--border);
+  opacity: 0.45;
+  transition: opacity 0.3s;
+}
+
+.score-band:last-child { border-right: none; }
+.score-band.active { opacity: 1; }
+
+.score-band-range {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+
+.score-band-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.score-band-action {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  margin-top: 0.2rem;
+  line-height: 1.35;
+}
+
+.band-critical .score-band-range { color: var(--red); }
+.band-low .score-band-range { color: var(--rust); }
+.band-solid .score-band-range { color: var(--amber); }
+.band-good .score-band-range { color: var(--sage); }
+
+/* LOADOUT SECTION */
+.loadout-intro {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--navy);
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
+  color: var(--text-mid);
+}
+
+.loadout-calc-strip {
+  background: var(--bg-dark);
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.loadout-calc-strip label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(244,243,239,0.55);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.loadout-calc-strip input {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1rem;
+  color: var(--text-light);
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 0.3rem 0.6rem;
+  width: 64px;
+  outline: none;
+}
+
+.loadout-calc-strip input:focus {
+  border-color: var(--sage-hi);
+}
+
+.loadout-calc-burn {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: var(--sage-hi);
+  margin-left: auto;
+}
+
+/* LOADOUT TABLES */
+.loadout-tier {
+  margin-bottom: 2.5rem;
+}
+
+.loadout-tier-header {
+  background: var(--bg-dark);
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.loadout-tier-name {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-light);
+}
+
+.loadout-tier-badge {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.22rem 0.65rem;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(244,243,239,0.7);
+}
+
+.loadout-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-top: none;
+}
+
+.loadout-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.loadout-table thead tr {
+  background: var(--bg-panel);
+}
+
+.loadout-table th {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 0.55rem 0.85rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border-light);
+  white-space: nowrap;
+}
+
+.loadout-table th:last-child { border-right: none; }
+
+.loadout-table td {
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--border-light);
+  border-right: 1px solid var(--border-light);
+  color: var(--text-mid);
+  vertical-align: top;
+}
+
+.loadout-table td:last-child { border-right: none; }
+
+.loadout-table tbody tr:hover td {
+  background: rgba(92,107,80,0.05);
+}
+
+.loadout-table .col-ref {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: var(--sage-hi);
+  white-space: nowrap;
+}
+
+.loadout-table .col-ref a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(125,143,110,0.4);
+}
+
+.loadout-table .col-ref a:hover {
+  color: var(--sage);
+  border-bottom-color: var(--sage);
+}
+
+.loadout-table .col-brand {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.loadout-table .col-qty {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.85rem;
+  text-align: center;
+  color: var(--text);
+}
+
+.loadout-table .col-cost {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.82rem;
+  text-align: right;
+  white-space: nowrap;
+  color: var(--text-mid);
+}
+
+.loadout-table .col-fb {
+  text-align: center;
+  font-size: 1rem;
+}
+
+/* TOTAL ROW */
+.loadout-table .row-total td {
+  background: var(--bg-dark);
+  border-color: var(--bg-dark);
+  color: rgba(244,243,239,0.6);
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.loadout-table .row-total .total-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(244,243,239,0.5);
+}
+
+.loadout-table .row-total .total-cost {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-light);
+  text-align: right;
+}
+
+.additive-note {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  padding: 0.5rem 0.85rem;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-top: none;
+  margin-bottom: 2rem;
+}
+
+/* SERVICES */
+.services-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.service-card {
+  border: 1px solid var(--border);
+  background: var(--bg-data);
+  padding: 1.25rem;
+}
+
+.service-card-tag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+  margin-bottom: 0.4rem;
+}
+
+.service-card h3 {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.service-card p {
+  font-size: 0.9rem;
+  color: var(--text-mid);
+  margin-bottom: 0.75rem;
+}
+
+.service-card .service-price {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--rust);
+}
+
+/* FLIGHT BAG CALLOUT */
+.flight-bag-box {
+  background: var(--bg-dark);
+  border: 1px solid var(--border-dark);
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.flight-bag-header {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--sage-hi);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.flight-bag-header::before {
+  content: '✈';
+  font-size: 1rem;
+}
+
+.flight-bag-body {
+  font-size: 0.93rem;
+  color: rgba(244,243,239,0.7);
+  line-height: 1.65;
+}
+
+.flight-bag-body p {
+  color: inherit;
+  margin-bottom: 0.75rem;
+}
+
+/* FOOTER */
+footer {
+  background: var(--bg-dark);
+  border-top: 2px solid var(--sage);
+  padding: 2.5rem;
+  text-align: center;
+}
+
+.footer-brand {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(244,243,239,0.5);
+  margin-bottom: 0.5rem;
+}
+
+.footer-sub {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(244,243,239,0.3);
+}
+
+.footer-inner {
+  display: flex;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.footer-tagline {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  color: rgba(244,243,239,0.4);
+  margin-top: 0.5rem;
+}
+
+/* NEXT SYSTEM BAR */
+.next-bar {
+  background: var(--bg-dark);
+  border-top: 1px solid var(--border-dark);
+  padding: 2rem;
+}
+
+.next-bar-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.next-bar-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(244,243,239,0.5);
+  margin-bottom: 0.4rem;
+}
+
+.next-bar-title {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.04em;
+  color: rgba(244,243,239,0.9);
+}
+
+/* BUTTON STYLES */
+.btn {
+  display: inline-block;
+  padding: 0.65rem 1.5rem;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.btn-primary {
+  background: var(--sage);
+  color: rgba(244,243,239,0.95);
+}
+
+.btn-primary:hover {
+  background: var(--sage-hi);
+  color: rgba(244,243,239,1);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: rgba(244,243,239,0.8);
+  border: 1px solid rgba(244,243,239,0.3);
+}
+
+.btn-ghost:hover {
+  background: rgba(244,243,239,0.08);
+  border-color: rgba(244,243,239,0.5);
+  color: rgba(244,243,239,0.95);
+}
+
+/* CTA STRIP */
+.cta-strip {
+  background: var(--bg-dark);
+  border: 1px solid var(--border-dark);
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin: 2rem 0;
+}
+.cta-strip-text {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1rem;
+  color: rgba(244,243,239,0.75);
+  line-height: 1.6;
+  flex: 1 1 200px;
+}
+.cta-strip-text strong {
+  color: var(--text-light);
+  font-family: 'Syncopate', sans-serif;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.btn-cta {
+  background: var(--rust);
+  color: #fff;
+  padding: 0.65rem 1.5rem;
+  text-decoration: none;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.btn-cta:hover {
+  background: #A8531F;
+}
+
+/* RESPONSIVE */
+@media (max-width: 700px) {
+  /* nav uses .nav-inner / .nav-sections (not .nav-links) */
+  .nav-inner { padding: 0 1.2rem; }
+  .nav-sections { padding: 0 0.6rem; }
+  .system-header { padding: 1.75rem 1.25rem 1.5rem; }
+  .section-nav { padding: 0.8rem 1.25rem; top: 48px; }
+  main { padding: 0 1.25rem 4rem; }
+  .calc-grid { grid-template-columns: 1fr; }
+  .calc-output { grid-template-columns: 1fr; }
+  .score-bands { grid-template-columns: 1fr 1fr; }
+  .services-grid { grid-template-columns: 1fr; }
+  .loadout-calc-strip { gap: 1rem; }
+  .failure-modes { grid-template-columns: 1fr; }
+}
+</style>
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand" aria-label="EPICS Dash-1 home">
+      <img src="EPICS__web_logo_.png" alt="EPICS Consulting" />
+      <div>
+        <div class="nav-brand-text">EPICS Dash-1</div>
+        <div class="nav-brand-sub">Household ERP</div>
+      </div>
+    </a>
+    <div class="nav-sections">
+      <a href="index.html#s1" class="nav-section-link"><div class="nav-sec-ref">Sec 1</div><div class="nav-sec-label">Intro</div></a>
+      <a href="index.html#s2" class="nav-section-link"><div class="nav-sec-ref">Sec 2</div><div class="nav-sec-label">8 Systems</div></a>
+      <a href="index.html#s3" class="nav-section-link"><div class="nav-sec-ref">Sec 3</div><div class="nav-sec-label">Checklists</div></a>
+      <a href="index.html#s4" class="nav-section-link"><div class="nav-sec-ref">Sec 4</div><div class="nav-sec-label">Loadouts</div></a>
+      <a href="index.html#s5" class="nav-section-link"><div class="nav-sec-ref">Sec 5</div><div class="nav-sec-label">Services</div></a>
+    </div>
+    <div class="nav-actions">
+      <a href="index.html#flight-path">Your Flight Path</a>
+      <a href="index.html#cta" class="btn-nav-cta">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- SYSTEM HEADER -->
+<header class="system-header">
+  <div class="system-designation">EPICS Dash-1 - System 1</div>
+  <h1 class="system-title">Energy</h1>
+  <p class="system-tagline">Light, Power, &amp; Heat</p>
+  <div class="system-status-bar">
+    <div class="status-dot"></div>
+    <span class="status-text">Active - Version 1.0 - March 2026</span>
+  </div>
+</header>
+
+<!-- SECTION NAV -->
+<div class="section-nav">
+  <span class="section-nav-label">Sections:</span>
+  <a href="#e-overview">1.0 Overview</a>
+  <a href="#e-preflight">1.1 Pre-Flight</a>
+  <a href="#e-doctrine">1.2 Doctrine</a>
+  <a href="#e-ops">1.3 Field Ops</a>
+  <a href="#e-loadouts">1.4 Loadouts</a>
+  <a href="#e-services">1.5 Services</a>
+</div>
+
+<main>
+<!-- ═══════════════════════════════════════
+     1.0 OVERVIEW
+     ═══════════════════════════════════════ -->
+<section class="doc-section" id="e-overview">
+  <div class="section-ref">1.0 - Overview</div>
+  <h2 class="section-title">Overview</h2>
+
+  <p>Energy is the dependency system.</p>
+
+  <p>Every other system in this guide runs on it. Water pumps, medical equipment, communications, refrigeration - none of them function without power. When the grid fails, it does not fail alone. It takes every dependent system with it.</p>
+
+  <p>Extended outages measured in days, not hours, are a routine consequence of severe weather, infrastructure failure, and grid instability. The households that manage them well are the ones that understood the system before they needed it.</p>
+
+  <p>This guide organizes energy independence around three load categories: <strong>Light</strong>, <strong>Power</strong>, and <strong>Heat</strong>. Each draws from a different part of the system. Each has a different fuel source, a different failure mode, and a different solution.</p>
+
+  <p>Keep them assigned correctly and the household functions through an extended outage.</p>
+
+  <p>Assign them wrong - run a space heater from a battery, leave comfort loads drawing overnight - and the system collapses faster than expected.</p>
+
+  <p>Those three load categories are supported by five operational capabilities. <strong>Generation</strong> produces energy from grid, solar, or fuel. <strong>Storage</strong> holds it between generation and use - batteries for electrical, propane tanks for combustible. <strong>Conversion</strong> transforms stored energy into a usable form. <strong>Distribution</strong> routes the right source to the right load. <strong>Regeneration</strong> returns the system to full capacity so the cycle can repeat.</p>
+
+  <p>Your Energy Independence Score is the lowest of the three load categories.</p>
+
+  <p>The Pre-Flight Check scores your household across Light, Power, and Heat. Doctrine explains how the capabilities work. Field Operations explains how to run them. Loadouts define what to build.</p>
+
+  <p>Energy independence is not about producing more power. It is about assigning the right fuel to the right load so the system remains stable under stress.</p>
+
+  <div class="subsection-ref">1.0.1 - Failure Modes</div>
+  <h3 class="subsection-title">Failure Modes</h3>
+
+  <div class="failure-modes">
+    <div class="failure-mode">
+      <div class="failure-mode-label">Grid Outage</div>
+      <p>The most common failure. Power drops with no warning and no restoration timeline. Every grid-dependent system stops simultaneously.</p>
+    </div>
+    <div class="failure-mode">
+      <div class="failure-mode-label">Grid-Tied Solar Trap</div>
+      <p>Rooftop solar does not guarantee grid-down power. Grid-tied inverters shut off automatically when the grid drops. Panels may be producing. Nothing is accessible.</p>
+    </div>
+    <div class="failure-mode">
+      <div class="failure-mode-label">Battery Without Solar</div>
+      <p>A power station without panels is a battery that runs down once. Without a charging path, electrical storage is a countdown, not a system.</p>
+    </div>
+    <div class="failure-mode">
+      <div class="failure-mode-label">Thermal Load on Battery</div>
+      <p>Running electric cooking or space heating from a power station drains stored capacity in hours and exposes critical electrical loads. Propane handles thermal demand more efficiently and at lower cost.</p>
+    </div>
+    <div class="failure-mode">
+      <div class="failure-mode-label">Generator Neglect</div>
+      <p>An unmaintained generator is a liability. Stale fuel, unchanged oil, and dead batteries are the most common failure points.</p>
+    </div>
+    <div class="failure-mode">
+      <div class="failure-mode-label">Single Propane Tank</div>
+      <p>One tank runs out. With no reserve, cooking and heating stop. Two full 20-lb tanks maintained at all times is the floor, not the ceiling.</p>
+    </div>
+  </div>
+
+</section>
+<!-- ═══════════════════════════════════════
+     1.1 PRE-FLIGHT CHECK
+     ═══════════════════════════════════════ -->
+<section class="doc-section" id="e-preflight">
+  <div class="section-ref">1.1 - Pre-Flight Check</div>
+  <h2 class="section-title">Pre-Flight Check</h2>
+
+  <p>Three categories. Three scores. Your Energy Independence Score is the lowest of the three - you are only as independent as your weakest system. Run the calculator. Your score tells you which loadout to build.</p>
+
+  <div class="calculator">
+    <div class="calc-header">
+      <div class="calc-header-dot"></div>
+      <span class="calc-header-title">Energy Independence Calculator</span>
+    </div>
+    <div class="calc-body">
+
+      <!-- LIGHT -->
+      <div class="calc-section-label">Light</div>
+      <div class="calc-grid calc-grid-2">
+        <div class="calc-field">
+          <label>How many of your headlamps are fully charged?</label>
+          <select id="pf-headlamp">
+            <option value="0">None / I don't have headlamps</option>
+            <option value="1">1-2 headlamps</option>
+            <option value="3">3-4 headlamps</option>
+            <option value="5">5+ headlamps</option>
+          </select>
+        </div>
+        <div class="calc-field">
+          <label>Does each occupied room have a lantern or candle?</label>
+          <select id="pf-lantern">
+            <option value="none">No</option>
+            <option value="some">Some rooms</option>
+            <option value="yes">Yes - every room covered</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- POWER -->
+      <div class="calc-section-label">Power</div>
+      <div class="calc-grid calc-grid-2">
+        <div class="calc-field">
+          <label>How many power banks do you have charged?</label>
+          <select id="pf-powerbanks">
+            <option value="0">None</option>
+            <option value="1">1-2 power banks</option>
+            <option value="3">3-4 power banks</option>
+            <option value="5">5+ power banks</option>
+          </select>
+        </div>
+        <div class="calc-field">
+          <label>Which solar panels do you have?</label>
+          <select id="pf-solar">
+            <option value="none">None</option>
+            <option value="portable">Portable panels</option>
+            <option value="rooftop">Rooftop system (with battery backup)</option>
+          </select>
+        </div>
+        <div class="calc-field">
+          <label>How large is your power station?</label>
+          <select id="pf-station">
+            <option value="none">I don't have one</option>
+            <option value="low">Under 1,000 Wh</option>
+            <option value="mid">1,000 - 2,000 Wh</option>
+            <option value="high">2,000 Wh+</option>
+          </select>
+        </div>
+        <div class="calc-checks-label">Which generator(s) do you maintain in good working order?</div>
+        <div class="calc-checks-grid">
+          <label class="calc-check"><input type="checkbox" id="pf-gen-wholehouse"> Whole-house standby</label>
+          <label class="calc-check"><input type="checkbox" id="pf-gen-inverter"> Inverter generator</label>
+          <label class="calc-check"><input type="checkbox" id="pf-gen-propane"> Propane generator</label>
+          <label class="calc-check"><input type="checkbox" id="pf-gen-gas"> Gas generator</label>
+        </div>
+      </div>
+      <div class="calc-checks">
+        <div class="calc-checks-label">Which critical loads lack a backup power source? (select all that apply)</div>
+        <div class="calc-checks-grid">
+          <label class="calc-check"><input type="checkbox" id="pf-fridge"> Refrigerator</label>
+          <label class="calc-check"><input type="checkbox" id="pf-cpap"> CPAP / sleep device</label>
+          <label class="calc-check"><input type="checkbox" id="pf-medical"> Medical equipment</label>
+          <label class="calc-check"><input type="checkbox" id="pf-well-load"> Well pump</label>
+          <label class="calc-check"><input type="checkbox" id="pf-sump"> Sump pump</label>
+        </div>
+      </div>
+
+      <!-- HEAT -->
+      <div class="calc-section-label">Heat</div>
+      <div class="calc-checks">
+        <div class="calc-checks-label">Heat sources (select all that apply)</div>
+        <div class="calc-checks-grid">
+          <label class="calc-check"><input type="checkbox" id="pf-fireplace"> Fireplace or wood stove</label>
+          <label class="calc-check"><input type="checkbox" id="pf-firewood"> 7+ days dry firewood staged</label>
+          <label class="calc-check"><input type="checkbox" id="pf-heater"> Indoor-safe propane heater</label>
+          <label class="calc-check"><input type="checkbox" id="pf-co"> Battery CO detector</label>
+        </div>
+      </div>
+      <div class="calc-grid calc-grid-1" style="margin-top: 1rem;">
+        <div class="calc-field">
+          <label>Full 20-lb propane tanks on hand</label>
+          <select id="pf-tanks">
+            <option value="0">0 - none</option>
+            <option value="1">1 tank</option>
+            <option value="2">2 tanks</option>
+            <option value="3">3+ tanks</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- SCORES -->
+      <div class="calc-scores">
+        <div class="calc-score-box">
+          <div class="calc-score-label">Light</div>
+          <div class="calc-score-value" id="score-light">-</div>
+          <div class="calc-score-unit">days</div>
+        </div>
+        <div class="calc-score-box">
+          <div class="calc-score-label">Power</div>
+          <div class="calc-score-value" id="score-power">-</div>
+          <div class="calc-score-unit">days</div>
+        </div>
+        <div class="calc-score-box">
+          <div class="calc-score-label">Heat</div>
+          <div class="calc-score-value" id="score-heat">-</div>
+          <div class="calc-score-unit">days</div>
+        </div>
+        <div class="calc-score-box calc-score-total">
+          <div class="calc-score-label">Energy Independence Score</div>
+          <div class="calc-score-value" id="score-total">-</div>
+          <div class="calc-score-unit">days</div>
+        </div>
+      </div>
+
+      <!-- FLAGS -->
+      <div id="pf-flags" class="calc-flags" style="display:none;"></div>
+
+      <!-- SCORE BANDS -->
+      <div class="score-bands">
+        <div class="score-band band-critical" id="band-0">
+          <div class="score-band-range">&lt; 3 days</div>
+          <div class="score-band-label">RED</div>
+          <div class="score-band-action">Start with the 72-Hour Loadout now.</div>
+        </div>
+        <div class="score-band band-low" id="band-3">
+          <div class="score-band-range">3 - 7 days</div>
+          <div class="score-band-label">ORANGE</div>
+          <div class="score-band-action">You have a floor. Build toward the 7-Day Loadout.</div>
+        </div>
+        <div class="score-band band-solid" id="band-7">
+          <div class="score-band-range">7 - 14 days</div>
+          <div class="score-band-label">YELLOW</div>
+          <div class="score-band-action">Solid. Review the 14-Day Loadout for gaps.</div>
+        </div>
+        <div class="score-band band-good" id="band-14">
+          <div class="score-band-range">14+ days</div>
+          <div class="score-band-label">GREEN</div>
+          <div class="score-band-action">You have a regenerating system. Maintain it.</div>
+        </div>
+      </div>
+
+    </div><!-- end calc-body -->
+  </div><!-- end calculator -->
+
+</section>
+
+<style>
+/* Pre-Flight additions */
+.calc-section-label {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--navy);
+  border-bottom: 2px solid var(--navy);
+  padding-bottom: 0.3rem;
+  margin: 1.5rem 0 0.75rem;
+}
+.calc-grid-2 { grid-template-columns: 1fr 1fr; }
+.calc-grid-1 { grid-template-columns: 1fr; }
+
+.calc-field select:focus-visible,
+.calc-field input:focus-visible {
+  outline: 2px solid rgba(30,40,64,0.35);
+  outline-offset: 2px;
+}
+.calc-field select {
+  width: 100%;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.88rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--border-dark);
+  padding: 0.55rem 0.75rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.calc-field select:focus {
+  border-color: var(--navy);
+  border-top-color: var(--navy);
+}
+.calc-checks { margin: 0.75rem 0; }
+.calc-checks-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.5rem;
+}
+.calc-checks-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem 1rem;
+}
+.calc-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  color: var(--text-mid);
+  cursor: pointer;
+}
+.calc-check input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--navy);
+  flex-shrink: 0;
+}
+.calc-scores {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 2fr;
+  gap: 1rem;
+  margin: 1.5rem 0 1rem;
+}
+.calc-score-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  padding: 0.85rem 1rem;
+  text-align: center;
+}
+.calc-score-total {
+  background: var(--bg-dark);
+}
+.calc-score-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.2rem;
+}
+.calc-score-total .calc-score-label { color: rgba(244,243,239,0.5); }
+.calc-score-value {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--navy);
+  letter-spacing: 0.04em;
+}
+.calc-score-total .calc-score-value { color: #fff; }
+.calc-score-unit {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+.calc-score-total .calc-score-unit { color: rgba(244,243,239,0.4); }
+.calc-flags {
+  margin: 0.75rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.calc-flag {
+  padding: 0.6rem 0.85rem;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  border-left: 3px solid;
+}
+.calc-flag-warning {
+  background: var(--red-dim);
+  border-color: var(--red);
+  color: var(--red);
+}
+.calc-flag-caution {
+  background: var(--amber-dim);
+  border-color: var(--amber);
+  color: var(--amber);
+}
+.calc-flag-note {
+  background: var(--bg-panel);
+  border-color: var(--border-dark);
+  color: var(--text-mid);
+}
+@media (max-width: 700px) {
+  .calc-grid-2 { grid-template-columns: 1fr; }
+  .calc-checks-grid { grid-template-columns: 1fr 1fr; }
+  .calc-scores { grid-template-columns: 1fr 1fr 1fr; }
+  .calc-score-total { grid-column: 1 / -1; }
+}
+</style>
+
+<script>
+(function() {
+  function scoreLight() {
+    const headlamps = parseInt(document.getElementById('pf-headlamp').value);
+    const lanterns  = document.getElementById('pf-lantern').value;
+
+    if (headlamps >= 5 && lanterns === 'yes') return { score: 14, label: '14+' };
+    if (headlamps >= 3 && lanterns !== 'none') return { score: 7, label: '7-14' };
+    if (headlamps >= 1 && lanterns !== 'none') return { score: 5, label: '3-7' };
+    if (headlamps >= 1 || lanterns !== 'none') return { score: 3, label: '3-7' };
+    return { score: 0, label: '< 3' };
+  }
+
+  function scorePower() {
+    const powerbanks = parseInt(document.getElementById('pf-powerbanks').value);
+    const solar      = document.getElementById('pf-solar').value;
+    const station    = document.getElementById('pf-station').value;
+    const genWholehouse = document.getElementById('pf-gen-wholehouse').checked;
+    const genInverter   = document.getElementById('pf-gen-inverter').checked;
+    const genPropane    = document.getElementById('pf-gen-propane').checked;
+    const genGas        = document.getElementById('pf-gen-gas').checked;
+    const hasGenerator  = genWholehouse || genInverter || genPropane || genGas;
+    const fridge     = document.getElementById('pf-fridge').checked;
+    const flags      = [];
+
+    // Count unprotected critical loads
+    const unprotected = ['pf-fridge','pf-cpap','pf-medical','pf-well-load','pf-sump']
+      .filter(id => document.getElementById(id).checked).length;
+
+    if (unprotected >= 3) {
+      flags.push({ type: 'warning', msg: 'Multiple critical loads lack backup power. Address power station and solar capacity first.' });
+    }
+
+    // Medical / CPAP flags
+    if (document.getElementById('pf-cpap').checked || document.getElementById('pf-medical').checked) {
+      flags.push({ type: 'caution', msg: 'Medical devices and CPAP: verify overnight watt-hour draw against your station capacity before an outage occurs.' });
+    }
+
+    // Motor loads without generator
+    const hasMotorLoads = document.getElementById('pf-well-load').checked || document.getElementById('pf-sump').checked;
+    if (hasMotorLoads && !hasGenerator) {
+      flags.push({ type: 'warning', msg: 'Well pump or sump pump lacks backup. Without a generator, motor loads cannot run on battery power alone.' });
+    }
+
+    // Generator notes
+    if (genGas && !genInverter) {
+      flags.push({ type: 'caution', msg: 'Gas generators produce dirty power. Prefer an inverter generator for electronics, or charge the power station and run electronics from the station.' });
+    }
+    if (genWholehouse) {
+      flags.push({ type: 'note', msg: 'Whole-house generator: confirm transfer switch and run a real outage drill annually.' });
+    }
+
+    let score;
+
+    if (station === 'high' && solar !== 'none') {
+      score = { score: 14, label: '14+' };
+    } else if (genWholehouse) {
+      score = { score: 14, label: '14+' };
+    } else if (station === 'high' && solar === 'none') {
+      score = { score: fridge ? 5 : 7, label: fridge ? '3-7' : '7-14' };
+    } else if (station === 'mid') {
+      score = { score: 5, label: '3-7' };
+    } else if (station === 'low') {
+      score = { score: 3, label: '3-7' };
+    } else if (hasGenerator) {
+      score = { score: 5, label: '3-7' };
+    } else if (powerbanks >= 3) {
+      score = { score: 3, label: '3-7' };
+    } else if (powerbanks >= 1) {
+      score = { score: 1, label: '< 3' };
+    } else {
+      score = { score: 0, label: '< 3' };
+    }
+
+    // Penalty: many unprotected loads
+    if (unprotected >= 3 && score.score >= 7) {
+      score = { score: 5, label: '3-7' };
+    }
+
+    return { ...score, flags };
+  }
+
+  function scoreHeat() {
+    const fireplace = document.getElementById('pf-fireplace').checked;
+    const firewood  = document.getElementById('pf-firewood').checked;
+    const heater    = document.getElementById('pf-heater').checked;
+    const co        = document.getElementById('pf-co').checked;
+    const tanks     = parseInt(document.getElementById('pf-tanks').value);
+    const flags     = [];
+
+    if (heater && !co) {
+      flags.push({ type: 'warning', msg: 'Propane heater without a battery CO detector. A CO detector is required any time a combustion device operates in an occupied space.' });
+    }
+
+    let score;
+
+    if (fireplace && firewood && heater && tanks >= 2) {
+      score = { score: 14, label: '14+' };
+    } else if (fireplace && firewood) {
+      score = { score: 14, label: '14+' };
+    } else if (heater && tanks >= 2) {
+      score = { score: 14, label: '14+' };
+    } else if (fireplace && !firewood && heater && tanks >= 1) {
+      score = { score: 7, label: '7-14' };
+    } else if (fireplace && !firewood) {
+      score = { score: 7, label: '7-14' };
+    } else if (heater && tanks === 1) {
+      score = { score: 5, label: '3-7' };
+    } else if (tanks >= 1) {
+      score = { score: 3, label: '3-7' };
+    } else {
+      score = { score: 0, label: '< 3' };
+    }
+
+    return { ...score, flags };
+  }
+
+  function bandForScore(s) {
+    if (s >= 14) return 'band-14';
+    if (s >= 7)  return 'band-7';
+    if (s >= 3)  return 'band-3';
+    return 'band-0';
+  }
+
+  function labelForScore(s) {
+    if (s >= 14) return '14+';
+    if (s >= 7)  return '7-14';
+    if (s >= 3)  return '3-7';
+    return '< 3';
+  }
+
+  function update() {
+    const light = scoreLight();
+    const power = scorePower();
+    const heat  = scoreHeat();
+    const total = Math.min(light.score, power.score, heat.score);
+
+    document.getElementById('score-light').textContent = light.label;
+    document.getElementById('score-power').textContent = labelForScore(power.score);
+    document.getElementById('score-heat').textContent  = labelForScore(heat.score);
+    document.getElementById('score-total').textContent = labelForScore(total);
+
+    ['band-0', 'band-3', 'band-7', 'band-14'].forEach(id => {
+      document.getElementById(id).classList.remove('active');
+    });
+    document.getElementById(bandForScore(total)).classList.add('active');
+
+    const allFlags = [...(power.flags || []), ...(heat.flags || [])];
+    const flagsEl  = document.getElementById('pf-flags');
+    if (allFlags.length > 0) {
+      flagsEl.style.display = 'flex';
+      flagsEl.innerHTML = allFlags.map(f =>
+        `<div class=”calc-flag calc-flag-${f.type}”>${f.msg}</div>`
+      ).join('');
+    } else {
+      flagsEl.style.display = 'none';
+      flagsEl.innerHTML = '';
+    }
+  }
+
+  const ids = [
+    'pf-headlamp', 'pf-lantern', 'pf-powerbanks',
+    'pf-station', 'pf-solar',
+    'pf-gen-wholehouse', 'pf-gen-inverter', 'pf-gen-propane', 'pf-gen-gas',
+    'pf-fridge', 'pf-cpap', 'pf-medical', 'pf-well-load', 'pf-sump',
+    'pf-fireplace', 'pf-firewood', 'pf-heater', 'pf-co', 'pf-tanks'
+  ];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', update);
+  });
+
+  update();
+})();
+</script>
+
+<!-- ═══════════════════════════════════════
+     1.2 DOCTRINE
+     ═══════════════════════════════════════ -->
+<section class="doc-section" id="e-doctrine">
+  <div class="section-ref">1.2 - Doctrine</div>
+  <h2 class="section-title">Doctrine</h2>
+
+  <p>Energy independence is not about producing more power. It is about assigning the right fuel to the right load so the system operates safely, effectively, and efficiently.</p>
+
+  <p>Household energy moves through five stages:</p>
+
+  <div class="capability-chain">
+    <div class="capability-item"><div class="capability-num">01</div><div class="capability-content"><div class="capability-name">Generation</div><div class="capability-desc">Where energy originates. Grid, solar, and generator each have different failure modes and different roles.</div></div></div>
+    <div class="capability-item"><div class="capability-num">02</div><div class="capability-content"><div class="capability-name">Storage</div><div class="capability-desc">Holds energy between generation and use. Electrical and combustible storage are the same capability in different forms.</div></div></div>
+    <div class="capability-item"><div class="capability-num">03</div><div class="capability-content"><div class="capability-name">Conversion</div><div class="capability-desc">Transforms stored energy into a usable form. Your fireplace, grill, stove, and inverter are all conversion devices.</div></div></div>
+    <div class="capability-item"><div class="capability-num">04</div><div class="capability-content"><div class="capability-name">Distribution</div><div class="capability-desc">Routes the right source to the right load. Light, Power, and Heat each draw from a different part of the system.</div></div></div>
+    <div class="capability-item"><div class="capability-num">05</div><div class="capability-content"><div class="capability-name">Regeneration</div><div class="capability-desc">Returns the system to full capacity. Solar recharges batteries. Propane restocks from your reserve. The cycle repeats.</div></div></div>
+  </div>
+
+  <!-- 1.2.1 Generation -->
+  <div class="subsection-ref">1.2.1 - Generation</div>
+  <h3 id="e-doctrine-generation" class="subsection-title">Generation</h3>
+
+  <p>Generation is where energy enters the system. For most households, that source is the grid. It is reliable enough that people stop thinking about it. That complacency is what makes failure disorienting. When the grid goes down, every dependent system fails at the same time.</p>
+
+  <p><strong>Solar</strong> is the most misunderstood source in the residential market. Most rooftop systems are grid-tied. When the grid drops, the inverter shuts off automatically to protect line workers. The panels may still be producing. You simply cannot access the power.</p>
+
+  <p>Solar only works in a grid-down environment if a battery sits between the panels and your loads. Panels feed battery storage. The battery feeds the house. Without panels, a power station runs down once. With panels, it becomes a system.</p>
+
+  <p><strong>Generators</strong> produce more watts per dollar than any battery solution. If your household relies on a well pump, sump pump, or high-draw medical equipment, a generator is not optional. It is risk control. If you buy a generator, inverter type should be the priority. Conventional units produce unstable voltage that damages modern electronics.</p>
+
+  <div class="nwc nwc-warning">
+    <span class="nwc-label">Warning</span>
+    <div class="nwc-body"><p>Generators produce lethal carbon monoxide. Operate outdoors only, at least 20 feet from openings. A battery CO detector is mandatory equipment.</p></div>
+  </div>
+
+  <!-- 1.2.2 Storage -->
+  <div class="subsection-ref">1.2.2 - Storage</div>
+  <h3 id="e-doctrine-storage" class="subsection-title">Storage</h3>
+
+  <p>Storage is the buffer between production and use. When generation stops, storage determines how long your energy system can operate.</p>
+
+  <p><strong>Electrical storage</strong> is measured in watt-hours (capacity) and watts (output). Capacity determines runtime. Output determines what you can start and run. Size to critical loads first. A 2,000 watt-hour station can cycle a refrigerator, power a CPAP for multiple nights, and charge every device in the house for days.</p>
+
+  <p><strong>Combustible storage - propane</strong> is energy in chemical form. A full 20-lb tank contains roughly 430,000 BTUs. It does not degrade. It connects to your grill, fireplace logs, camp stove, heater, and generator. Maintain two full tanks at all times. Running out of propane is a planning failure, not a supply problem.</p>
+
+  <div class="nwc nwc-note">
+    <span class="nwc-label">Note</span>
+    <div class="nwc-body"><p>Store tanks upright, outdoors, shaded, and away from structures. Never in garages or basements.</p></div>
+  </div>
+
+  <p><strong>Battery storage</strong> keeps your low-draw devices operational. Keep alkaline batteries on hand for any device that accepts them. For long-term storage, lithium disposables have the longest shelf life - up to 20 years. For maximum versatility, invest in solar rechargeable AA and AAA batteries. They eliminate the supply constraint entirely and recharge from any light source.</p>
+
+  <!-- 1.2.3 Conversion -->
+  <div class="subsection-ref">1.2.3 - Conversion</div>
+  <h3 id="e-doctrine-conversion" class="subsection-title">Conversion</h3>
+
+  <p>Conversion transforms stored energy into usable energy. A <strong>fireplace</strong> converts wood into heat and light. A <strong>gas grill</strong> converts propane into cooking heat. Propane handles thermal demand more efficiently, and at lower cost, than batteries at every price point. Stored electrical power requires an inverter to convert DC into AC.</p>
+
+  <!-- 1.2.4 Distribution -->
+  <div class="subsection-ref">1.2.4 - Distribution</div>
+  <h3 id="e-doctrine-distribution" class="subsection-title">Distribution</h3>
+
+  <p><strong>Light</strong> runs on dedicated batteries. Every person in the household should have a dedicated headlamp. A multipack covers the household at baseline. Your primary headlamp should have analog controls you can operate without looking, gesture activation for hands-free use, an adjustable beam from spot to flood, and a red light mode. Most importantly, it should run on both a rechargeable battery and disposable AAAs. When the rechargeable dies, you have a backup power source. That is the redundancy you want in premium equipment. Lanterns are low-draw area devices that should remain fully charged at all times when not in use. Solar charging options add redundancy and increase independence.</p>
+
+  <p><strong>Power</strong> can be sourced from power stations. The power station is the electrical anchor - it runs and charges your most important devices: phones, medical devices, refrigeration, communications. Each critical device in the household should have a dedicated power bank that can be solar recharged. This provides independence, mobility, and eliminates reliance on the power station for small loads.</p>
+
+  <p>Physical distribution matters. An extension cord game plan is needed for your critical devices. Twelve gauge wire is the minimum for sustained appliance loads.</p>
+
+  <p><strong>Heat</strong> is thermal combustion, so distribution is straight from the fuel: propane, wood, or another source.</p>
+
+  <!-- 1.2.5 Regeneration -->
+  <div class="subsection-ref">1.2.5 - Regeneration</div>
+  <h3 id="e-doctrine-regeneration" class="subsection-title">Regeneration</h3>
+
+  <p>The energy system requires fuel sources to regenerate and sustain operation. E=MC<sup>2</sup>.</p>
+
+  <p>The electrical system can use the sun as a fuel to regenerate and sustain household operations. Solar panels charge batteries during daylight. Batteries carry loads overnight. Repeat. As long as the sun rises, the system continues to operate.</p>
+
+  <p>Generators generate electrical energy by using combustion - the burning of a fuel.</p>
+
+  <p>Your thermal combustion cycle is limited by supply. The propane supply chain is decentralized, redundant, and typically more resilient than the electrical grid. But once your tanks reach empty, your combustion cycle ceases to operate.</p>
+
+</section>
+
+<!-- ═══════════════════════════════════════
+     1.3 FIELD OPERATIONS
+     ═══════════════════════════════════════ -->
+<section class="doc-section" id="e-ops">
+  <div class="section-ref">1.3 - Field Operations</div>
+  <h2 class="section-title">Field Operations</h2>
+
+  <p>Doctrine tells you how the system works. Field Operations tells you how to run it when the lights go out.</p>
+
+  <!-- 1.3.1 Light -->
+  <div class="subsection-ref">1.3.1 - Light</div>
+  <h3 id="e-ops-light" class="subsection-title">Light</h3>
+
+  <p>The first thing a power outage takes from you is light. It disappears instantly, and every problem you face in the dark becomes much harder.</p>
+
+  <p>Headlamps are for task work. Lanterns are for rooms. Empty rooms go dark.</p>
+
+  <p>Every headlamp lives in one known location. Use red light mode after dark and in any shared space - it preserves night vision and does not blind other household members.</p>
+
+  <div class="nwc nwc-note">
+    <span class="nwc-label">Note</span>
+    <div class="nwc-body"><p>A fabric shoe rack on the back of a coat closet door creates an excellent staging point for headlamps, lanterns, power banks, and other small equipment. Everything visible, accessible, and off the floor.</p></div>
+  </div>
+
+  <p>Store area lanterns together in a central location that ensures they are always charged. Run lanterns at the lowest setting that makes the room functional. Most produce adequate light at 10-20% output and extend runtime by a factor of four or more at that setting.</p>
+
+  <!-- 1.3.2 Power -->
+  <div class="subsection-ref">1.3.2 - Power</div>
+  <h3 id="e-ops-power" class="subsection-title">Power</h3>
+
+  <p>The power station stays plugged in and charged at its staged location under normal conditions. On outage, do not delay deployment of the solar panels.</p>
+
+  <p>Cycle the refrigerator on a schedule - fifteen minutes on, forty-five minutes off - to keep food safe longer. Charge all devices during daylight solar hours. Phones and critical devices run from their dedicated power banks overnight.</p>
+
+  <p>Comfort loads - televisions, gaming systems, decorative lighting - go dark or run only when solar input is actively exceeding critical load demand.</p>
+
+  <p>If you have a generator, run it to serve motor loads - well pump, sump pump - and recharge the power station simultaneously. That is the most efficient use of generator runtime. Outside only, every time, 20 feet minimum from any opening in the structure.</p>
+
+  <p>Your car is also a backup charging station. A multi-port USB-C car charger in every vehicle turns your fuel tank into emergency power for phones and small devices. Never let your fuel tank fall below half.</p>
+
+  <!-- 1.3.3 Heat -->
+  <div class="subsection-ref">1.3.3 - Heat</div>
+  <h3 id="e-ops-heat" class="subsection-title">Heat</h3>
+
+  <p>Fireplaces and wood stoves are the best alternative heat sources. If you have no other heat source, create a heat tent in an interior room by covering doors and windows with blankets. If you are using a heat source that burns fuel (propane, kerosene), crack a window and ensure you have an operable CO detector staged within 10 feet.</p>
+
+  <!-- 1.3.4 Maintenance -->
+  <div class="subsection-ref">1.3.4 - Maintenance Schedule</div>
+  <h3 class="subsection-title">Maintenance Schedule</h3>
+
+  <p>Tie checks to events you already have on the calendar.</p>
+
+  <table class="maintenance-table">
+    <thead>
+      <tr>
+        <th>When</th>
+        <th>Task</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Continuous</td>
+        <td>Power station, power banks, headlamps, and lanterns fully charged</td>
+      </tr>
+      <tr>
+        <td>Early Spring</td>
+        <td>Run generator for 10 minutes under load, check oil, inspect air filter, check extension cords</td>
+      </tr>
+      <tr>
+        <td>Memorial Day Weekend</td>
+        <td>Inspect all propane tanks, connections, and lighters - test grill</td>
+      </tr>
+      <tr>
+        <td>Annual Family Camping Trip</td>
+        <td>Test headlamps, lanterns, flashlights, power station, and solar panels</td>
+      </tr>
+      <tr>
+        <td>Mid-Fall</td>
+        <td>Run generator for 10 minutes under load, check oil, inspect air filter</td>
+      </tr>
+      <tr>
+        <td>Before Thanksgiving</td>
+        <td>Replace batteries in smoke and CO detectors</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 1.3.5 Flight Bag -->
+  <div class="subsection-ref">1.3.5 - The Flight Bag</div>
+  <h3 class="subsection-title">The Flight Bag</h3>
+
+  <div class="flight-bag-box">
+    <div class="flight-bag-header">Your Energy Flight Bag</div>
+    <div class="flight-bag-body">
+      <p>The Flight Bag is the last thing you grab before you take off. It has all of your essential pieces of equipment.</p>
+      <p>Your Energy Flight Bag includes your headlamps, lanterns, solar powered batteries, solar powered banks, solar panels and any portable propane tanks.</p>
+      <p>Items marked &#x2708; in the loadout table go in the Energy Flight Bag.</p>
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════
+     1.4 LOADOUTS
+     ═══════════════════════════════════════ -->
+<section class="doc-section" id="e-loadouts">
+  <div class="section-ref">1.4 - Loadouts</div>
+  <h2 class="section-title">Loadouts</h2>
+
+  <p>Three tiers. Each is additive - the 7-Day assumes the 72-Hour is complete, and the 14-Day assumes the 7-Day is complete. Assumes household has a working fireplace and outdoor grill. If not, move the 7-Day heat items into your 72-Hour build.</p>
+
+  <!-- 72-HOUR -->
+  <div class="loadout-tier-header">
+    <span class="loadout-tier-name">72-Hour Loadout</span>
+    <span class="loadout-tier-badge">Baseline capability</span>
+  </div>
+  <div class="loadout-table-wrap">
+    <table class="loadout-table">
+      <thead>
+        <tr>
+          <th class="col-ref">Ref</th>
+          <th>Requirement</th>
+          <th class="col-brand">Recommended</th>
+          <th class="col-qty">Qty</th>
+          <th class="col-cost">Unit Cost</th>
+          <th class="col-cost">Total</th>
+          <th class="col-fb">&#x2708;</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="row-category"><td colspan="7">Light</td></tr>
+        <tr>
+          <td class="col-ref"><a href="#e-doctrine-distribution">1.2.4</a></td>
+          <td>Task lighting - household coverage, rechargeable</td>
+          <td class="col-brand">EverBrite Headlamp 5-Pack</td>
+          <td class="col-qty">1</td>
+          <td class="col-cost">~$22</td>
+          <td class="col-cost">~$22</td>
+          <td class="col-fb">&#x2708;</td>
+        </tr>
+        <tr>
+          <td class="col-ref"><a href="#e-ops-light">1.3.1</a></td>
+          <td>Area lighting - solar/USB rechargeable, 3 modes</td>
+          <td class="col-brand">Lichamp 4-Pack Solar Camping Lantern</td>
+          <td class="col-qty">1</td>
+          <td class="col-cost">~$35</td>
+          <td class="col-cost">~$35</td>
+          <td class="col-fb">&#x2708;</td>
+        </tr>
+        <tr>
+          <td class="col-ref"><a href="#e-doctrine-storage">1.2.2</a></td>
+          <td>Battery supply - lithium disposable, 20-yr shelf life</td>
+          <td class="col-brand">Energizer Ultimate Lithium AA + AAA</td>
+          <td class="col-qty">Bulk</td>
+          <td class="col-cost">~$40</td>
+          <td class="col-cost">~$40</td>
+          <td class="col-fb"></td>
+        </tr>
+        <tr class="row-category"><td colspan="7">Power</td></tr>
+        <tr>
+          <td class="col-ref"><a href="#e-doctrine-storage">1.2.2</a></td>
+          <td>Power station - 2kWh+, pure sine wave, solar input</td>
+          <td class="col-brand"><a href="https://share.jackery.com/x/AGdVEl" style="color:var(--sage);border-bottom:1px dashed rgba(92,107,80,0.4);">Jackery Explorer 2000 v2 + 2x SolarSaga 200W</a></td>
+          <td class="col-qty">1</td>
+          <td class="col-cost">~$1,500</td>
+          <td class="col-cost">~$1,500</td>
+          <td class="col-fb">&#x2708;</td>
+        </tr>
+        <tr>
+          <td class="col-ref"><a href="#e-ops-heat">1.3.3</a></td>
+          <td>CO detection - battery powered</td>
+          <td class="col-brand">Kidde Battery CO Detector</td>
+          <td class="col-qty">1</td>
+          <td class="col-cost">~$25</td>
+          <td class="col-cost">~$25</td>
+          <td class="col-fb">&#x2708;</td>
+        </tr>
+        <tr>
+          <td class="col-ref"><a href="#e-doctrine-distribution">1.2.4</a></td>
+          <td>Distribution - near-field, 12 AWG outdoor rated</td>
+          <td class="col-brand">Yellow Jacket 12/3 SJTW Extension Cord 25 ft (2-Pack)</td>
+          <td class="col-qty">1</td>
+          <td class="col-cost">~$85</td>
+          <td class="col-cost">~$85</td>
+          <td class="col-fb"></td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr class="row-total">
+          <td colspan="5" class="total-label">Total</td>
+          <td class="total-cost col-cost">~$1,707</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <!-- 7-DAY -->
+  <div class="loadout-tier-header">
+    <span class="loadout-tier-name">7-Day Loadout</span>
+    <span class="loadout-tier-badge">Additive - assumes 72-Hour Loadout is complete</span>
+  </div>
+  <div class="loadout-table-wrap">
+    <table class="loadout-table">
+      <thead>
+        <tr>
+          <th class="col-ref">Ref</th>
+          <th>Requirement</th>
+          <th class="col-brand">Recommended</th>
+          <th class="col-qty">Qty</th>
+          <th class="col-cost">Unit Cost</th>
+          <th class="col-cost">Total</th>
+          <th class="col-fb">&#x2708;</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="row-category"><td colspan="7">Light</td></tr>
+        <tr>
+          <td class="col-ref"><a href="#e-doctrine-distribution">1.2.4</a></td>
+          <td>Task lighting - primary, dual power source, analog controls</td>
+          <td class="col-brand">Fenix HL45R Headlamp</td>
+          <td class="col-qty">1</td>
+          <td class="col-cost">~$80</td>
+          <td class="col-cost">~$80</td>
+          <td class="col-fb">&#x2708;</td>
+        </tr>
+        <tr>
+          <td class="col-ref"><a href="#e-ops-light">1.3.1</a></td>
+          <td>Area lighting - upgrade, analog controls, integrated power bank</td>
+          <td class="col-brand">Fenix CL28R Lantern</td>
+          <td class="col-qty">1</td>
+          <td class="col-cost">~$100</td>
+          <td class="col-cost">~$100</td>
+          <td class="col-fb">&#x2708;</td>
+        </tr>
+        <tr>
+          <td class="col-ref"><a href="#e-doctrine-storage">1.2.2</a></td>
+          <td>Battery supply - solar rechargeable AA + AAA</td>
+          <td class="col-brand">PaleBlue Solar Kit</td>
+          <td class="col-qty">1</td>
+          <td class="col-cost">~$150</td>
+          <td class="col-cost">~$150</td>
+          <td class="col-fb">&#x2708;</td>
+        </tr>
+        <tr class="row-category"><td colspan="7">Power</td></tr>
+        <tr>
+          <td class="col-ref"><a href="#e-doctrine-distribution">1.2.4</a></td>
+          <td>Solar power bank - 5,000mAh per person + 4-panel solar charger</td>
+          <td class="col-brand"><a href="https://prz.io/Jd2QYKPT8" style="color:var(--sage);border-bottom:1px dashed rgba(92,107,80,0.4);">ELECOM NESTOUT Solar Kit</a></td>
+          <td class="col-qty">1</td>
+          <td class="col-cost">~$200</td>
+          <td class="col-cost">~$200</td>
+          <td class="col-fb">&#x2708;</td>
+        </tr>
+        <tr class="row-category"><td colspan="7">Heat</td></tr>
+        <tr>
+          <td class="col-ref"><a href="#e-ops-heat">1.3.3</a></td>
+          <td>Space heating - indoor-safe propane, 1 room</td>
+          <td class="col-brand">Mr. Heater Little Buddy</td>
+          <td class="col-qty">1</td>
+          <td class="col-cost">~$60</td>
+          <td class="col-cost">~$60</td>
+          <td class="col-fb">&#x2708;</td>
+        </tr>
+        <tr>
+          <td class="col-ref"><a href="#e-doctrine-storage">1.2.2</a></td>
+          <td>Portable propane - 5 lb refillable, replaces disposables</td>
+          <td class="col-brand">Ignik Gas Growler 5 lb</td>
+          <td class="col-qty">2</td>
+          <td class="col-cost">~$80</td>
+          <td class="col-cost">~$160</td>
+          <td class="col-fb">&#x2708;</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr class="row-total">
+          <td colspan="5" class="total-label">Total</td>
+          <td class="total-cost col-cost">~$750</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <!-- 14-DAY -->
+  <div class="loadout-tier-header">
+    <span class="loadout-tier-name">14-Day Loadout</span>
+    <span class="loadout-tier-badge">Additive - assumes 7-Day Loadout is complete</span>
+  </div>
+  <div class="loadout-table-wrap">
+    <table class="loadout-table">
+      <thead>
+        <tr>
+          <th class="col-ref">Ref</th>
+          <th>Requirement</th>
+          <th class="col-brand">Recommended</th>
+          <th class="col-qty">Qty</th>
+          <th class="col-cost">Unit Cost</th>
+          <th class="col-cost">Total</th>
+          <th class="col-fb">&#x2708;</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="row-category"><td colspan="7">Power</td></tr>
+        <tr>
+          <td class="col-ref"><a href="#e-doctrine-generation">1.2.1</a></td>
+          <td>Generator - best inverter, clean power for electronics</td>
+          <td class="col-brand">Honda EU2200i</td>
+          <td class="col-qty">1</td>
+          <td class="col-cost">~$1,100</td>
+          <td class="col-cost">~$1,100</td>
+          <td class="col-fb"></td>
+        </tr>
+        <tr>
+          <td class="col-ref"><a href="#e-doctrine-generation">1.2.1</a></td>
+          <td>Generator - best dual fuel, home backup capable</td>
+          <td class="col-brand">Westinghouse 12500W Dual Fuel Portable Generator</td>
+          <td class="col-qty">1</td>
+          <td class="col-cost">~$1,000</td>
+          <td class="col-cost">~$1,000</td>
+          <td class="col-fb"></td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr class="row-total">
+          <td colspan="5" class="total-label">Total</td>
+          <td class="total-cost col-cost">~$2,100</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+</section>
+<!-- ═══════════════════════════════════════
+     1.5 SERVICES
+     ═══════════════════════════════════════ -->
+<section class="doc-section" id="e-services">
+  <div class="section-ref">1.5 - Professional Services</div>
+  <h2 class="section-title">Professional Services</h2>
+
+  <p>The loadouts above take a household well beyond 14 days without a contractor, a permit, or a five-figure check. The DIY tier covers most disruption scenarios most households will ever face. The shift to professional services happens when the problem changes scale: you want whole-home coverage, automatic failover, or a permanent solution that requires no management after installation.</p>
+
+  <p>Permanent energy systems are not Amazon purchases. A whole-home generator requires a licensed electrician, a transfer switch, a fuel line connection, and a permit. A solar-plus-battery installation requires a certified installer, structural assessment, utility interconnection agreements, and municipal permitting. Sizing either system wrong - undersizing for actual load, placing a transfer switch incorrectly, specifying the wrong battery chemistry - creates a system that fails when it matters most. An EPICS assessment gets the specification right before the contractor shows up.</p>
+
+  <div class="services-grid">
+    <div class="service-card">
+      <div class="service-card-tag">Permanent Solution</div>
+      <h3>Whole-Home Standby Generator</h3>
+      <p>A natural gas or propane generator connected to an automatic transfer switch. When grid power drops, it starts within seconds and runs your entire household - HVAC, well pump, refrigerator, medical equipment - without you touching anything. Runs on a manufacturer service contract. You forget it exists until the day you need it.</p>
+      <p>Generac and Kohler are the primary residential brands. Sizing ranges from 11kW for essential loads to 22kW+ for whole-house coverage. The right size depends on your actual load calculation - not a rule of thumb.</p>
+      <div class="service-price">Varies by load, fuel source, and transfer switch configuration</div>
+    </div>
+    <div class="service-card">
+      <div class="service-card-tag">Permanent Solution</div>
+      <h3>Whole-Home Solar + Battery Backup</h3>
+      <p>Solar panels feeding a battery system with islanding capability - the architecture this guide recommends at every tier, at whole-house scale. When the grid drops, the system islands automatically and continues supplying the household from solar and battery storage. No generator. No fuel. No maintenance beyond an annual inspection.</p>
+      <p>Tesla Powerwall, Enphase IQ Battery, and Franklin Electric are the primary residential options. System sizing depends on daily consumption, critical load requirements, roof orientation, and local sun hours. A grid-tied system without islanding capability provides zero grid-down power - specification matters.</p>
+      <div class="service-price">Varies by panel count, battery capacity, and existing electrical infrastructure</div>
+    </div>
+  </div>
+
+  <p style="margin-top:1.5rem;">For a professionally designed household energy system - or a full EPICS Dash-1 assessment across all eight domains - see <a href="index.html#s5" style="color:var(--sage);border-bottom:1px dashed rgba(92,107,80,0.4);">Section 5: Services</a>.</p>
+
+<div class="cta-strip">
+  <div class="cta-strip-text">
+    <strong>Ready to build your energy system?</strong>
+    EPICS Co-Pilot and Wingman clients receive a complete energy assessment as part of their household ERP. We size your generation, storage, and fuel requirements against your actual load profile and make sure Light, Power, and Heat are covered independently before an event occurs.
+  </div>
+  <a href="index.html#cta" class="btn-cta">Book a Consultation</a>
+</div>
+
+</section>
+</main>
+
+<!-- NEXT SYSTEM -->
+<div class="next-bar">
+  <div class="next-bar-inner">
+    <div>
+      <div class="next-bar-label">Next System</div>
+      <div class="next-bar-title">System 2 — Water</div>
+    </div>
+    <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+      <a href="water.html" class="btn btn-primary">Continue to Water</a>
+      <a href="index.html#toc" class="btn btn-ghost">Back to Contents</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner" style="flex-direction:column; align-items:center; text-align:center;">
+    <div class="footer-brand">EPICS Dash-1</div>
+    <div class="footer-tagline">ERPS for the Suburban Jungle &middot; &copy; 2026 EPICS Consulting, LLC</div>
+  </div>
+</footer>
+
+<script>
+// PRE-FLIGHT CALCULATOR
+function updatePreflight() {
+  const people = parseFloat(document.getElementById('pf-people').value) || 0;
+  const pets   = parseFloat(document.getElementById('pf-pets').value)   || 0;
+  const stored = parseFloat(document.getElementById('pf-gallons').value)|| 0;
+  const daily  = (people * 2.5) + (pets * 1.0);
+  const score  = daily > 0 ? stored / daily : 0;
+  document.getElementById('pf-daily').textContent = daily.toFixed(1);
+  document.getElementById('pf-score').textContent = score.toFixed(1);
+  // Update score bands
+  const bands = ['band-0','band-3','band-7','band-14'];
+  bands.forEach(id => document.getElementById(id).classList.remove('active'));
+  if      (score < 3)  document.getElementById('band-0').classList.add('active');
+  else if (score < 7)  document.getElementById('band-3').classList.add('active');
+  else if (score < 14) document.getElementById('band-7').classList.add('active');
+  else                 document.getElementById('band-14').classList.add('active');
+}
+
+['pf-people','pf-pets','pf-gallons'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updatePreflight);
+});
+updatePreflight();
+
+// LOADOUT CALCULATOR
+function updateLoadout() {
+  const people = parseFloat(document.getElementById('lo-people').value) || 0;
+  const pets   = parseFloat(document.getElementById('lo-pets').value)   || 0;
+  const daily  = (people * 2.5) + (pets * 1.0);
+  document.getElementById('lo-burn').textContent = daily.toFixed(1);
+
+  // Aqua-Tainer qty: cover 72-hour need (daily * 3) at 7 gal per container
+  const aquatainerQty = Math.max(1, Math.ceil((daily * 3) / 7));
+  document.getElementById('qty-aquatainer').textContent = aquatainerQty;
+
+  // WaterBrick qty: additional 4 days of storage at 3.5 gal per brick
+  const waterbrickQty = Math.max(4, Math.ceil((daily * 4) / 3.5));
+  document.getElementById('qty-waterbrick').textContent = waterbrickQty;
+}
+
+['lo-people','lo-pets'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateLoadout);
+});
+updateLoadout();
+</script>
+
+</body>
+</html>
