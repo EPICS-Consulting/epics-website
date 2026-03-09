@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EPICS Consulting | Household Resilience for the Suburban Jungle</title>
+  <meta name="description" content="EPICS Consulting helps households build practical resilience through structured planning across energy, water, medical, communications, records, and household continuity systems." />
+  <meta name="theme-color" content="#0e1a26" />
+
+  <style>
+    :root {
+      --bg: #0b1420;
+      --panel: #101b2a;
+      --panel-2: #162436;
+      --text: #eef3f8;
+      --muted: #a9b7c8;
+      --line: rgba(255,255,255,0.10);
+      --accent: #ff8a3d;
+      --accent-2: #ffd2b8;
+      --max: 1180px;
+      --radius: 18px;
+      --shadow: 0 12px 36px rgba(0,0,0,0.28);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top right, rgba(255,138,61,0.12), transparent 22%),
+        linear-gradient(180deg, #09121c 0%, #0b1420 100%);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    .container {
+      width: min(100% - 2rem, var(--max));
+      margin: 0 auto;
+    }
+
+    .section {
+      padding: 5.5rem 0;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 0.4rem 0.75rem;
+      border: 1px solid rgba(255,138,61,0.22);
+      border-radius: 999px;
+      color: var(--accent-2);
+      background: rgba(255,138,61,0.08);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(8,16,25,0.78);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 76px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      color: #09121c;
+      background: linear-gradient(135deg, var(--accent), #ffb07d);
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.05;
+    }
+
+    .brand-text span:first-child {
+      font-size: 0.98rem;
+    }
+
+    .brand-text span:last-child {
+      font-size: 0.74rem;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      min-height: 48px;
+      padding: 0 1.15rem;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--text);
+      font-weight: 700;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    .button-primary {
+      background: linear-gradient(135deg, var(--accent), #ff9d61);
+      color: #09121c;
+      border-color: transparent;
+    }
+
+    .button-primary:hover {
+      border-color: transparent;
+      filter: brightness(1.04);
+    }
+
+    .button-ghost {
+      background: rgba(255,255,255,0.03);
+    }
+
+    .hero {
+      padding: 6rem 0 4.5rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 2rem;
+      align-items: stretch;
+    }
+
+    .hero-copy h1 {
+      margin: 1rem 0 1rem;
+      font-size: clamp(2.4rem, 5vw, 4.7rem);
+      line-height: 0.98;
+      letter-spacing: -0.03em;
+    }
+
+    .hero-copy .subhead {
+      max-width: 760px;
+      font-size: 1.14rem;
+      color: var(--muted);
+      margin-bottom: 1.6rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      margin: 1.6rem 0 2rem;
+    }
+
+    .hero-note {
+      color: var(--muted);
+      font-size: 0.96rem;
+      max-width: 700px;
+    }
+
+    .hero-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 1.4rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100%;
+    }
+
+    .cockpit {
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)),
+        linear-gradient(180deg, #132032, #0d1725);
+      padding: 1rem;
+    }
+
+    .cockpit-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.35rem 0.65rem;
+      border-radius: 999px;
+      background: rgba(255,138,61,0.10);
+      color: var(--accent-2);
+      border: 1px solid rgba(255,138,61,0.22);
+      font-weight: 700;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 6px rgba(255,138,61,0.10);
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.8rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .score-box {
+      border-radius: 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 0.85rem;
+    }
+
+    .score-box .label {
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 0.35rem;
+    }
+
+    .score-box .value {
+      font-size: 1.2rem;
+      font-weight: 800;
+    }
+
+    .systems-list {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .system-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.8rem 0.9rem;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      font-size: 0.95rem;
+    }
+
+    .system-row span:last-child {
+      color: var(--accent-2);
+      font-weight: 700;
+    }
+
+    .trust-bar {
+      margin-top: 1.25rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .grid-3,
+    .grid-4,
+    .grid-2 {
+      display: grid;
+      gap: 1.1rem;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .grid-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3,
+    .card h4 {
+      margin-top: 0;
+      margin-bottom: 0.7rem;
+      line-height: 1.2;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .section-title {
+      margin: 0.9rem 0 1rem;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+    }
+
+    .section-intro {
+      max-width: 760px;
+      color: var(--muted);
+      margin-bottom: 2rem;
+      font-size: 1.05rem;
+    }
+
+    .problem-list,
+    .service-list,
+    .deliverables-list,
+    .fit-list {
+      margin: 0.85rem 0 0;
+      padding-left: 1.15rem;
+      color: var(--muted);
+    }
+
+    .problem-list li,
+    .service-list li,
+    .deliverables-list li,
+    .fit-list li {
+      margin-bottom: 0.55rem;
+    }
+
+    .stat-band {
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      padding: 1.5rem 0;
+    }
+
+    .stat {
+      padding: 1rem 0.5rem;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.8rem;
+      line-height: 1;
+      margin-bottom: 0.35rem;
+      color: var(--accent-2);
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .method-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .method-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -40px -40px auto;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,138,61,0.18), transparent 65%);
+      pointer-events: none;
+    }
+
+    .service-tier {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      height: 100%;
+    }
+
+    .service-price {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+
+    .service-price small {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .service-tag {
+      display: inline-block;
+      width: fit-content;
+      padding: 0.35rem 0.65rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.10);
+      color: var(--accent-2);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .quote {
+      font-size: 1.15rem;
+      color: var(--text);
+      max-width: 860px;
+    }
+
+    .quote small {
+      display: block;
+      color: var(--muted);
+      margin-top: 1rem;
+      font-size: 0.92rem;
+    }
+
+    .cta-panel {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 1.2rem;
+      align-items: stretch;
+    }
+
+    .footer {
+      padding: 2rem 0 3rem;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+    }
+
+    .footer-grid {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 980px) {
+      .hero-grid,
+      .cta-panel,
+      .grid-4,
+      .grid-3,
+      .grid-2,
+      .stat-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .nav {
+        flex-wrap: wrap;
+        padding: 0.8rem 0;
+      }
+
+      .nav-links {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+      }
+
+      .hero {
+        padding-top: 4.5rem;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .hero-copy h1 {
+        font-size: 2.5rem;
+      }
+
+      .section {
+        padding: 4.25rem 0;
+      }
+
+      .button {
+        width: 100%;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+      }
+
+      .score-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container nav">
+      <a href="#" class="brand" aria-label="EPICS Consulting Home">
+        <div class="brand-mark">E</div>
+        <div class="brand-text">
+          <span>EPICS Consulting</span>
+          <span>Household Resilience Systems</span>
+        </div>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary Navigation">
+        <a href="#method">Method</a>
+        <a href="#services">Services</a>
+        <a href="#fit">Who It’s For</a>
+        <a href="#about">About</a>
+        <a href="https://epicsdash1.com" target="_blank" rel="noopener noreferrer">Dash-1</a>
+        <a class="button button-primary" href="#contact">Schedule Consultation</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <span class="eyebrow">EPICS Consulting</span>
+          <h1>Household Resilience for the Suburban Jungle</h1>
+          <p class="subhead">
+            EPICS Consulting helps households reduce dependence on fragile modern systems through structured planning across energy, water, medical, communications, records, and household continuity.
+          </p>
+
+          <div class="hero-actions">
+            <a class="button button-primary" href="#contact">Schedule Consultation</a>
+            <a class="button button-ghost" href="https://epicsdash1.com" target="_blank" rel="noopener noreferrer">Explore EPICS Dash-1</a>
+          </div>
+
+          <p class="hero-note">
+            Built on the EPICS Dash-1 framework: <strong>Emergency Procedures for the Suburban Jungle.</strong>
+            Dash-1 is the system. EPICS Consulting helps you implement it in the real world.
+          </p>
+
+          <div class="trust-bar">
+            <span>Structured assessment</span>
+            <span>Prioritized recommendations</span>
+            <span>Clear household procedures</span>
+            <span>No bunker cosplay</span>
+          </div>
+        </div>
+
+        <aside class="hero-card" aria-label="Illustrative household assessment panel">
+          <div class="cockpit">
+            <div class="cockpit-top">
+              <span>Household Continuity Snapshot</span>
+              <span class="status-pill"><span class="status-dot"></span> Active Review</span>
+            </div>
+
+            <div class="score-grid">
+              <div class="score-box">
+                <div class="label">Independence Score</div>
+                <div class="value">4.2 Days</div>
+              </div>
+              <div class="score-box">
+                <div class="label">Priority Gap</div>
+                <div class="value">Water + Records</div>
+              </div>
+              <div class="score-box">
+                <div class="label">Runway</div>
+                <div class="value">72-Hour Tier</div>
+              </div>
+              <div class="score-box">
+                <div class="label">Next Upgrade</div>
+                <div class="value">Power Redundancy</div>
+              </div>
+            </div>
+
+            <div class="systems-list">
+              <div class="system-row"><span>Energy</span><span>Moderate</span></div>
+              <div class="system-row"><span>Water</span><span>Limited</span></div>
+              <div class="system-row"><span>Medical</span><span>Baseline</span></div>
+              <div class="system-row"><span>Communications</span><span>Moderate</span></div>
+              <div class="system-row"><span>Records</span><span>Weak</span></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="stat-band" aria-label="Quick value statements">
+      <div class="container stat-grid">
+        <div class="stat">
+          <strong>6</strong>
+          <span>Core household systems evaluated</span>
+        </div>
+        <div class="stat">
+          <strong>1</strong>
+          <span>Unified framework for planning and implementation</span>
+        </div>
+        <div class="stat">
+          <strong>0</strong>
+          <span>Interest in fear-based prepper theater</span>
+        </div>
+        <div class="stat">
+          <strong>100%</strong>
+          <span>Focused on practical household function</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="problem">
+      <div class="container">
+        <span class="eyebrow">The Problem</span>
+        <h2 class="section-title">Modern homes are incredibly capable and incredibly fragile.</h2>
+        <p class="section-intro">
+          Most households operate on the assumption that core systems will always be available: electricity, municipal water, cellular networks, cloud accounts, digital records, stocked stores, and frictionless deliveries. When those systems work, modern life feels effortless. When they fail, even briefly, most families discover they do not have a real operating plan.
+        </p>
+
+        <div class="grid-3">
+          <article class="card">
+            <h3>Infrastructure Dependence</h3>
+            <p>
+              A modern household depends on outside systems for power, water, communications, food access, and records verification. A short disruption can quickly become an operational problem.
+            </p>
+          </article>
+
+          <article class="card">
+            <h3>Hidden Weak Links</h3>
+            <p>
+              Most homes have supplies. Fewer have systems. Weak links usually hide in boring places: medication runway, backup power assumptions, sanitation, records access, household procedures, and device charging.
+            </p>
+          </article>
+
+          <article class="card">
+            <h3>Improvised Response</h3>
+            <p>
+              In many households, emergency planning consists of “we’ll figure it out.” Under stress, improvisation is rarely as effective as people imagine. Households need structure before the event, not during it.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="method">
+      <div class="container">
+        <span class="eyebrow">The Method</span>
+        <h2 class="section-title">A structured framework for household continuity.</h2>
+        <p class="section-intro">
+          EPICS Consulting is built on the EPICS Dash-1 framework: <strong>Emergency Procedures for the Suburban Jungle.</strong> Dash-1 provides the doctrine, procedures, and system architecture. Consulting provides implementation, prioritization, and real-world household planning.
+        </p>
+
+        <div class="grid-3">
+          <article class="card method-card">
+            <h3>Assess</h3>
+            <p>
+              We evaluate the household across energy, water, food, medical, communications, records, sanitation, and continuity factors. The goal is to identify practical failure points before they become real problems.
+            </p>
+          </article>
+
+          <article class="card method-card">
+            <h3>Prioritize</h3>
+            <p>
+              Not every weakness matters equally. Recommendations are sequenced by operational value, cost efficiency, and actual household dependency, not internet drama.
+            </p>
+          </article>
+
+          <article class="card method-card">
+            <h3>Implement</h3>
+            <p>
+              The outcome is not a pile of gear. It is a household system: capabilities, staging, procedures, documentation, and clear next steps for each person in the home.
+            </p>
+          </article>
+        </div>
+
+        <div class="grid-4" style="margin-top: 1.1rem;">
+          <article class="card">
+            <h4>Energy</h4>
+            <p>Power continuity, load planning, backup power hierarchy, charging strategy, and fuel assumptions.</p>
+          </article>
+          <article class="card">
+            <h4>Water</h4>
+            <p>Storage runway, alternate sourcing, purification capability, distribution, and household use planning.</p>
+          </article>
+          <article class="card">
+            <h4>Medical</h4>
+            <p>Prescription runway, critical dependencies, skills, staged equipment, and household-specific medical risk.</p>
+          </article>
+          <article class="card">
+            <h4>Records</h4>
+            <p>Digital, legal, and physical continuity for identity, insurance, property, medical, and financial access.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="services">
+      <div class="container">
+        <span class="eyebrow">Services</span>
+        <h2 class="section-title">Implementation, not internet theater.</h2>
+        <p class="section-intro">
+          EPICS Consulting is designed for households that want a practical, structured approach to resilience. The engagement can remain strategic, or expand into implementation support depending on your goals.
+        </p>
+
+        <div class="grid-3">
+          <article class="card service-tier">
+            <div>
+              <span class="service-tag">Entry Point</span>
+              <h3>Household Resilience Assessment</h3>
+              <p>
+                A structured review of your household systems, dependencies, weak points, and immediate opportunities for improvement.
+              </p>
+            </div>
+
+            <div class="service-price">$1,250 <small>starting engagement</small></div>
+
+            <ul class="service-list">
+              <li>Household continuity interview</li>
+              <li>System-by-system assessment</li>
+              <li>Priority gap identification</li>
+              <li>Initial Independence Score review</li>
+              <li>Recommended next-step upgrades</li>
+            </ul>
+          </article>
+
+          <article class="card service-tier">
+            <div>
+              <span class="service-tag">Core Offer</span>
+              <h3>Dash-1 Implementation Plan</h3>
+              <p>
+                A more detailed engagement focused on system design, prioritization, household procedures, and a practical implementation roadmap.
+              </p>
+            </div>
+
+            <div class="service-price">Custom <small>scoped to household</small></div>
+
+            <ul class="service-list">
+              <li>Expanded system planning</li>
+              <li>Gear and infrastructure recommendations</li>
+              <li>Staging and redundancy guidance</li>
+              <li>Household procedure development</li>
+              <li>Sequenced improvement roadmap</li>
+            </ul>
+          </article>
+
+          <article class="card service-tier">
+            <div>
+              <span class="service-tag">High Touch</span>
+              <h3>Executive Household Advisory</h3>
+              <p>
+                Ongoing advisory support for households that want a more robust continuity posture, higher-end implementation, and direct planning support over time.
+              </p>
+            </div>
+
+            <div class="service-price">Retainer <small>limited availability</small></div>
+
+            <ul class="service-list">
+              <li>Follow-on planning support</li>
+              <li>Periodic reassessment</li>
+              <li>Refined household procedures</li>
+              <li>System expansion guidance</li>
+              <li>White-glove continuity planning</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="deliverables">
+      <div class="container">
+        <span class="eyebrow">Deliverables</span>
+        <h2 class="section-title">What you actually receive.</h2>
+        <p class="section-intro">
+          This is not a vibe check and it is not a shopping spree. The objective is a clearer household operating picture and a better-functioning system.
+        </p>
+
+        <div class="grid-2">
+          <article class="card">
+            <h3>Assessment Output</h3>
+            <ul class="deliverables-list">
+              <li>System-by-system findings</li>
+              <li>Priority vulnerabilities and dependencies</li>
+              <li>Recommended capability upgrades</li>
+              <li>Household-specific sequencing guidance</li>
+              <li>Practical next actions</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <h3>Planning Output</h3>
+            <ul class="deliverables-list">
+              <li>Improvement roadmap by tier and urgency</li>
+              <li>Suggested staging and redundancy approach</li>
+              <li>Procedure recommendations for key events</li>
+              <li>Household continuity considerations</li>
+              <li>Alignment with the EPICS Dash-1 framework</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="fit">
+      <div class="container">
+        <span class="eyebrow">Who It’s For</span>
+        <h2 class="section-title">For capable households that want structure.</h2>
+        <p class="section-intro">
+          EPICS Consulting is a strong fit for families who value preparedness, but do not want to disappear into prepper culture. The ideal client wants a plan, a framework, and a way to improve household resilience without turning their garage into a low-budget militia set.
+        </p>
+
+        <div class="grid-3">
+          <article class="card">
+            <h3>High-Functioning Families</h3>
+            <p>
+              Households with children, demanding schedules, multiple obligations, and very little appetite for chaos when systems fail.
+            </p>
+          </article>
+
+          <article class="card">
+            <h3>Professionals and Operators</h3>
+            <p>
+              People who already think in terms of systems, risk, continuity, and redundancy, and want their home life to reflect the same standards.
+            </p>
+          </article>
+
+          <article class="card">
+            <h3>Practical Preparedness Clients</h3>
+            <p>
+              People who want resilient household infrastructure and procedures, not cinematic collapse fantasies and tactical nonsense.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="about">
+      <div class="container">
+        <span class="eyebrow">About</span>
+        <h2 class="section-title">Built around systems thinking, not fear.</h2>
+        <p class="quote">
+          EPICS Consulting applies structured thinking to a part of life that is usually addressed through improvisation, anxiety, or gear addiction. The premise is simple: households should understand the systems they depend on, identify their weak links, and improve function before stress exposes the gap.
+          <small>
+            EPICS Dash-1 provides the operating framework. EPICS Consulting helps clients adapt and apply it to real households.
+          </small>
+        </p>
+      </div>
+    </section>
+
+    <section class="section" id="contact">
+      <div class="container">
+        <div class="card cta-panel">
+          <div>
+            <span class="eyebrow">Next Step</span>
+            <h2 class="section-title" style="margin-top: 0.9rem;">Schedule a consultation.</h2>
+            <p class="section-intro" style="margin-bottom: 1.2rem;">
+              Start with a conversation about your household, your concerns, and the systems you want to strengthen. From there, EPICS Consulting can recommend the right level of engagement.
+            </p>
+
+            <div class="hero-actions">
+              <a class="button button-primary" href="mailto:hello@epics.consulting">hello@epics.consulting</a>
+              <a class="button button-ghost" href="https://epicsdash1.com" target="_blank" rel="noopener noreferrer">Visit EPICS Dash-1</a>
+            </div>
+          </div>
+
+          <div class="card" style="background: rgba(255,255,255,0.025); box-shadow: none;">
+            <h3 style="margin-top: 0;">Suggested contact details</h3>
+            <ul class="fit-list">
+              <li>Name</li>
+              <li>Email</li>
+              <li>Household size</li>
+              <li>Primary concerns or planning priorities</li>
+              <li>Whether you are looking for assessment, implementation, or advisory support</li>
+            </ul>
+            <p style="margin-top: 1rem; color: var(--muted);">
+              Replace this panel with a Squarespace form later if you move the page into Squarespace.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div>
+        <strong style="color: var(--text);">EPICS Consulting</strong><br />
+        Household Resilience for the Suburban Jungle
+      </div>
+
+      <div class="footer-links">
+        <a href="#method">Method</a>
+        <a href="#services">Services</a>
+        <a href="#about">About</a>
+        <a href="https://epicsdash1.com" target="_blank" rel="noopener noreferrer">EPICS Dash-1</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
