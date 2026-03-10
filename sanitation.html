@@ -1,0 +1,2278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>System 4: Sanitation - EPICS Dash-1</title>
+<meta name="description" content="Sanitation doctrine, pre-flight calculator, field operations, and loadouts for household contamination control." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg:           #f4f3ef;
+  --bg-panel:     #eceae5;
+  --bg-data:      #ffffff;
+  --bg-dark:      #1e2840;
+  --bg-header:    #1e2840;
+  --border:       #c8c4bc;
+  --border-light: #dbd8d2;
+  --border-dark:  #8a8680;
+  --sage:         #5c6b50;
+  --sage-hi:      #8FA07E;
+  --sage-dim:     rgba(92,107,80,0.10);
+  --rust:         #c0622a;
+  --rust-dim:     rgba(192,98,42,0.10);
+  --navy:         #1e2840;
+  --red:          #D82424;
+  --red-dim:      rgba(216,36,36,0.08);
+  --amber:        #c8860a;
+  --amber-dim:    rgba(200,134,10,0.08);
+  --green:        #3ddc84;
+  --green-accent: #2E8B57;
+  --text:         #1c1a18;
+  --text-mid:     #4a4742;
+  --text-dim:     #8a8680;
+  --text-light:   #f4f3ef;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .status-dot { animation: none !important; box-shadow: none !important; }
+}
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1.05rem;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* NAV */
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  background: var(--bg-dark);
+  border-bottom: 3px solid var(--sage);
+}
+
+.nav-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: stretch;
+  height: 52px;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  padding-right: 2rem;
+  border-right: 1px solid rgba(255,255,255,0.10);
+  flex-shrink: 0;
+}
+
+.nav-brand img {
+  height: 28px;
+  width: auto;
+  filter: brightness(0) invert(1);
+  opacity: 0.75;
+}
+
+.nav-brand-text {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.nav-brand-sub {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.52rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.32);
+}
+
+.nav-sections {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  padding: 0 1rem;
+}
+
+.nav-section-link {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 1rem;
+  text-decoration: none;
+  border-right: 1px solid rgba(255,255,255,0.10);
+  transition: background 0.15s;
+}
+
+.nav-section-link:hover { background: rgba(255,255,255,0.05); }
+.nav-section-link:hover .nav-sec-label { color: rgba(255,255,255,0.85); }
+
+.nav-sec-ref {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.nav-sec-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.42);
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding-left: 1.5rem;
+  border-left: 1px solid rgba(255,255,255,0.10);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.nav-actions a {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(255,255,255,0.45);
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+
+.nav-actions a:hover { color: rgba(255,255,255,0.9); }
+
+.btn-nav-cta {
+  background: var(--rust) !important;
+  color: #fff !important;
+  padding: 0.42rem 1rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-decoration: none;
+  white-space: nowrap;
+  border: none;
+}
+
+.btn-nav-cta:hover { background: #A8531F !important; }
+
+/* SYSTEM HEADER */
+.system-header {
+  margin-top: 0;
+  background: var(--bg-header);
+  border-bottom: 3px solid var(--sage);
+  padding: 2.5rem 2.5rem 2rem;
+  position: relative;
+}
+
+.system-header::after {
+  content: '';
+  position: absolute;
+  bottom: -3px; left: 0;
+  width: 160px; height: 3px;
+  background: var(--rust);
+}
+
+.system-designation {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+  margin-bottom: 0.5rem;
+}
+
+.system-title {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-light);
+  margin-bottom: 0.4rem;
+}
+
+.system-tagline {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.05rem;
+  color: rgba(244,243,239,0.60);
+  max-width: 64ch;
+  line-height: 1.6;
+}
+
+.system-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(61,220,132,0.6);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+.status-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(61,220,132,0.65);
+}
+
+/* SECTION NAV */
+.section-nav {
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 2.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.5rem;
+  align-items: center;
+  position: sticky;
+  top: 52px;
+  z-index: 800;
+}
+
+.section-nav-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-right: 0.25rem;
+}
+
+.section-nav a {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.67rem;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  color: var(--text-mid);
+  padding: 0.28rem 0.7rem;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.section-nav a:hover {
+  color: var(--text);
+  border-color: var(--border);
+  background: var(--bg-data);
+}
+
+/* MAIN CONTENT */
+main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 2rem 6rem;
+}
+
+/* DOC SECTIONS */
+.doc-section {
+  padding: 3rem 0 2.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.doc-section:last-child { border-bottom: none; }
+
+.section-ref {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+  margin-bottom: 0.4rem;
+}
+
+.section-title {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 1.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--border);
+  position: relative;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 0;
+  width: 48px; height: 2px;
+  background: var(--sage);
+}
+
+.subsection-ref {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 2rem 0 0.3rem;
+}
+
+.subsection-title {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  margin-bottom: 0.9rem;
+}
+
+p {
+  margin-bottom: 1rem;
+  color: var(--text-mid);
+}
+
+p:last-child { margin-bottom: 0; }
+
+strong { color: var(--text); font-weight: 600; }
+
+/* FAILURE MODES */
+.failure-modes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.failure-mode {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--rust);
+  padding: 0.85rem 1rem;
+}
+
+.failure-mode-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rust);
+  margin-bottom: 0.25rem;
+}
+
+.failure-mode p {
+  font-size: 0.9rem;
+  color: var(--text-mid);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* NWC BOXES */
+.nwc {
+  display: flex;
+  gap: 0.9rem;
+  padding: 0.85rem 1rem;
+  margin: 1.25rem 0;
+  border-left-width: 3px;
+  border-left-style: solid;
+}
+
+.nwc-note {
+  background: rgba(138,134,128,0.08);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border-dark);
+}
+
+.nwc-caution {
+  background: var(--amber-dim);
+  border: 1px solid rgba(200,134,10,0.25);
+  border-left: 3px solid var(--amber);
+}
+
+.nwc-warning {
+  background: var(--red-dim);
+  border: 1px solid rgba(192,57,43,0.22);
+  border-left: 3px solid var(--red);
+}
+
+.nwc-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding-top: 0.15rem;
+  min-width: 4.5rem;
+}
+
+.nwc-note .nwc-label { color: var(--border-dark); }
+.nwc-caution .nwc-label { color: var(--amber); }
+.nwc-warning .nwc-label { color: var(--red); }
+
+.nwc-body {
+  font-size: 0.95rem;
+  color: var(--text-mid);
+  line-height: 1.6;
+}
+
+.nwc-body p { margin: 0; color: inherit; }
+
+/* CAPABILITY CHAIN */
+.capability-chain {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 1.5rem 0;
+  border: 1px solid var(--border);
+}
+
+.capability-item {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.capability-item:last-child { border-bottom: none; }
+
+.capability-num {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: var(--text-light);
+  background: var(--bg-dark);
+  padding: 0.7rem 0.9rem;
+  display: flex;
+  align-items: center;
+  min-width: 3rem;
+  justify-content: center;
+}
+
+.capability-content {
+  padding: 0.7rem 1rem;
+  flex: 1;
+}
+
+.capability-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.capability-desc {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  line-height: 1.4;
+  margin-top: 0.1rem;
+}
+
+/* CALCULATOR */
+.calculator {
+  background: var(--bg-data);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--navy);
+  margin: 1.5rem 0;
+}
+
+.calc-header {
+  background: var(--bg-dark);
+  padding: 0.8rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.calc-header-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px rgba(61,220,132,0.5);
+}
+
+.calc-header-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+}
+
+.calc-body {
+  padding: 1.25rem 1.5rem;
+}
+
+.calc-section-label {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--navy);
+  border-bottom: 2px solid var(--navy);
+  padding-bottom: 0.3rem;
+  margin: 1.5rem 0 0.75rem;
+}
+
+.calc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.calc-grid-2 { grid-template-columns: 1fr 1fr; }
+.calc-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+.calc-field label {
+  display: block;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.4rem;
+}
+
+.calc-field input[type="number"] {
+  width: 100%;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1.1rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--border-dark);
+  padding: 0.55rem 0.75rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.calc-field input[type="number"]:focus {
+  border-color: var(--navy);
+  border-top-color: var(--navy);
+}
+
+/* GATES */
+.calc-gates {
+  margin: 1rem 0 1.25rem;
+}
+
+.calc-gates-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.5rem;
+}
+
+.calc-gates-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem 1rem;
+}
+
+.calc-gate {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  color: var(--text-mid);
+  cursor: pointer;
+}
+
+.calc-gate input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--navy);
+  flex-shrink: 0;
+}
+
+/* SCORES */
+.calc-scores {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr) 2fr;
+  gap: 1rem;
+  margin: 1.5rem 0 1rem;
+}
+
+.calc-score-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  padding: 0.85rem 1rem;
+  text-align: center;
+}
+
+.calc-score-total {
+  background: var(--bg-dark);
+}
+
+.calc-score-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.52rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.2rem;
+  line-height: 1.3;
+}
+
+.calc-score-total .calc-score-label { color: rgba(244,243,239,0.5); }
+
+.calc-score-value {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--navy);
+  letter-spacing: 0.04em;
+}
+
+.calc-score-total .calc-score-value { color: #fff; }
+
+.calc-score-unit {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.calc-score-total .calc-score-unit { color: rgba(244,243,239,0.4); }
+
+/* LIMITER CALLOUT */
+.calc-limiter {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: var(--rust);
+  padding: 0.5rem 0.85rem;
+  background: var(--rust-dim);
+  border: 1px solid rgba(192,98,42,0.25);
+  border-left: 3px solid var(--rust);
+  margin-bottom: 1rem;
+  display: none;
+}
+
+/* FLAGS */
+.calc-flags {
+  margin: 0.75rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.calc-flag {
+  padding: 0.6rem 0.85rem;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  border-left: 3px solid;
+}
+
+.calc-flag-caution {
+  background: var(--amber-dim);
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.calc-flag-note {
+  background: var(--bg-panel);
+  border-color: var(--border-dark);
+  color: var(--text-mid);
+}
+
+/* SCORE BANDS */
+.score-bands {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border: 1px solid var(--border);
+  margin-top: 0.5rem;
+}
+
+.score-band {
+  padding: 0.65rem 0.75rem;
+  border-right: 1px solid var(--border);
+  opacity: 0.45;
+  transition: opacity 0.3s;
+}
+
+.score-band:last-child { border-right: none; }
+.score-band.active { opacity: 1; }
+
+.score-band-range {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+
+.score-band-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.score-band-action {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  margin-top: 0.2rem;
+  line-height: 1.35;
+}
+
+.band-critical .score-band-range { color: var(--red); }
+.band-low .score-band-range { color: var(--rust); }
+.band-solid .score-band-range { color: var(--amber); }
+.band-good .score-band-range { color: var(--sage); }
+
+/* LOADOUT TABLES */
+.loadout-tier {
+  margin-bottom: 2.5rem;
+}
+
+.loadout-tier-header {
+  background: var(--bg-dark);
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.loadout-tier-name {
+  font-family: 'Syncopate', sans-serif;
+  font-weight: 700;
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-light);
+}
+
+.loadout-tier-badge {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.22rem 0.65rem;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(244,243,239,0.7);
+}
+
+.loadout-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-top: none;
+}
+
+.loadout-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.loadout-table thead tr {
+  background: var(--bg-panel);
+}
+
+.loadout-table th {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 0.55rem 0.85rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border-light);
+  white-space: nowrap;
+}
+
+.loadout-table th:last-child { border-right: none; }
+
+.loadout-table td {
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--border-light);
+  border-right: 1px solid var(--border-light);
+  color: var(--text-mid);
+  vertical-align: top;
+}
+
+.loadout-table td:last-child { border-right: none; }
+
+.loadout-table tbody tr:hover td {
+  background: rgba(92,107,80,0.05);
+}
+
+.loadout-table .col-ref {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: var(--sage-hi);
+  white-space: nowrap;
+}
+
+.loadout-table .col-ref a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(125,143,110,0.4);
+}
+
+.loadout-table .col-ref a:hover {
+  color: var(--sage);
+  border-bottom-color: var(--sage);
+}
+
+.loadout-table .col-brand {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.loadout-table .col-qty {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.85rem;
+  text-align: center;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.loadout-table .col-cost {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.82rem;
+  text-align: right;
+  white-space: nowrap;
+  color: var(--text-mid);
+}
+
+.loadout-table .col-fb {
+  text-align: center;
+  font-size: 1rem;
+}
+
+.loadout-table .row-total td {
+  background: var(--bg-dark);
+  border-color: var(--bg-dark);
+  color: rgba(244,243,239,0.6);
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.loadout-table .row-total .total-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(244,243,239,0.5);
+}
+
+.loadout-table .row-total .total-cost {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-light);
+  text-align: right;
+}
+
+.loadout-table .row-variable td {
+  background: rgba(92,107,80,0.04);
+  font-style: italic;
+  color: var(--text-dim);
+}
+
+.additive-note {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  padding: 0.5rem 0.85rem;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-top: none;
+  margin-bottom: 2rem;
+}
+
+/* SERVICES */
+.services-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.service-card {
+  border: 1px solid var(--border);
+  background: var(--bg-data);
+  padding: 1.25rem;
+}
+
+.service-card-tag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sage-hi);
+  margin-bottom: 0.4rem;
+}
+
+.service-card h3 {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.service-card p {
+  font-size: 0.9rem;
+  color: var(--text-mid);
+  margin-bottom: 0;
+}
+
+/* CTA STRIP */
+.cta-strip {
+  background: var(--bg-dark);
+  border: 1px solid var(--border-dark);
+  padding: 1.5rem;
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.cta-strip-text {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1rem;
+  color: rgba(244,243,239,0.75);
+  line-height: 1.5;
+  flex: 1;
+  min-width: 200px;
+}
+
+.cta-strip-text strong {
+  color: var(--text-light);
+  display: block;
+  font-family: 'Syncopate', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.btn-cta {
+  background: var(--rust);
+  color: #fff;
+  padding: 0.65rem 1.5rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-cta:hover { background: #A8531F; }
+
+/* NEXT BAR */
+.next-bar {
+  background: var(--bg-dark);
+  border-top: 2px solid var(--sage);
+  border-bottom: 2px solid var(--sage);
+  padding: 1.5rem 2.5rem;
+  margin-top: 3rem;
+}
+
+.next-bar-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.next-bar-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(244,243,239,0.5);
+  margin-bottom: 0.3rem;
+}
+
+.next-bar-title {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-light);
+}
+
+/* BUTTONS */
+.btn {
+  display: inline-block;
+  padding: 0.65rem 1.5rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: var(--sage);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #4A5840;
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--rust);
+  border: 1px solid var(--rust);
+}
+
+.btn-ghost:hover {
+  background: var(--rust-dim);
+  border-color: var(--rust);
+}
+
+/* FOOTER */
+footer {
+  background: var(--bg-dark);
+  border-top: 2px solid var(--sage);
+  padding: 2.5rem;
+  text-align: center;
+}
+
+.footer-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.footer-brand {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(244,243,239,0.5);
+  margin-bottom: 0.5rem;
+}
+
+.footer-tagline {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(244,243,239,0.3);
+}
+
+/* RESPONSIVE */
+@media (max-width: 700px) {
+  .nav-inner { padding: 0 1.2rem; }
+  .nav-sections { padding: 0 0.6rem; }
+  .system-header { padding: 1.75rem 1.25rem 1.5rem; }
+  .section-nav { padding: 0.8rem 1.25rem; top: 48px; }
+  main { padding: 0 1.25rem 4rem; }
+  .calc-grid { grid-template-columns: 1fr; }
+  .calc-grid-2 { grid-template-columns: 1fr; }
+  .calc-grid-3 { grid-template-columns: 1fr 1fr; }
+  .calc-gates-grid { grid-template-columns: 1fr 1fr; }
+  .calc-scores { grid-template-columns: 1fr 1fr 1fr; }
+  .calc-score-total { grid-column: 1 / -1; }
+  .score-bands { grid-template-columns: 1fr 1fr; }
+  .services-grid { grid-template-columns: 1fr; }
+  .failure-modes { grid-template-columns: 1fr; }
+  .cta-strip { flex-direction: column; }
+  .next-bar { padding: 1.25rem; }
+  .next-bar-inner { flex-direction: column; align-items: flex-start; }
+}
+
+/* ---- COLLAPSIBLE PROTOCOLS ---- */
+.proto {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin: 1.1rem 0;
+  background: var(--bg-data);
+}
+.proto-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  background: var(--bg-panel);
+  border-radius: 4px;
+  user-select: none;
+  transition: background 0.15s;
+}
+.proto.open .proto-header {
+  border-radius: 4px 4px 0 0;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg-panel);
+}
+.proto-header:hover { background: #e3e1dc; }
+.proto-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text);
+}
+.proto-chevron {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+.proto.open .proto-chevron { transform: rotate(180deg); }
+.proto-body {
+  display: none;
+  padding: 0.875rem 1rem 1rem;
+}
+.proto.open .proto-body { display: block; }
+.proto-body > p:first-child { margin-top: 0; }
+.proto-body > p:last-child { margin-bottom: 0; }
+.proto-body > .nwc { margin-top: 0.75rem; }
+
+/* ---- RECORDS-STYLE YES/NO TOGGLE CALCULATOR ---- */
+.calc-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+.calc-question-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+}
+.calc-question-text {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.97rem;
+  color: var(--text-mid);
+  line-height: 1.4;
+  flex: 1;
+}
+.calc-toggle {
+  display: flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+.toggle-btn {
+  padding: 0.3rem 0.9rem;
+  border: 1px solid var(--border);
+  background: var(--bg-data);
+  color: var(--text-dim);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.toggle-btn:hover {
+  border-color: var(--border-dark);
+  color: var(--text);
+}
+.toggle-btn.active-no {
+  background: var(--rust);
+  color: #fff;
+  border-color: var(--rust);
+}
+.toggle-btn.active-yes {
+  background: var(--sage);
+  color: #fff;
+  border-color: var(--sage);
+}
+.calc-output {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.calc-result-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  padding: 0.85rem 1rem;
+}
+.calc-result-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.25rem;
+}
+.calc-result-value {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--navy);
+  letter-spacing: 0.04em;
+}
+.calc-result-unit {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-left: 0.35rem;
+}
+.calc-gaps {
+  font-size: 0.88rem;
+  color: var(--rust);
+  line-height: 1.6;
+}
+@media (max-width: 640px) {
+  .calc-output { grid-template-columns: 1fr; }
+  .calc-question-row { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+}
+
+/* ROW-CATEGORY */
+.loadout-table .row-category td{background:var(--bg-panel);font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--sage);padding:0.45rem 0.85rem;border-bottom:1px solid var(--border);}
+
+/* MAINTENANCE TABLE */
+.maintenance-table{width:100%;border-collapse:collapse;margin:1.25rem 0;}
+.maintenance-table th{font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);text-align:left;padding:0.55rem 0.85rem;background:var(--bg-panel);border-bottom:2px solid var(--border);}
+.maintenance-table td{padding:0.6rem 0.85rem;border-bottom:1px solid var(--border-light);color:var(--text-mid);font-size:0.92rem;}
+.maintenance-table td:first-child{font-family:'Share Tech Mono',monospace;font-size:0.78rem;white-space:nowrap;color:var(--text);width:12rem;}
+
+/* FLIGHT BAG CALLOUT */
+.flight-bag-box{background:var(--bg-dark);border:1px solid var(--border-dark);padding:1.25rem 1.5rem;margin:1.5rem 0;}
+.flight-bag-header{font-family:'Syncopate',sans-serif;font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--sage-hi);margin-bottom:0.75rem;display:flex;align-items:center;gap:0.75rem;}
+.flight-bag-header::before{content:'✈';font-size:1rem;}
+.flight-bag-body{font-size:0.93rem;color:rgba(244,243,239,0.7);line-height:1.65;}
+.flight-bag-body p{color:inherit;margin-bottom:0.75rem;}
+.flight-bag-body p:last-child{margin-bottom:0;}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand" aria-label="EPICS Dash-1 home">
+      <img src="EPICS__web_logo_.png" alt="EPICS Consulting" />
+      <div>
+        <div class="nav-brand-text">EPICS Dash-1</div>
+        <div class="nav-brand-sub">Household ERP</div>
+      </div>
+    </a>
+    <div class="nav-sections">
+      <a href="index.html#s1" class="nav-section-link"><div class="nav-sec-ref">Sec 1</div><div class="nav-sec-label">Intro</div></a>
+      <a href="index.html#s2" class="nav-section-link"><div class="nav-sec-ref">Sec 2</div><div class="nav-sec-label">8 Systems</div></a>
+      <a href="index.html#s3" class="nav-section-link"><div class="nav-sec-ref">Sec 3</div><div class="nav-sec-label">Checklists</div></a>
+      <a href="index.html#s4" class="nav-section-link"><div class="nav-sec-ref">Sec 4</div><div class="nav-sec-label">Loadouts</div></a>
+      <a href="index.html#s5" class="nav-section-link"><div class="nav-sec-ref">Sec 5</div><div class="nav-sec-label">Services</div></a>
+    </div>
+    <div class="nav-actions">
+      <a href="index.html#flight-path">Your Flight Path</a>
+      <a href="index.html#cta" class="btn-nav-cta">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- SYSTEM HEADER -->
+<header class="system-header">
+  <div class="system-designation">EPICS Dash-1 - System 4</div>
+  <h1 class="system-title">Sanitation</h1>
+  <p class="system-tagline">Contain it. Clean it. Don't spread it.</p>
+  <div class="system-status-bar">
+    <div class="status-dot"></div>
+    <span class="status-text">Active - Version 1.0 - March 2026</span>
+  </div>
+</header>
+
+<!-- SECTION NAV -->
+<div class="section-nav">
+  <span class="section-nav-label">Sections:</span>
+  <a href="#sa-overview">4.0 Overview</a>
+  <a href="#sa-preflight">4.1 Pre-Flight</a>
+  <a href="#sa-doctrine">4.2 Doctrine</a>
+  <a href="#sa-ops">4.3 Field Ops</a>
+  <a href="#sa-loadouts">4.4 Loadouts</a>
+  <a href="#sa-services">4.5 Services</a>
+</div>
+
+<main>
+
+<!-- ===============================================
+     4.0 OVERVIEW
+     =============================================== -->
+<section class="doc-section" id="sa-overview">
+  <div class="section-ref">4.0 - Overview</div>
+  <h2 class="section-title">Overview</h2>
+
+  <p>EPICS Dash-1 is written for the suburban jungle - households on municipal water, municipal sewer, and weekly trash pickup. That infrastructure is passive, gravity-fed, and invisible precisely because it works. When it stops working, the real threat is not discomfort. It is contamination.</p>
+
+  <p>A good sanitation system is centered around mitigating contamination problems. There are five contamination pathways inside every household. <strong>Hands</strong> are the primary transmission vector - when running water disappears, the most effective disease control measure in the household disappears with it. <strong>Food preparation surfaces</strong> become contamination vectors the moment cleaning routines degrade. <strong>Human waste</strong> requires containment and disposal independent of municipal sewer. <strong>Greywater</strong> from sinks, showers, and laundry accumulates when drainage fails. <strong>Trash</strong> creates biological and pest hazards when collection stops. Most preparedness advice addresses the third pathway. Historically, most illness during disasters comes from the first and second.</p>
+
+  <p>The Pre-Flight Check scores each pathway independently. Your Sanitation Independence Score is the lowest of the five pathways. Doctrine explains the contamination chain. Field Operations covers the plan to mitigate breaks in the chain from happening.</p>
+
+  <div class="nwc nwc-caution">
+    <span class="nwc-label">Caution</span>
+    <div class="nwc-body"><p>If municipal sewer is compromised, do not flush. Flushing against a blocked or backflowed system pushes waste back through lower fixtures and can contaminate the home's interior plumbing. Stop flushing first, then assess.</p></div>
+  </div>
+
+  <div class="subsection-ref">4.0.1 - Failure Modes</div>
+  <h3 class="subsection-title">Failure Modes</h3>
+
+  <div class="failure-modes">
+    <div class="failure-mode">
+      <div class="failure-mode-label">Hand Hygiene Failure</div>
+      <p>When water pressure is lost, hand hygiene degrades. Hands become the primary transmission vector for every other contamination pathway.</p>
+    </div>
+    <div class="failure-mode">
+      <div class="failure-mode-label">Food Surface Contamination</div>
+      <p>Poor hand hygiene spreads to food preparation surfaces. One sick household member preparing food for the others is the fastest disease amplification event.</p>
+    </div>
+    <div class="failure-mode">
+      <div class="failure-mode-label">Waste Containment Loss</div>
+      <p>In a sewer failure, human waste accumulates with nowhere to go. Toilets become unsafe to flush regardless of what is in the tank.</p>
+    </div>
+    <div class="failure-mode">
+      <div class="failure-mode-label">Greywater Mismanagement</div>
+      <p>In a water-only failure, greywater is free flushing water - use it. In a sewer failure, greywater goes to outdoor disposal only.</p>
+    </div>
+    <div class="failure-mode">
+      <div class="failure-mode-label">Trash Accumulation</div>
+      <p>Becomes a problem when municipal pickup stops. Volume increases faster than expected under emergency sanitation operations.</p>
+    </div>
+  </div>
+
+</section>
+
+<!-- ===============================================
+     4.1 PRE-FLIGHT CHECK
+     =============================================== -->
+<section class="doc-section" id="sa-preflight">
+  <div class="section-ref">4.1 - Pre-Flight Check</div>
+  <h2 class="section-title">Pre-Flight Check</h2>
+
+  <p>Five questions across the five contamination pathways. Answer honestly. Your score tells you exactly where to start.</p>
+
+  <div class="calculator">
+    <div class="calc-header">
+      <div class="calc-header-dot"></div>
+      <span class="calc-header-title">Sanitation Independence Calculator</span>
+    </div>
+    <div class="calc-body">
+
+      <div class="calc-questions">
+        <div class="calc-question-row">
+          <div class="calc-question-text">Have you ever used a portable toilet - camping, RV, tailgating, or otherwise?</div>
+          <div class="calc-toggle" id="toggle-sa1">
+            <button class="toggle-btn" data-q="sa1" data-val="0" onclick="saToggle('sa1',0)">No</button>
+            <button class="toggle-btn active-yes" data-q="sa1" data-val="1" onclick="saToggle('sa1',1)">Yes</button>
+          </div>
+        </div>
+        <div class="calc-question-row">
+          <div class="calc-question-text">Do you know how you'd wash your hands if the faucets went dry?</div>
+          <div class="calc-toggle" id="toggle-sa2">
+            <button class="toggle-btn" data-q="sa2" data-val="0" onclick="saToggle('sa2',0)">No</button>
+            <button class="toggle-btn active-yes" data-q="sa2" data-val="1" onclick="saToggle('sa2',1)">Yes</button>
+          </div>
+        </div>
+        <div class="calc-question-row">
+          <div class="calc-question-text">How much bleach do you keep on hand?</div>
+          <div class="calc-toggle" id="toggle-sa3">
+            <button class="toggle-btn" data-q="sa3" data-val="0" onclick="saToggle('sa3',0)">None</button>
+            <button class="toggle-btn active-yes" data-q="sa3" data-val="1" onclick="saToggle('sa3',1)">1+ bottles</button>
+          </div>
+        </div>
+        <div class="calc-question-row">
+          <div class="calc-question-text">How many contractor-grade trash bags do you have?</div>
+          <div class="calc-toggle" id="toggle-sa4">
+            <button class="toggle-btn" data-q="sa4" data-val="0" onclick="saToggle('sa4',0)">None</button>
+            <button class="toggle-btn active-yes" data-q="sa4" data-val="1" onclick="saToggle('sa4',1)">10+</button>
+          </div>
+        </div>
+        <div class="calc-question-row">
+          <div class="calc-question-text">Does your household have at least 14 days of toilet paper, soap, and hygiene consumables?</div>
+          <div class="calc-toggle" id="toggle-sa5">
+            <button class="toggle-btn" data-q="sa5" data-val="0" onclick="saToggle('sa5',0)">No</button>
+            <button class="toggle-btn active-yes" data-q="sa5" data-val="1" onclick="saToggle('sa5',1)">Yes</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="calc-output">
+        <div class="calc-result-box">
+          <div class="calc-result-label">Sanitation Independence Score</div>
+          <div>
+            <span class="calc-result-value" id="sa-score">5</span>
+            <span class="calc-result-unit">of 5</span>
+          </div>
+        </div>
+        <div class="calc-result-box" id="sa-gaps-box" style="display:none;">
+          <div class="calc-result-label">Gaps to address</div>
+          <div class="calc-gaps" id="sa-gaps"></div>
+        </div>
+      </div>
+
+      <div class="score-bands">
+        <div class="score-band band-critical" id="sa-band-red">
+          <div class="score-band-range">0 - 1 of 5</div>
+          <div class="score-band-label">RED</div>
+          <div class="score-band-action">Critical gaps. Start with the 72-Hour Loadout now.</div>
+        </div>
+        <div class="score-band band-low" id="sa-band-orange">
+          <div class="score-band-range">2 - 3 of 5</div>
+          <div class="score-band-label">ORANGE</div>
+          <div class="score-band-action">Partial capability. Address flagged gaps before an event.</div>
+        </div>
+        <div class="score-band band-solid" id="sa-band-yellow">
+          <div class="score-band-range">4 of 5</div>
+          <div class="score-band-label">YELLOW</div>
+          <div class="score-band-action">Near-complete. Close the remaining gap.</div>
+        </div>
+        <div class="score-band band-good" id="sa-band-green">
+          <div class="score-band-range">5 of 5</div>
+          <div class="score-band-label">GREEN</div>
+          <div class="score-band-action">Full capability. Maintain consumable supply levels.</div>
+        </div>
+      </div>
+
+    </div><!-- end calc-body -->
+  </div><!-- end calculator -->
+
+</section>
+
+<!-- ===============================================
+     4.2 DOCTRINE
+     =============================================== -->
+<section class="doc-section" id="sa-doctrine">
+  <div class="section-ref">4.2 - Doctrine</div>
+  <h2 class="section-title">Doctrine</h2>
+
+  <p>Sanitation is infection control. The goal is not waste disposal - it is interrupting the pathways through which biological contamination spreads inside the household.</p>
+
+  <p>There are five of them. Together they form a contamination control chain. Breaking any link makes the others harder to hold.</p>
+
+  <div class="capability-chain">
+    <div class="capability-item">
+      <div class="capability-num">01</div>
+      <div class="capability-content">
+        <div class="capability-name">Hygiene</div>
+        <div class="capability-desc">Hands are the primary transmission vector for household pathogens.</div>
+      </div>
+    </div>
+    <div class="capability-item">
+      <div class="capability-num">02</div>
+      <div class="capability-content">
+        <div class="capability-name">Food Surface Control</div>
+        <div class="capability-desc">Food preparation areas must stay separated from contamination sources.</div>
+      </div>
+    </div>
+    <div class="capability-item">
+      <div class="capability-num">03</div>
+      <div class="capability-content">
+        <div class="capability-name">Waste Containment</div>
+        <div class="capability-desc">Human waste must be isolated from living spaces once flushing stops.</div>
+      </div>
+    </div>
+    <div class="capability-item">
+      <div class="capability-num">04</div>
+      <div class="capability-content">
+        <div class="capability-name">Greywater Control</div>
+        <div class="capability-desc">Wastewater must be directed away from living spaces.</div>
+      </div>
+    </div>
+    <div class="capability-item">
+      <div class="capability-num">05</div>
+      <div class="capability-content">
+        <div class="capability-name">Trash Isolation</div>
+        <div class="capability-desc">Accumulating waste must be sealed and removed from living areas.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4.2.1 Hygiene -->
+  <div class="subsection-ref">4.2.1 - Hygiene</div>
+  <h3 id="sa-doctrine-hygiene" class="subsection-title">Hygiene</h3>
+
+  <p>Hygiene is the highest-leverage sanitation action available to a household. More illness is prevented by consistent hygiene discipline than by any piece of equipment in the loadout.</p>
+
+  <p><strong>Hand hygiene.</strong> The four critical moments are non-negotiable: after waste handling, before food preparation, after cleaning contaminated surfaces, and after contact with a sick household member. Soap and water is the standard. Alcohol-based sanitizer at minimum 60% alcohol is the field substitute when water is limited. Sanitizer does not substitute for soap on visibly soiled hands. Remove visible contamination first, then sanitize.</p>
+
+  <p><strong>Oral hygiene.</strong> Oral bacteria increase under stress and during illness. Toothbrushing removes the primary source of that bacterial load. Water-minimal technique: wet the brush, brush thoroughly, rinse with a small pour rather than running water.</p>
+
+  <p><strong>Feminine hygiene.</strong> Disposable products create a consumable dependency that scales directly with event duration. A household entering a two-week event with a three-day supply has a gap that cannot be improvised around. Reusable alternatives eliminate that dependency entirely - the tradeoff is cleaning discipline and water access rather than supply management.</p>
+
+  <p><strong>Bathing.</strong> Bathing is most important for morale and hygiene. Morale degrades faster than most people expect under extended disruption - a hot shower at day five resets the household's emotional baseline in a way that nothing else can. Hygiene matters because skin integrity degrades under stress and limited washing, and compromised skin becomes a contamination pathway. Short-term events are managed with waterless bathing solutions. Extended operations require pressurized water capability.</p>
+
+  <p><strong>Laundry.</strong> Prioritize underwear and socks first, towels second, outer layers last. Outer clothing can be worn significantly longer than normal without health consequence. A sealed agitation wash bag handles a full underwear and sock load in under ten minutes. Add a small amount of bleach to each load. Biodegradable soap is required when laundry water goes to outdoor ground disposal.</p>
+
+  <div class="nwc nwc-warning">
+    <span class="nwc-label">Warning</span>
+    <div class="nwc-body"><p>Contact lens wearers: switch to glasses for the duration. Handling lenses with hands cleaned by wipes rather than soap and water is a direct eye infection vector.</p></div>
+  </div>
+
+  
+
+<!-- 4.2.2 Food Surface Control -->
+  <div class="subsection-ref">4.2.2 - Food Surface Control</div>
+  <h3 id="sa-doctrine-food" class="subsection-title">Food Surface Control</h3>
+
+  <p>Food preparation surfaces become contamination vectors when hygiene discipline degrades. The mechanism is direct: contaminated hands contact surfaces, surfaces contact food, food reaches the household. Under normal conditions this risk is managed automatically by running water and routine cleaning. Under stress, with degraded water access and disrupted routines, it requires deliberate management.</p>
+
+  <p>The operating standard is simple: disinfect food preparation surfaces before each use, not after. A dilute bleach solution in a spray bottle is the field standard - inexpensive, effective, and shelf-stable. Label the bottle "Disinfectant Spray."</p>
+
+  <p>Dishes and serviceware require a decision before the event begins. The choice is a resource allocation tradeoff: disposable serviceware conserves water but accelerates trash accumulation. Washable serviceware conserves trash capacity but requires water and a sanitation protocol. The correct answer depends on which resource is more constrained in your household. A water-scarce event favors disposable. A long-duration event with functional water storage favors washable with a three-basin protocol - wash, rinse, sanitize - using the smallest practical water volume per cycle.</p>
+
+  <p>Keep food preparation areas physically separated from waste handling and trash storage at all times. In a small kitchen under stress, that separation requires active discipline.</p>
+
+  
+
+<!-- 4.2.3 Waste Containment -->
+  <div class="subsection-ref">4.2.3 - Waste Containment</div>
+  <h3 id="sa-doctrine-waste" class="subsection-title">Waste Containment</h3>
+
+  <p>When flushing stops, waste does not stop. It accumulates wherever the household puts it - which means containment decisions made in the first hour determine sanitation conditions for the duration of the event.</p>
+
+  <p>The priority is immediate: stop flushing, establish an alternative containment method, and keep waste isolated from living spaces from the first use. Retrofitting a waste management system after two days of improvisation is significantly harder than establishing one before the first use.</p>
+
+  <p>Containment requires a vessel, a liner, and a sealing method. The liner matters more than the vessel. Seal after each use, knot the liner before removal, and stage sealed bags outside immediately. An unsealed container inside the home is a contamination source.</p>
+
+  <p>Chemical treatment added after each use controls odor and binds moisture. This is not optional for any system staged indoors.</p>
+
+  <p>Households with infants or members who require disposable hygiene products need to account for those items in their waste containment plan. Disposable products generate significant waste volume that accumulates faster than most households expect. Reusable alternatives eliminate that consumable dependency entirely - the tradeoff is cleaning discipline rather than supply management.</p>
+
+  <p>Use discipline extends containment runway meaningfully. Liquid waste managed separately from solid waste reduces bag consumption and odor significantly. Outdoors, away from living spaces and with privacy, is always the better option when conditions allow.</p>
+
+  <div class="nwc nwc-caution">
+    <span class="nwc-label">Caution</span>
+    <div class="nwc-body"><p>Do not attempt to use a toilet connected to a compromised sewer system. Backpressure pushes waste back through lower fixtures and contaminates interior plumbing.</p></div>
+  </div>
+
+  
+
+<!-- 4.2.4 Greywater Control -->
+  <div class="subsection-ref">4.2.4 - Greywater Control</div>
+  <h3 id="sa-doctrine-greywater" class="subsection-title">Greywater Control</h3>
+
+  <p>Greywater - dishwater, cleaning water, bathing water, and laundry water - is the sanitation failure mode that appears late and catches households unprepared. In the first 24-48 hours, improvised systems generate little wastewater. By day three, meaningful volume has accumulated with no established disposal plan.</p>
+
+  <p>Before directing greywater to outdoor disposal, identify which failure mode applies to your household. The sewer system and the water supply can fail independently, and the correct greywater response differs.</p>
+
+  <p><strong>If water pressure is lost but the sewer system remains intact,</strong> greywater can be collected and used to flush toilets. A bucket pour into the bowl produces a functional flush without municipal pressure. This conserves waste bag supply and maintains normal sanitation function for solid waste. Do not waste this option.</p>
+
+  <p><strong>If the sewer system is compromised, do not flush and do not direct greywater to drains.</strong> All wastewater - including greywater - goes to outdoor disposal only. Establish a designated disposal area away from the home, food storage areas, water collection points, and high-traffic areas. Greywater poured near the foundation, near entry points, or in low-drainage areas creates standing water that attracts pests and becomes a contamination zone.</p>
+
+  <p>Laundry generates the largest greywater volume of any household activity. Manual washing uses a fraction of the water a machine requires, which matters in any water-constrained event. Biodegradable detergent is not optional when laundry water goes to outdoor disposal - standard detergents leave residue that affects soil and can contaminate areas near food production. Clothing rotation discipline - prioritizing underwear, socks, and towels over outer layers - reduces washing frequency and water demand significantly.</p>
+
+  <div class="nwc nwc-caution">
+    <span class="nwc-label">Caution</span>
+    <div class="nwc-body"><p>Greywater from illness care is not standard greywater. It requires a separate handling protocol. See Field Operations - Illness Protocol (section 4.3.3).</p></div>
+  </div>
+
+<!-- 4.2.5 Trash Isolation -->
+  <div class="subsection-ref">4.2.5 - Trash Isolation</div>
+  <h3 id="sa-doctrine-trash" class="subsection-title">Trash Isolation</h3>
+
+  <p>Household waste accumulates faster than most families expect under emergency conditions. Normal daily debris - food packaging, food scraps - is joined by disposable sanitation products, used gloves, cleaning wipes, and waste bags staged for disposal. Volume increases as sanitation operations intensify.</p>
+
+  <p>The operating principle is immediate isolation: seal bags at capacity rather than weight, store sealed bags in a designated outdoor location away from food storage and living spaces, and never leave open trash in the kitchen.</p>
+
+  <p>Pests are the primary threat. Flies move between trash and food surfaces in minutes. Rodents are attracted within hours of accessible food waste. Sealed bags staged outdoors significantly reduce both vectors.</p>
+
+  <div class="nwc nwc-note">
+    <span class="nwc-label">Note</span>
+    <div class="nwc-body"><p>Sanitation operations increase daily trash volume. Plan for higher-than-normal consumption of trash bags from day one.</p></div>
+  </div>
+
+  
+</section>
+
+<!-- ===============================================
+     4.3 FIELD OPERATIONS
+     =============================================== -->
+<section class="doc-section" id="sa-ops">
+  <div class="section-ref">4.3 - Field Operations</div>
+  <h2 class="section-title">Field Operations</h2>
+
+  <p>Doctrine explains the contamination chain. Field Operations covers the plan to mitigate breaks in the chain from happening.</p>
+
+  <!-- 4.3.1 Immediate Actions -->
+  <div class="subsection-ref">4.3.1 - Immediate Actions</div>
+  <h3 id="sa-ops-immediate" class="subsection-title">Immediate Actions</h3>
+
+  <p>The first hour of a sanitation event determines conditions for everything that follows. Assess the situation.</p>
+
+  <p>If you suspect sewer failure, check sewer status.</p>
+
+  <div class="nwc nwc-note">
+    <span class="nwc-label">Note</span>
+    <div class="nwc-body"><p>Sewer failure and water pressure loss are different problems with different procedures. If your sewer system is intact and only water pressure is lost, your toilets can be "bucket flushed" by pouring water into the tank. Collect greywater and use it for bucket flushing.</p></div>
+  </div>
+
+  <p>If sewer is compromised, or if you do not know: follow all steps below.</p>
+
+  <p>Direct one household member to tape off the toilets with painter's tape and label "DO NOT USE."</p>
+
+  <p>Deploy the Portable Toilet System.</p>
+
+  <div class="nwc nwc-note">
+    <span class="nwc-label">Note</span>
+    <div class="nwc-body"><p>A bucket and trash bag work as a makeshift Portable Toilet System if no better options exist.</p></div>
+  </div>
+
+  <p>Stage the Portable Toilet System in the largest bathroom. Position the vessel, seat the liner, add a small amount of absorbent material (kitty litter works), and place deodorizer (baking soda works) within reach. The system should be ready before the first use.</p>
+
+  <p>Stage two Hand Wash Stations: one at the kitchen sink and one next to the Portable Toilet System. Each Hand Wash Station should include: filtered and purified water in a container with a spigot, soap, greywater basin, and paper towels.</p>
+
+  <p>Designate a trash staging area outside (typically wherever you store your trash now). Use contractor-grade bags - standard kitchen bags fail under the weight and volume of emergency sanitation waste. Compost food waste if you already have a pre-existing compost system. Separate recyclables. Reuse glass jars, food storage buckets, meal pouches that double as baggies. Place normal trash bags into heavy mil bags and compact before sealing.</p>
+
+  <p>Brief every household member on: waste handling procedure, hand hygiene procedures, and trash procedures.</p>
+
+  <div class="nwc nwc-note">
+    <span class="nwc-label">Note</span>
+    <div class="nwc-body"><p>The best time to introduce these procedures is before an emergency. Families who camp regularly already know how a Portable Toilet System works, how a Hand Wash Station operates, and how to manage waste without running water. Your next camping trip is a field exercise.</p></div>
+  </div>
+
+  <!-- 4.3.2 Sustained Operations -->
+  <div class="subsection-ref">4.3.2 - Sustained Operations</div>
+  <h3 id="sa-ops-sustained" class="subsection-title">Sustained Operations</h3>
+
+  <p>Sanitation discipline runs on a daily rhythm. The same actions happen at the same moments every day. The system does not manage itself.</p>
+
+  <div class="proto">
+    <div class="proto-header" onclick="this.closest('.proto').classList.toggle('open')">
+      <span class="proto-title">Hygiene</span>
+      <span class="proto-chevron">&#9660;</span>
+    </div>
+    <div class="proto-body">
+      <p><strong>Hands.</strong> A hands-free pump delivers water without setting down a contaminated hand on another surface. Use pump-dispensed soap, work it thoroughly between fingers and under nails, rinse. Four moments without exception: after waste handling, before food preparation, after cleaning, after contact with a sick household member. When water is critically limited, body wipes bridge the gap - they don't replace soap but maintain a contamination barrier when nothing else is available.</p>
+      <p><strong>Body.</strong> Skip full bathing - it consumes more water than any other hygiene activity. No-rinse full-body sponges handle short events. For extended operations, a self-pressurizing portable tank with a pump nozzle delivers a usable shower from a gallon or less. Some models accept inline propane heaters - hot water at day five makes a material difference. Priority zones: groin, armpits, feet, face.</p>
+      <p><strong>Laundry.</strong> Prioritize underwear and socks first, towels second, outer layers last. Outer clothing can be worn significantly longer than normal without health consequence. A sealed agitation wash bag handles a full underwear and sock load in under ten minutes - fill with water and biodegradable soap, agitate, drain, rinse. Add a small amount of bleach to each load. A retractable clothesline strings between two anchor points without tools. Wring clothes in a dry towel before hanging to cut dry time significantly.</p>
+    </div>
+  </div>
+
+  <div class="proto">
+    <div class="proto-header" onclick="this.closest('.proto').classList.toggle('open')">
+      <span class="proto-title">Food Surface Control</span>
+      <span class="proto-chevron">&#9660;</span>
+    </div>
+    <div class="proto-body">
+      <p>Premix bleach solution at setup: 1 teaspoon per 32oz of water fills a labeled DISINFECTANT spray bottle at roughly 200 parts per million - effective concentration for food contact surfaces. Apply before each food prep session and allow two minutes of contact time. Wipe clean.</p>
+      <p>Use separate dedicated cloths by zone - food prep, sink, toilet-adjacent. Never use the same cloth across zones. Use bleach to do a towels-only laundry wash.</p>
+    </div>
+  </div>
+
+  <div class="proto">
+    <div class="proto-header" onclick="this.closest('.proto').classList.toggle('open')">
+      <span class="proto-title">Waste Management</span>
+      <span class="proto-chevron">&#9660;</span>
+    </div>
+    <div class="proto-body">
+      <p>If sewer is intact but pressure is lost: apply yellow-let-it-mellow for liquid waste. Collect greywater and bucket-flush the toilet when needed.</p>
+      <p>If the sewer system has failed, you need to deploy your Portable Toilet System (or dig a hole).</p>
+      <p>If you have ever been in a Porta John, you understand that it is important to separate liquid and solid waste at the source. A urine-diverting toilet handles this mechanically - liquid to a separate canister while solids collect in the chamber lined with a disposable waste bag. This is the single biggest decision factor in Portable Toilet System selection. The reason is simple: separating liquids and solids minimizes bag consumption and maximizes odor control.</p>
+      <p>After each solid use: add a layer of absorbent cover material (kitty litter, sawdust) over the solids and close the lid. Replace waste bag when full. Place full waste bag in contractor mil grade bag. Empty the urine canister in a designated outdoor disposal point at least ten feet from the foundation.</p>
+    </div>
+  </div>
+
+  <div class="proto">
+    <div class="proto-header" onclick="this.closest('.proto').classList.toggle('open')">
+      <span class="proto-title">Greywater</span>
+      <span class="proto-chevron">&#9660;</span>
+    </div>
+    <div class="proto-body">
+      <p>Collect at the point of generation - a bucket under the two Hand Wash Stations, a separate container for dishwater.</p>
+      <p>If the sewer is intact, only water pressure is lost: greywater can be used for bucket flushing. A direct bowl pour clears a toilet without municipal pressure. Use it before directing anything to outdoor disposal.</p>
+      <p>If the sewer system has failed: nothing goes down the drains. All greywater goes to a designated outdoor area at least ten feet from the foundation. Empty all greywater buckets at the end of the day.</p>
+      <p>Laundry generates the largest volume of greywater. Biodegradable soap is required when laundry water goes to ground disposal.</p>
+    </div>
+  </div>
+
+  <div class="proto">
+    <div class="proto-header" onclick="this.closest('.proto').classList.toggle('open')">
+      <span class="proto-title">Trash Management</span>
+      <span class="proto-chevron">&#9660;</span>
+    </div>
+    <div class="proto-body">
+      <p>Trash volume increases faster than expected during emergency operations. Paper plates replace washable dishes. Disposable gloves replace bare hands. Paper towels replace cloth. Every sanitation protocol in this section generates waste that did not exist before. The system needs to move that volume outside efficiently and keep it there.</p>
+
+      <div class="nwc nwc-caution">
+        <span class="nwc-label">Warning</span>
+        <div class="nwc-body"><p>Human waste is a separate chain. Portable Toilet System bags go directly to contractor bags and stage outside immediately. They never enter the household trash stream.</p></div>
+      </div>
+
+      <p><strong>Sort at the source.</strong> Four streams reduce volume and keep options open for when pickup resumes. Food scraps go to a compost pile if one already exists - do not start composting during an emergency. Plastic and glass bottles rinse and stage separately - they compress well and do not rot. Cardboard breaks down flat and stages on its own. Everything else is trash.</p>
+
+      <p><strong>Reduce what enters the stream.</strong> Reuse glass jars for storage. Meal pouches double as baggies. Buckets stay in rotation. If water pressure is lost, eat on thin paper plates and disposable serviceware - the tradeoff is more trash but zero dishwater. That is the right tradeoff when water is limited.</p>
+
+      <p><strong>One collection point inside.</strong> Consolidate all household trash to a single bag or bin in the kitchen. When the kitchen bag is full, tie it off and place it into a 42-gallon, 3-mil contractor bag. Compact before sealing. One contractor bag at a time.</p>
+
+      <p><strong>Stage outside daily.</strong> Sealed contractor bags go to the designated outdoor staging area - typically wherever the bins already live. Use existing wheeled bins as overflow staging. They are lidded, already outside, and already part of the household routine. Never leave an open bag inside overnight.</p>
+    </div>
+  </div>
+
+  <!-- 4.3.3 Illness Protocol -->
+  <div class="subsection-ref">4.3.3 - Illness Protocol</div>
+  <h3 id="sa-ops-illness" class="subsection-title">Illness Protocol</h3>
+
+  <div class="proto open">
+    <div class="proto-header" onclick="this.closest('.proto').classList.toggle('open')">
+      <span class="proto-title">Illness Protocol - Open when needed</span>
+      <span class="proto-chevron">&#9660;</span>
+    </div>
+    <div class="proto-body">
+      <p>When someone in the household becomes sick, the system shifts immediately. The goal is no longer baseline hygiene - it is preventing transmission to the rest of the household.</p>
+      <p>Designate one bathroom or sanitation area as the sick room for the duration of the illness. All waste from the sick household member goes through that space only. This single decision contains most of the transmission risk.</p>
+      <p>Isolate eating and drinking utensils for the sick household member. Wash separately using bleach solution, not shared dishwater.</p>
+      <p>Use gloves for any contact with the sick person's waste, laundry, or contaminated surfaces. Dispose of gloves after each use. Do not reuse.</p>
+      <p>Replace shared hand towels with paper towels immediately. Shared cloth towels are a transmission vector most households overlook.</p>
+      <p>Disinfect the sick bathroom or sanitation area after each use. High-contact points: toilet seat, faucet handles, door handle.</p>
+      <p>Contaminated laundry - anything soiled by illness - gets handled with gloves, washed separately with bleach, and dried completely before reuse.</p>
+      <p><strong>Illness greywater.</strong> Water used in illness care - bathing a sick person, rinsing contaminated items, laundry wash water - is not standard greywater. Add a capful of bleach before disposal. Dispose at a separate location away from the household's standard greywater area. Do not pour it into the toilet if sewer is compromised. Handle with gloves throughout.</p>
+      <div class="nwc nwc-caution">
+        <span class="nwc-label">Caution</span>
+        <div class="nwc-body"><p>Gastrointestinal illness spreads rapidly through a household when hygiene discipline slips. One person sick for 24 hours can become the entire household sick for a week. The illness protocol starts at the first symptom, not after.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4.3.4 Maintenance -->
+  <div class="subsection-ref">4.3.4 - Maintenance</div>
+  <h3 id="sa-ops-maintenance" class="subsection-title">Maintenance</h3>
+
+  <p>When the clocks change, spend ten minutes on sanitation supplies. Restock anything below threshold. That is the entire maintenance plan.</p>
+
+  <table class="maintenance-table">
+    <thead>
+      <tr>
+        <th>Frequency</th>
+        <th>Task</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Continuously</td>
+        <td>Restock consumables as they deplete - waste bags, gloves, soap, sanitizer, paper towels</td>
+      </tr>
+      <tr>
+        <td>Annually (November - DST)</td>
+        <td>Rotate bleach - a jug older than one year has lost meaningful potency. Move old stock to everyday cleaning, replace with fresh</td>
+      </tr>
+      <tr>
+        <td>Annually (November - DST)</td>
+        <td>Inspect glove supply for brittleness, verify waste bag and contractor bag counts, confirm soap and sanitizer levels</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 4.3.5 FLIGHT BAG -->
+  <div class="subsection-ref">4.3.5 - The Flight Bag</div>
+  <h3 id="sa-ops-flightbag" class="subsection-title">The Flight Bag</h3>
+
+  <div class="flight-bag-box">
+    <div class="flight-bag-header">Your Sanitation Flight Bag</div>
+    <div class="flight-bag-body">
+      <p>The Flight Bag is the last thing you grab before you take off. It has all of your essential pieces of equipment.</p>
+      <p>Your Sanitation Flight Bag includes the Portable Toilet System, Hand Wash Station, reusable feminine hygiene, wash bag, and retractable clothesline. These items establish full sanitation capability at any location.</p>
+      <p>Items marked &#x2708; in the loadout table go in the Sanitation Flight Bag.</p>
+    </div>
+  </div>
+
+</section>
+
+<!-- ===============================================
+     4.4 LOADOUTS
+     =============================================== -->
+<section class="doc-section" id="sa-loadouts">
+  <div class="section-ref">4.4 - Loadouts</div>
+  <h2 class="section-title">Loadouts</h2>
+
+  <p>Three tiers. Each is additive - the 7-Day assumes the 72-Hour is complete, and the 14-Day assumes the 7-Day is complete. The 72-Hour loadout establishes full baseline capability: Portable Toilet System, Hand Wash Station, and hygiene consumables. The 7-Day adds outdoor capability and manual laundry. The 14-Day solves duration through consumables scaling and pressurized bathing.</p>
+
+  <!-- 72-HOUR -->
+  <div class="loadout-tier">
+    <div class="loadout-tier-header">
+      <span class="loadout-tier-name">72-Hour Loadout</span>
+      <span class="loadout-tier-badge">Baseline capability</span>
+    </div>
+    <div class="loadout-table-wrap">
+      <table class="loadout-table">
+        <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Requirement</th>
+            <th>Recommended</th>
+            <th>Qty</th>
+            <th>Unit Cost</th>
+            <th>Total</th>
+            <th>&#x2708;</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-category"><td colspan="7">Waste Containment</td></tr>
+          <tr>
+            <td class="col-ref"><a href="#sa-doctrine-waste">4.2.3</a></td>
+            <td>Portable Toilet System</td>
+            <td class="col-brand">BOXIO TOILET MAX+</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">~$249</td>
+            <td class="col-cost">~$249</td>
+            <td class="col-fb">&#x2708;</td>
+          </tr>
+          <tr class="row-category"><td colspan="7">Hygiene</td></tr>
+          <tr>
+            <td class="col-ref"><a href="#sa-doctrine-hygiene">4.2.1</a></td>
+            <td>Hand Wash Station</td>
+            <td class="col-brand">BOXIO WASH PLUS</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">~$249</td>
+            <td class="col-cost">~$249</td>
+            <td class="col-fb">&#x2708;</td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#sa-doctrine-hygiene">4.2.1</a></td>
+            <td>Hand sanitizer - 60%+ alcohol</td>
+            <td class="col-brand">Purell Advanced, 64oz refill</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">~$20</td>
+            <td class="col-cost">~$20</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#sa-ops-sustained">4.3.2</a></td>
+            <td>Waterless body wipes</td>
+            <td class="col-brand">Combat Wipes ACTIVE, 25ct</td>
+            <td class="col-qty">2</td>
+            <td class="col-cost">~$8</td>
+            <td class="col-cost">~$16</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr class="row-variable">
+            <td class="col-ref"><a href="#sa-doctrine-waste">4.2.3</a></td>
+            <td>Infant waste management</td>
+            <td class="col-brand">Diapers - per household need, 72-hr supply</td>
+            <td class="col-qty">-</td>
+            <td class="col-cost">-</td>
+            <td class="col-cost">calc</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr class="row-variable">
+            <td class="col-ref"><a href="#sa-doctrine-hygiene">4.2.1</a></td>
+            <td>Feminine hygiene - disposable</td>
+            <td class="col-brand">Per household need - 72-hr supply</td>
+            <td class="col-qty">-</td>
+            <td class="col-cost">-</td>
+            <td class="col-cost">calc</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr class="row-variable">
+            <td class="col-ref"><a href="#sa-doctrine-hygiene">4.2.1</a></td>
+            <td>Oral hygiene</td>
+            <td class="col-brand">Toothbrush + toothpaste per household member</td>
+            <td class="col-qty">-</td>
+            <td class="col-cost">~$5 ea</td>
+            <td class="col-cost">calc</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr class="row-category"><td colspan="7">Food Surface Control</td></tr>
+          <tr>
+            <td class="col-ref"><a href="#sa-doctrine-food">4.2.2</a></td>
+            <td>Surface disinfection</td>
+            <td class="col-brand">Clorox bleach, 32oz</td>
+            <td class="col-qty">2</td>
+            <td class="col-cost">~$4</td>
+            <td class="col-cost">~$8</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#sa-doctrine-food">4.2.2</a></td>
+            <td>Disinfection delivery + dedicated cloths</td>
+            <td class="col-brand">Spray bottles, 2-pack + microfiber cloths</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">~$10</td>
+            <td class="col-cost">~$10</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#sa-doctrine-food">4.2.2</a></td>
+            <td>Disposable serviceware - plates, cups, cutlery</td>
+            <td class="col-brand">200ct plates + 200ct cups + 200ct cutlery</td>
+            <td class="col-qty">1 set</td>
+            <td class="col-cost">~$19</td>
+            <td class="col-cost">~$19</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr class="row-category"><td colspan="7">Waste Handling</td></tr>
+          <tr>
+            <td class="col-ref"><a href="#sa-ops-sustained">4.3.2</a></td>
+            <td>Waste handling protection</td>
+            <td class="col-brand">Nitrile gloves, 100ct</td>
+            <td class="col-qty">2</td>
+            <td class="col-cost">~$12</td>
+            <td class="col-cost">~$24</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#sa-doctrine-trash">4.2.5</a></td>
+            <td>Heavy-duty waste staging</td>
+            <td class="col-brand">Contractor bags, 25ct</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">~$25</td>
+            <td class="col-cost">~$25</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr class="row-total">
+            <td colspan="5" class="total-label">Estimated Total (household-variable items excluded)</td>
+            <td class="total-cost col-cost">~$620</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 7-DAY -->
+  <div class="loadout-tier">
+    <div class="loadout-tier-header">
+      <span class="loadout-tier-name">7-Day Loadout</span>
+      <span class="loadout-tier-badge">Extended capability - adds to 72-Hour</span>
+    </div>
+    <div class="loadout-table-wrap">
+      <table class="loadout-table">
+        <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Requirement</th>
+            <th>Recommended</th>
+            <th>Qty</th>
+            <th>Unit Cost</th>
+            <th>Total</th>
+            <th>&#x2708;</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-category"><td colspan="7">Waste Containment</td></tr>
+          <tr>
+            <td class="col-ref"><a href="#sa-doctrine-waste">4.2.3</a></td>
+            <td>Outdoor privacy shelter</td>
+            <td class="col-brand">BOXIO Privacy Tent</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">~$89</td>
+            <td class="col-cost">~$89</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#sa-doctrine-waste">4.2.3</a></td>
+            <td>Extended compostable bag supply</td>
+            <td class="col-brand">BOXIO compostable bags, 10ct</td>
+            <td class="col-qty">3</td>
+            <td class="col-cost">~$12</td>
+            <td class="col-cost">~$36</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr class="row-category"><td colspan="7">Hygiene</td></tr>
+          <tr>
+            <td class="col-ref"><a href="#sa-doctrine-hygiene">4.2.1</a></td>
+            <td>Waterless bathing - no-rinse sponges</td>
+            <td class="col-brand">Scrubzz rinse-free bath sponges, 8ct</td>
+            <td class="col-qty">4</td>
+            <td class="col-cost">~$15</td>
+            <td class="col-cost">~$60</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#sa-doctrine-hygiene">4.2.1</a></td>
+            <td>Reusable feminine hygiene</td>
+            <td class="col-brand">Medical-grade silicone menstrual cup</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">~$35</td>
+            <td class="col-cost">~$35</td>
+            <td class="col-fb">&#x2708;</td>
+          </tr>
+          <tr class="row-category"><td colspan="7">Laundry</td></tr>
+          <tr>
+            <td class="col-ref"><a href="#sa-doctrine-hygiene">4.2.1</a></td>
+            <td>Manual laundry - sealed agitation wash bag</td>
+            <td class="col-brand">Scrubba Wash Bag</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">~$50</td>
+            <td class="col-cost">~$50</td>
+            <td class="col-fb">&#x2708;</td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#sa-doctrine-hygiene">4.2.1</a></td>
+            <td>Laundry drying - retractable clothesline</td>
+            <td class="col-brand">BOXIO retractable clothesline</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">~$20</td>
+            <td class="col-cost">~$20</td>
+            <td class="col-fb">&#x2708;</td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#sa-doctrine-greywater">4.2.4</a></td>
+            <td>Biodegradable laundry soap</td>
+            <td class="col-brand">Campsuds, 8oz</td>
+            <td class="col-qty">2</td>
+            <td class="col-cost">~$7</td>
+            <td class="col-cost">~$14</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr class="row-total">
+            <td colspan="5" class="total-label">Estimated Total - 7-Day tier</td>
+            <td class="total-cost col-cost">~$304</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 14-DAY -->
+  <div class="loadout-tier">
+    <div class="loadout-tier-header">
+      <span class="loadout-tier-name">14-Day Loadout</span>
+      <span class="loadout-tier-badge">Full independence - adds to 7-Day</span>
+    </div>
+    <div class="loadout-table-wrap">
+      <table class="loadout-table">
+        <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Requirement</th>
+            <th>Recommended</th>
+            <th>Qty</th>
+            <th>Unit Cost</th>
+            <th>Total</th>
+            <th>&#x2708;</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-category"><td colspan="7">Hygiene</td></tr>
+          <tr>
+            <td class="col-ref"><a href="#sa-doctrine-hygiene">4.2.1</a></td>
+            <td>Pressurized portable shower - self-pressurizing tank</td>
+            <td class="col-brand">RinseKit Cube, 4-gal</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">~$300</td>
+            <td class="col-cost">~$300</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr>
+            <td class="col-ref"><a href="#sa-doctrine-hygiene">4.2.1</a></td>
+            <td>Hot water capability - propane inline heater</td>
+            <td class="col-brand">RinseKit HyperHeater 2.0</td>
+            <td class="col-qty">1</td>
+            <td class="col-cost">~$250</td>
+            <td class="col-cost">~$250</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr class="row-variable">
+            <td class="col-ref"><a href="#sa-doctrine-waste">4.2.3</a></td>
+            <td>Extended infant supplies</td>
+            <td class="col-brand">Diapers - per household need, 14-day supply</td>
+            <td class="col-qty">-</td>
+            <td class="col-cost">-</td>
+            <td class="col-cost">calc</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr class="row-variable">
+            <td class="col-ref"><a href="#sa-doctrine-hygiene">4.2.1</a></td>
+            <td>Extended feminine hygiene</td>
+            <td class="col-brand">Per household need - 14-day supply</td>
+            <td class="col-qty">-</td>
+            <td class="col-cost">-</td>
+            <td class="col-cost">calc</td>
+            <td class="col-fb"></td>
+          </tr>
+          <tr class="row-total">
+            <td colspan="5" class="total-label">Estimated Total - 14-Day tier (household-variable items excluded)</td>
+            <td class="total-cost col-cost">~$550</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="nwc nwc-note">
+    <span class="nwc-label">Note</span>
+    <div class="nwc-body"><p>The RinseKit HyperHeater 2.0 runs on propane. Propane reserve from your Energy system powers both cooking capability and hot water supply. See Energy System 1 for propane doctrine.</p></div>
+  </div>
+
+</section>
+
+<!-- ===============================================
+     4.5 SERVICES
+     =============================================== -->
+<section class="doc-section" id="sa-services">
+  <div class="section-ref">4.5 - Services</div>
+  <h2 class="section-title">Services</h2>
+
+  <p>Most sanitation upgrades for suburban households are equipment and supply decisions, not infrastructure projects. The loadout tiers cover the full range of portable capability. Two professional services are worth adding to your ERP.</p>
+
+  <div class="services-grid">
+    <div class="service-card">
+      <div class="service-card-tag">Professional Service</div>
+      <h3>Septic Inspection and Pumping</h3>
+      <p>Households on septic should know three things before an event occurs: the location of their tank, its last service date, and their provider's contact number. A tank that is overdue for pumping is a failure waiting for a trigger. Schedule an inspection and pump if you cannot confirm service within the last three years. This is a one-time maintenance action that removes one of the more predictable failure modes from your risk profile.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-card-tag">Professional Service</div>
+      <h3>Backflow Prevention</h3>
+      <p>A licensed plumber can install a backflow preventer on your main sewer line. This single device prevents the failure mode described in the Caution box above - waste pushed back through lower fixtures when a compromised line is flushed under pressure. It is a permanent, low-maintenance installation that eliminates the most contaminating sanitation failure a suburban household can experience.</p>
+    </div>
+  </div>
+
+  <div class="nwc nwc-note">
+    <span class="nwc-label">Note</span>
+    <div class="nwc-body"><p>Both service recommendations belong in your ERP before an event occurs. A septic provider and a licensed plumber are difficult to schedule during an active emergency. Establish both contacts now.</p></div>
+  </div>
+
+  <div class="cta-strip">
+    <div class="cta-strip-text">
+      <strong>Ready to build your sanitation system?</strong>
+      EPICS Co-Pilot and Wingman clients receive a complete sanitation assessment as part of their household ERP. We identify your contamination vulnerabilities, confirm your loadout against your household profile, and make sure your five pathways are covered before an event occurs.
+    </div>
+    <a href="index.html#cta" class="btn-cta">Book a Consultation</a>
+  </div>
+
+</section>
+
+</main>
+
+<div class="next-bar">
+  <div class="next-bar-inner">
+    <div>
+      <div class="next-bar-label">Next System</div>
+      <div class="next-bar-title">System 5 — Medical</div>
+    </div>
+    <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+      <a href="medical.html" class="btn btn-primary">Continue to Medical</a>
+      <a href="index.html#toc" class="btn btn-ghost">Back to Contents</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner" style="flex-direction:column; align-items:center; text-align:center;">
+    <div class="footer-brand">EPICS Dash-1</div>
+    <div class="footer-tagline">ERPS for the Suburban Jungle &middot; &copy; 2026 EPICS Consulting, LLC</div>
+  </div>
+</footer>
+
+<script>
+var saState = { sa1: 1, sa2: 1, sa3: 1, sa4: 1, sa5: 1 };
+
+var saLabels = {
+  sa1: 'Portable Toilet System experience or equipment',
+  sa2: 'Hand Wash Station or plan without running water',
+  sa3: 'Bleach for surface disinfection',
+  sa4: 'Contractor-grade trash bags',
+  sa5: '14-day hygiene consumable supply'
+};
+
+function saToggle(q, val) {
+  saState[q] = val;
+  var btns = document.querySelectorAll('#toggle-' + q + ' .toggle-btn');
+  btns.forEach(function(b) {
+    b.classList.remove('active-yes', 'active-no');
+    if (parseInt(b.getAttribute('data-val')) === val) {
+      b.classList.add(val === 1 ? 'active-yes' : 'active-no');
+    }
+  });
+  updateSaCalc();
+}
+
+function updateSaCalc() {
+  var score = 0;
+  Object.keys(saState).forEach(function(k) { score += saState[k]; });
+  document.getElementById('sa-score').textContent = score;
+
+  var gaps = [];
+  Object.keys(saState).forEach(function(k) {
+    if (saState[k] === 0) gaps.push(saLabels[k]);
+  });
+
+  var gapsBox = document.getElementById('sa-gaps-box');
+  if (gaps.length > 0) {
+    gapsBox.style.display = '';
+    document.getElementById('sa-gaps').innerHTML = gaps.join('<br>');
+  } else {
+    gapsBox.style.display = 'none';
+  }
+
+  document.getElementById('sa-band-red').classList.remove('active');
+  document.getElementById('sa-band-orange').classList.remove('active');
+  document.getElementById('sa-band-yellow').classList.remove('active');
+  document.getElementById('sa-band-green').classList.remove('active');
+
+  if (score <= 1) {
+    document.getElementById('sa-band-red').classList.add('active');
+  } else if (score <= 3) {
+    document.getElementById('sa-band-orange').classList.add('active');
+  } else if (score <= 4) {
+    document.getElementById('sa-band-yellow').classList.add('active');
+  } else {
+    document.getElementById('sa-band-green').classList.add('active');
+  }
+}
+
+updateSaCalc();
+</script>
+
+</html>
